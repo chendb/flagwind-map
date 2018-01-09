@@ -6,7 +6,7 @@
  */
 
 
-export const MapSetting {
+export const MapSetting = {
     baseUrl:'',
     arcgisApi: "http://js.arcgis.com/3.21/",
     wkid: 102100, // 生产环境使用
@@ -24,6 +24,4 @@ export const MapSetting {
     zoom: 9,
     logo: false,  // 是否显示logo
     slider: false // 是否显示放大缩小按钮
-
 }
-

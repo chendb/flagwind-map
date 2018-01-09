@@ -3,7 +3,7 @@
   "version": "1.0.2",
   "description": "基于esri地图扩展应用",
   "main": "dist/lib/index.js",
-  "types":"dist/lib/index.d.js",
+  "types": "dist/lib/index.d.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

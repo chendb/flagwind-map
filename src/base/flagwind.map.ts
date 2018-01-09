@@ -9,21 +9,14 @@ declare var dijit:any;
 
 export const FlagwindMapOptions = {
 
-    mapLoad: null,
-    mapClick: null,
-
     onMapLoad() {
-        if (this.mapLoad) {
-            this.mapLoad();
-        }
-    },
-    onMapZoomEnd(level) {
 
     },
-    onMapClick(evt) {
-        if (this.mapClick) {
-            this.mapClick(evt);
-        }
+    onMapZoomEnd(level:number) {
+
+    },
+    onMapClick(evt:any) {
+
     }
 
 }

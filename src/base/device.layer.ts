@@ -163,7 +163,7 @@ export class DeviceLayer extends FlagwindFeatureLayer {
         }
     }
 
-    setInfoWindow(pt: any, title: any, content: string | void) {
+    setInfoWindow(pt: any, title: any, content: string | void, evt: any = null) {
         if (content) {
             this.map.infoWindow.setContent(content);
         }
