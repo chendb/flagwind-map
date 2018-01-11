@@ -1,3 +1,7 @@
-src/
+.*
+*.md
+*.yml
+build/
 node_modules/
-tsconfig.json
+test/
+gulpfile.js
