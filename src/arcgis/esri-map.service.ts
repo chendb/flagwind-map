@@ -269,6 +269,10 @@ namespace flagwind {
             // 地图对象
             const map = new esri.Map(flagwindMap.mapEl, mapArguments);
             map.infoWindow.anchor = "top";
+
+            let div = (<any>flagwindMap).titleDiv = document.createElement("div");
+            div.classList.add("eg-map-title");
+            (<any>flagwindMap).innerMap.root.parentElement.appendChild(div);
         }
 
         public createContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }, flagwindMap: FlagwindMap): void {

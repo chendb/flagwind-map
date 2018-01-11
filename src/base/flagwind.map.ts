@@ -15,8 +15,6 @@ namespace flagwind {
 
     export class FlagwindMap {
 
-        private titleDiv: any;
-
         private options: any;
         private baseLayers: Array<FlagwindTiledLayer> = [];
         private featureLayers: Array<FlagwindFeatureLayer> = [];
@@ -210,9 +208,6 @@ namespace flagwind {
             this.spatial = this.mapService.createSpatial(this.mapSetting.wkid);
             const map = this.mapService.createMap(this.mapSetting, this);
             this.innerMap = map;
-            let div = this.titleDiv = document.createElement("div");
-            div.classList.add("eg-map-title");
-            this.innerMap.root.parentElement.appendChild(div);
         }
 
     }

@@ -183,6 +183,7 @@ rimraf(distPath, (error) =>
 
     // 重新建立构建目录
     fs.mkdirSync("dist");
+    
 
     // 生成代码
     build([
@@ -194,6 +195,21 @@ rimraf(distPath, (error) =>
         },
         {
             file: resolve("dist/flagwind-map.min.js"),
+            format: "umd",
+            outro: "exports['default'] = flagwind;",
+            env: 'production'
+        }
+    ].map(genConfig));
+
+    build([
+        {
+            file: resolve("examples/scripts/lib/flagwind-map/flagwind-map.js"),
+            format: "umd",
+            outro: "exports['default'] = flagwind;",
+            env: 'development'
+        },
+        {
+            file: resolve("examples/scripts/lib/flagwind-map/flagwind-map.min.js"),
             format: "umd",
             outro: "exports['default'] = flagwind;",
             env: 'production'

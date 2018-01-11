@@ -21,6 +21,12 @@ requirejs.config({
 requirejs(['flagwindMap'],
     function (flagwindMap) {
         var flagwind = flagwindMap.default;
+        var mapService = new flagwind.MinemapService();
+        var mapSetting = new flagwind.MinemapSetting();
+        var myMap = new flagwind.FlagwindMap(mapService, mapSetting, 'map', {
+            onLoad: function () {
 
+            }
+        });
     }
 );

@@ -68,7 +68,7 @@ namespace flagwind {
             return new MinemapPoint(options.x, options.y, options.spatial);
         }
         public createSpatial(wkid: any) {
-            throw new Error("Method not implemented.");
+            return new MinemapSpatial(wkid);
         }
         public getInfoWindow(map: any) {
             throw new Error("Method not implemented.");
@@ -138,14 +138,14 @@ namespace flagwind {
         }
 
         public createMap(setting: IMapSetting, flagwindMap: FlagwindMap) {
-            minemap.domainUrl = "http://${setting.mapDomain}";
-            minemap.spriteUrl = "http://${setting.mapDomain}/minemapapi/${setting.mapDomain}/sprite/sprite";
-            minemap.serviceUrl = "http://${setting.mapDomain}/service";
+            minemap.domainUrl = "http://" + setting.mapDomain;
+            minemap.spriteUrl = "http://" + setting.mapDomain + "/minemapapi/" + setting.mapVersion + "/sprite/sprite";
+            minemap.serviceUrl = "http://" + setting.mapDomain + "/service";
             minemap.accessToken = setting.accessToken || "25cc55a69ea7422182d00d6b7c0ffa93";
             minemap.solution = 2365;
             const map = new minemap.Map({
                 container: flagwindMap.mapEl,
-                style: "http://${setting.mapDomain}/service/solu/style/id/2365",
+                style: "http://" + setting.mapDomain + "/service/solu/style/id/2365",
                 center: setting.center || [116.46, 39.92],
                 zoom: setting.zoom,
                 pitch: 60,

@@ -1,18 +1,3 @@
-/*!
-* flagwind-map v1.0.0 
-* 
-* Authors:
-*      chendebao <hbchendb1985@gmail.com>
-* 
-* Licensed under the MIT License.
-* Copyright (C) 2018-2018 Flagwind Inc. All rights reserved. 
-*/
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
-	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.flagwind = {})));
-}(this, (function (exports) { 'use strict';
-
 var __extends = (this && this.__extends) || (function () {
     var extendStatics = Object.setPrototypeOf ||
         ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
@@ -3780,9 +3765,3 @@ var flagwind;
     }());
     flagwind.MinemapSetting = MinemapSetting;
 })(flagwind || (flagwind = {}));
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-exports['default'] = flagwind;
-
-})));

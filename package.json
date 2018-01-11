@@ -4,6 +4,7 @@
     "description": "flagwind map library",
     "author": "chendb <hbchendb1985@gmail.com>",
     "scripts": {
+        "dev": "webpack-dev-server --content-base test/ --open --inline --hot --compress --history-api-fallback --port 8010 --config build/webpack.dev.config.js",
         "lint": "tslint src/**/*.ts",
         "build:compile": "tsc -p .",
         "build:dist": "node build/dist.js",
@@ -44,11 +45,16 @@
         "chai": "^4.1.2",
         "chalk": "^2.3.0",
         "es6-promise": "^4.1.1",
+        "html-loader": "^0.5.1",
+        "html-webpack-plugin": "^2.30.1",
         "karma": "^1.7.1",
         "karma-mocha": "^1.3.0",
         "karma-mocha-reporter": "^2.2.5",
         "karma-phantomjs-launcher": "^1.0.4",
         "karma-webpack": "^2.0.6",
+        "less": "^2.7.3",
+        "less-loader": "^4.0.5",
+        "friendly-errors-webpack-plugin": "^1.6.1",
         "mocha": "^4.0.1",
         "phantomjs-prebuilt": "^2.1.16",
         "rimraf": "^2.6.2",
@@ -59,7 +65,9 @@
         "tslint-config-flagwind": "^1.0.0",
         "typescript": "^2.6.1",
         "uglify-js": "^3.2.1",
-        "webpack": "^3.10.0"
+        "webpack": "^3.8.1",
+        "webpack-dev-server": "^2.9.4",
+        "webpack-merge": "^4.1.1"
     },
     "engines": {
         "node": ">= 6.0.0",
