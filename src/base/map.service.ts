@@ -48,6 +48,8 @@ namespace flagwind {
 
         getInfoWindow(map: any): any;
 
+        showInfoWindow(evt: { graphic: any; mapPoint: any }): void;
+
         // showInfoWindow(map: any): void;
 
         // hideInfoWindow(map: any): void;
