@@ -1,7 +1,7 @@
 /// <reference path="../base/flagwind.layer.ts" />
 namespace flagwind {
 
-    export class EsriLocationLayer extends FlagwindFeatureLayer implements ILocationLayer {
+    export class EsriLocationLayer extends FlagwindFeatureLayer implements IFlagwindLocationLayer {
 
         private timer: any;
         public graphic: any;
@@ -23,7 +23,7 @@ namespace flagwind {
                     me.onLoad();
                 });
             }
-            this.flagwindMap.addDeviceLayer(this);
+            this.flagwindMap.addFeatureLayer(this);
         }
 
         public get map() {
