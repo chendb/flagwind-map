@@ -189,8 +189,6 @@ namespace flagwind {
 
             let el = document.createElement("div");
             el.id = "flagwind-map-title";
-        
-
 
             let titleDiv = (<any>flagwindMap).titleDiv = document.createElement("div");
             titleDiv.id = "flagwind-map-title";
