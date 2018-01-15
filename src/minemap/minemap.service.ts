@@ -183,8 +183,7 @@ namespace flagwind {
                 minZoom: setting.minZoom || 9      // 地图最小缩放级别限制
             });
 
-            let popup = new minemap.Popup({ closeOnClick: false })
-                .addTo(map);
+            let popup = new minemap.Popup({ closeOnClick: false });
             map.infoWindow = popup;
 
             let el = document.createElement("div");
@@ -194,7 +193,8 @@ namespace flagwind {
             titleDiv.id = "flagwind-map-title";
             titleDiv.classList.add("flagwind-map-title");
             
-            (<any>flagwindMap).titleMarker = new minemap.Marker(titleDiv, {offset: [0, 0]})
+            (<any>flagwindMap).titleMarker = new minemap.Marker(titleDiv, {offset: [-25, -25]})
+            .setLngLat([116.46,39.92])
             .addTo(map);
 
             // (<any>flagwindMap).innerMap._controlContainer.appendChild(div);

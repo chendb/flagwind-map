@@ -16,5 +16,7 @@
 .vscode
 .svn/
 node_modules/
+examples/scripts/lib/flagwind-map/
 dist/
+bin/
 /test/unit/coverage/
