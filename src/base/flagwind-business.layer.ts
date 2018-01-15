@@ -1,6 +1,6 @@
 namespace flagwind {
 
-    export const deviceLayerOptions: any = {
+    export const BUSINESS_LAYER_OPTIONS: any = {
         onLayerClick: function (evt: any) {
             console.log("onLayerClick");
         },
@@ -24,20 +24,23 @@ namespace flagwind {
         showInfoWindow: true
     };
 
-    export abstract class DeviceLayer extends FlagwindFeatureLayer {
+    /**
+     * 业务图层
+     */
+    export abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
 
         public constructor(
             public flagwindMap: FlagwindMap,
             public id: string, public options: any) {
             super(flagwindMap.mapService, id, options.title || "设备图层");
-            options = { ...deviceLayerOptions, ...options };
+            options = { ...BUSINESS_LAYER_OPTIONS, ...options };
 
             this.flagwindMap = flagwindMap;
             this.options = options;
 
             this.onInit();
             this.onAddLayerBefor();
-            this.flagwindMap.addDeviceLayer(this);
+            this.flagwindMap.addFeatureLayer(this);
             this.onAddLayerAfter();
 
             if (this.flagwindMap.innerMap.loaded) {
@@ -53,9 +56,9 @@ namespace flagwind {
 
         public abstract showInfoWindow(evt: any): void;
 
-        public abstract onCreatGraphicByDevice(item: any): any;
+        public abstract onCreatGraphicByModel(item: any): any;
 
-        public abstract onUpdateGraphicByDevice(item: any): void;
+        public abstract onUpdateGraphicByModel(item: any): void;
 
         public abstract addEventListener(target: any, eventName: string, callback: Function): void;
 
@@ -86,19 +89,19 @@ namespace flagwind {
 
         public saveGraphicList(dataList: Array<any>): void {
             for (let i = 0; i < dataList.length; i++) {
-                this.saveGraphicByDevice(dataList[i]);
+                this.saveGraphicByModel(dataList[i]);
             }
         }
 
         public updateGraphicList(dataList: Array<any>): void {
 
             for (let i = 0; i < dataList.length; i++) {
-                this.updateGraphicByDevice(dataList[i]);
+                this.updateGraphicByModel(dataList[i]);
             }
         }
 
         // 设置选择状态
-        public setSelectStatusByDevices(dataList: Array<any>): void {
+        public setSelectStatusByModels(dataList: Array<any>): void {
             this.clearSelectStatus();
             for (let i = 0; i < dataList.length; i++) {
                 let model = this.changeStandardModel(dataList[i]);
@@ -112,27 +115,27 @@ namespace flagwind {
         /**
          * 保存要素（如果存在，则修改，否则添加）
          */
-        public saveGraphicByDevice(item: any): void {
+        public saveGraphicByModel(item: any): void {
             const graphic = this.getGraphicById(item.id);
             if (graphic) {
-                return this.updateGraphicByDevice(item, graphic);
+                return this.updateGraphicByModel(item, graphic);
             } else {
-                return this.addGraphicByDevice(item);
+                return this.addGraphicByModel(item);
             }
         }
 
-        public addGraphicByDevice(item: any): void {
-            const graphic = this.creatGraphicByDevice(item);
+        public addGraphicByModel(item: any): void {
+            const graphic = this.creatGraphicByModel(item);
             this.layer.add(graphic);
         }
 
-        public creatGraphicByDevice(item: any): any {
+        public creatGraphicByModel(item: any): any {
             item = this.changeStandardModel(item);
-            if (!this.validDevice(item)) {
+            if (!this.validModel(item)) {
                 return null;
             }
             item.select = false; // select属性为true表示当前选中，false表示未选中
-            const graphic = this.onCreatGraphicByDevice(item);
+            const graphic = this.onCreatGraphicByModel(item);
             // const pt = this.getPoint(item);
             // const iconUrl = this.getIconUrl(item);
             // const width = this.getGraphicWidth(null);
@@ -145,9 +148,9 @@ namespace flagwind {
         /**
          * 修改要素
          */
-        public updateGraphicByDevice(item: any, graphic: any | null = null): void {
+        public updateGraphicByModel(item: any, graphic: any | null = null): void {
             item = this.changeStandardModel(item);
-            if (!this.validDevice(item)) {
+            if (!this.validModel(item)) {
                 return;
             }
             if (!graphic) {
@@ -158,7 +161,7 @@ namespace flagwind {
             }
 
             const pt = this.getPoint(item);
-            this.onUpdateGraphicByDevice(item);
+            this.onUpdateGraphicByModel(item);
 
             // const iconUrl = this.getIconUrl(item);
 
@@ -278,7 +281,7 @@ namespace flagwind {
             this.options.onEvent(eventName, event);
         }
 
-        protected validDevice(item: any) {
+        protected validModel(item: any) {
             return item.longitude && item.latitude;
         }
 
@@ -288,7 +291,7 @@ namespace flagwind {
          * @protected
          * @param {*} item
          * @returns {{ id: String, name: String, longitude: number, latitude: number }}
-         * @memberof FlagwindDeviceLayer
+         * @memberof FlagwindBusinessLayer
          */
         protected changeStandardModel(item: any) {
             if (item.tollLongitude && item.tollLatitude) {
@@ -302,7 +305,7 @@ namespace flagwind {
 
         protected setSelectStatus(item: any, selected: boolean): void {
             item.selected = selected;
-            this.onUpdateGraphicByDevice(item);
+            this.onUpdateGraphicByModel(item);
         }
     }
 

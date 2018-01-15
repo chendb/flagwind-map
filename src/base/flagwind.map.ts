@@ -1,6 +1,6 @@
 namespace flagwind {
     // tslint:disable-next-line:variable-name
-    export const flagwindMapOptions = {
+    export const MAP_OPTIONS = {
 
         onMapLoad() {
             console.log("onMapLoad");
@@ -29,7 +29,7 @@ namespace flagwind {
             mapEl: any,
             options: any) {
             this.mapEl = mapEl;
-            this.options = { ...flagwindMapOptions, ...options };
+            this.options = { ...MAP_OPTIONS, ...options };
             this.createMap();
             this.createBaseLayer();
             const _this = this;
@@ -105,7 +105,7 @@ namespace flagwind {
          */
         public getPoint(item: any) {
             let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
-            if (!MapUtils.validDevice(item)) {
+            if (!MapUtils.validGeometryModel(item)) {
                 lnglat.lon = item.x;
                 lnglat.lat = item.y;
             }
@@ -119,7 +119,7 @@ namespace flagwind {
             });
         }
 
-        public addDeviceLayer(deviceLayer: FlagwindFeatureLayer) {
+        public addFeatureLayer(deviceLayer: FlagwindFeatureLayer) {
             if (this.getFeatureLayerById(deviceLayer.id)) {
                 throw Error("图层" + deviceLayer.id + "已存在");
             }
@@ -163,14 +163,14 @@ namespace flagwind {
             return layers != null && layers.length > 0 ? layers[0] : null;
         }
 
-        protected addFeatureLayer(id: string, title: string) {
-            if (this.getFeatureLayerById(id)) {
-                throw Error("图层" + id + "已存在");
-            }
-            const layer = new FlagwindFeatureLayer(this.mapService, id, title);
-            this.featureLayers.push(layer);
-            layer.appendTo(this.innerMap);
-        }
+        // protected addFeatureLayer(id: string, title: string) {
+        //     if (this.getFeatureLayerById(id)) {
+        //         throw Error("图层" + id + "已存在");
+        //     }
+        //     const layer = new FlagwindFeatureLayer(this.mapService, id, title);
+        //     this.featureLayers.push(layer);
+        //     layer.appendTo(this.innerMap);
+        // }
 
         protected showFeatureLayer(id: string) {
             const layer = this.getFeatureLayerById(id);

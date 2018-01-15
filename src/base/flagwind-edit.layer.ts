@@ -1,6 +1,6 @@
 
 namespace flagwind {
-    export const editLayerOptions: any = {
+    export const EDIT_LAYER_OPTIONS: any = {
 
         onEditInfo: function (key: string, lon: number, lat: number, isSave: boolean) {
             console.log("onEditInfo");

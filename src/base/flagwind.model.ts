@@ -1,25 +1,24 @@
 namespace flagwind {
-    export class TrackSegmentOptions {
 
-        public constructor(public numsOfKilometer: number, public speed: number = 100, public autoShowLine: boolean = false) {
+    export const TRACKSEGMENT_OPTIONS = {
+        speed: 100,
+        numsOfKilometer: 50,
+        autoShowLine: false,
 
-        }
-
-        public onShowSegmentLineEvent(segment: TrackSegment) {
+        onShowSegmentLineEvent(segment: TrackSegment) {
             console.log("onShowSegmentLineEvent");
-        }
+        },
 
-        public onMoveStartEvent(target: any, startGraphic: any, angle: number) {
+        onMoveStartEvent(target: any, startGraphic: any, angle: number) {
             console.log("onMoveStartEvent");
-        }
-        public onMoveEndEvent(target: any, endGraphic: any, angle: number) {
+        },
+        onMoveEndEvent(target: any, endGraphic: any, angle: number) {
             console.log("onMoveEndEvent");
-        }
-        public onMoveEvent(target: any, point: any, angle: number) {
+        },
+        onMoveEvent(target: any, point: any, angle: number) {
             console.log("onMoveEvent");
         }
-
-    }
+    };
 
     /**
      * 对轨迹播放中线路的路段的定义
@@ -63,7 +62,7 @@ namespace flagwind {
             public startGraphic: any,     // 起点要素
             public endGraphic: any,       // 终点要素
             public options: any) {
-            this.options = options;
+            this.options = { ...TRACKSEGMENT_OPTIONS, ...options };
             this.mapService = flagwindRouteLayer.mapService;
         }
 

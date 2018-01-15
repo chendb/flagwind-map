@@ -1,5 +1,5 @@
 namespace flagwind {
-    export const flagwindRouteOptions: any = {
+    export const ROUTE_LAYER_OPTIONS: any = {
 
         routeType: "Line",
 
@@ -21,7 +21,7 @@ namespace flagwind {
 
     };
 
-    export const lineOptions: any = {
+    export const TRACKLINE_OPTIONS: any = {
         markerUrl: "",
         markerLabel: "",
         markerHeight: 48,
@@ -38,7 +38,7 @@ namespace flagwind {
         public trackLines: Array<TrackLine> = [];
 
         public constructor(public flagwindMap: FlagwindMap, public layerName: string, public options: any) {
-            this.options = { ...flagwindRouteOptions, ...options };
+            this.options = { ...ROUTE_LAYER_OPTIONS, ...options };
             this.mapService = flagwindMap.mapService;
 
             this.moveLineLayer = new FlagwindGroupLayer(flagwindMap.mapService, layerName + "LineLayer");
@@ -278,7 +278,7 @@ namespace flagwind {
          * @param {any} options 可选参数
          */
         public solveSegment(name: string, stops: Array<any>, options: any) {
-            options = { ...lineOptions, ...options };
+            options = { ...TRACKLINE_OPTIONS, ...options };
             this.checkMapSetting();
 
             if (stops.length < 1) {

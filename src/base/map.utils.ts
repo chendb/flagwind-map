@@ -49,7 +49,7 @@ namespace flagwind {
             return 0;
         }
 
-        public static validDevice(item: any) {
+        public static validGeometryModel(item: any) {
             return item.longitude && item.latitude;
         }
 
