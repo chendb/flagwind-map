@@ -94,7 +94,7 @@ namespace flagwind {
 
         public layer: MinemapMarkerLayer;
 
-        public EVENT_MAP: Map<string, string> = new Map<string, string>();
+        // public EVENT_MAP: Map<string, string> = new Map<string, string>();
 
         public constructor(options: any) {
             this.id = options.id;
@@ -108,11 +108,27 @@ namespace flagwind {
                 this._geometry = new MinemapGeometry("Point", [options.point.x, options.point.y]);
                 this.marker.setLngLat([options.point.x, options.point.y]);
             }
-            this.EVENT_MAP.set("onMouseOver", "onmouseover");
-            this.EVENT_MAP.set("onMouseOut", "onmouseout");
-            this.EVENT_MAP.set("onMouseDown", "onmousedown");
-            this.EVENT_MAP.set("onMouseUp", "onmouseup");
-            this.EVENT_MAP.set("onClick", "onclick");
+            // this.EVENT_MAP.set("onMouseOver", "onmouseover");
+            // this.EVENT_MAP.set("onMouseOut", "onmouseout");
+            // this.EVENT_MAP.set("onMouseDown", "onmousedown");
+            // this.EVENT_MAP.set("onMouseUp", "onmouseup");
+            // this.EVENT_MAP.set("onClick", "onclick");
+            let me = this;
+            this.element.onmouseover = function (args: any) {
+                me.onCallback("onMouseOver", args);
+            };
+            this.element.onmouseout = function (args: any) {
+                me.onCallback("onMouseOut", args);
+            };
+            this.element.onmousedown = function (args: any) {
+                me.onCallback("onMouseDown", args);
+            };
+            this.element.onmouseup = function (args: any) {
+                me.onCallback("onMouseUp", args);
+            };
+            this.element.onclick = function (args: any) {
+                me.onCallback("onClick", args);
+            };
         }
 
         public get kind() {
@@ -123,10 +139,16 @@ namespace flagwind {
             return this._isInsided;
         }
 
-        public on(eventName: string, callBack: Function) {
-            eventName = this.EVENT_MAP.get(eventName) || eventName;
-            this.element[eventName] = callBack;
+        // public on(eventName: string, callBack: Function) {
+        //     eventName = this.EVENT_MAP.get(eventName) || eventName;
+        //     this.element[eventName] = callBack;
+        // }
 
+        public onCallback(eventName: string, arg: any) {
+            let callback = this.layer.getCallBack("onMouseOver");
+            if (callback) {
+                callback(arg);
+            }
         }
 
         public show(): void {
@@ -267,12 +289,16 @@ namespace flagwind {
         remove(graphic: any): void;
         addToMap(map: any): void;
         removeFromMap(map: any): void;
+        on(eventName: string, callBack: Function): void;
 
     }
 
     export class MinemapMarkerLayer implements IMinemapGraphicsLayer {
 
         private GRAPHICS_MAP: Map<string, MinemapMarker> = new Map<string, MinemapMarker>();
+
+        private EVENTS_MAP: Map<string, Function> = new Map<string, Function>();
+
         /**
          * 是否在地图上
          */
@@ -292,6 +318,14 @@ namespace flagwind {
 
         public get graphics() {
             return new Array(this.GRAPHICS_MAP.values);
+        }
+
+        public getCallBack(eventName: string): Function {
+            return this.EVENTS_MAP.get(eventName);
+        }
+
+        public on(eventName: string, callBack: Function) {
+            this.EVENTS_MAP.set(eventName, callBack);
         }
 
         public show(): void {
@@ -349,6 +383,7 @@ namespace flagwind {
     }
 
     export class MinemapGeoJsonLayer implements IMinemapGraphicsLayer {
+
 
         private GRAPHICS_MAP: Map<string, MinemapGeoJson> = new Map<string, MinemapGeoJson>();
         /**
@@ -419,6 +454,10 @@ namespace flagwind {
         public removeFromMap(map: any) {
             this.GRAPHICS_MAP.forEach(g => g.value.delete());
             this._isInsided = false;
+        }
+
+        public on(eventName: string, callBack: Function): void {
+            throw new Error("Method not implemented.");
         }
     }
 

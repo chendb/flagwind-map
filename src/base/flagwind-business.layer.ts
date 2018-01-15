@@ -230,7 +230,7 @@ namespace flagwind {
 
         protected registerEvent(): void {
             let _deviceLayer = this;
-            this.addEventListener(this.layer, "onClick", function (evt: any) {
+            this.addEventListener(this.layer, "onCliick", function (evt: any) {
                 _deviceLayer.onLayerClick(_deviceLayer, evt);
             });
 

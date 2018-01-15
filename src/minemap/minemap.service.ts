@@ -2,8 +2,7 @@ declare var minemap: any;
 
 namespace flagwind {
 
-    const EVENT_MAP: Map<string, string> = new Map<string, string>();
-    EVENT_MAP.set("onLoad", "load");
+    const MAP_EVENTS_MAP: Map<string, string> = new Map<string, string>().set("onLoad", "load");
 
     export class MinemapService implements IMapService {
 
@@ -82,8 +81,13 @@ namespace flagwind {
 
         //#region 地图
         public addEventListener(target: any, eventName: string, callback: Function): void {
-            let en = EVENT_MAP.get(eventName) || eventName;
-            target.on(en, callback);
+            // 
+            if (target instanceof FlagwindMap) {
+                let en = MAP_EVENTS_MAP.get(eventName) || eventName;
+                target.innerMap.on(en, callback);
+            } else {
+                target.on(eventName, callback);
+            }
         }
         public centerAt(point: any, map: any): void {
             map.flyTo({
@@ -192,13 +196,13 @@ namespace flagwind {
             let titleDiv = (<any>flagwindMap).titleDiv = document.createElement("div");
             titleDiv.id = "flagwind-map-title";
             titleDiv.classList.add("flagwind-map-title");
-            
-            (<any>flagwindMap).titleMarker = new minemap.Marker(titleDiv, {offset: [-25, -25]})
-            .setLngLat([116.46,39.92])
-            .addTo(map);
+
+            (<any>flagwindMap).titleMarker = new minemap.Marker(titleDiv, { offset: [-25, -25] })
+                .setLngLat([116.46, 39.92])
+                .addTo(map);
 
             // (<any>flagwindMap).innerMap._controlContainer.appendChild(div);
-            
+
             return map;
         }
 
@@ -208,7 +212,7 @@ namespace flagwind {
         public showTitle(graphic: any, flagwindMap: FlagwindMap): void {
             let info = graphic.attributes;
             let pt = new MinemapPoint(info.longitude, info.latitude, flagwindMap.spatial);
-            (<any>flagwindMap).titleMarker.setLngLat([pt.x,pt.y]);
+            (<any>flagwindMap).titleMarker.setLngLat([pt.x, pt.y]);
             (<any>flagwindMap).titleMarker.getElement().style.display = "block";
             // let screenpt = flagwindMap.innerMap.toScreen(pt);
             // let title = info.name;
@@ -218,8 +222,8 @@ namespace flagwind {
             // (<any>flagwindMap).titleDiv.style.display = "block";
         }
         public hideTitle(flagwindMap: FlagwindMap): void {
-           // (<any>flagwindMap).titleDiv.style.display = "none";
-           (<any>flagwindMap).titleMarker.getElement().style.display = "none";
+            // (<any>flagwindMap).titleDiv.style.display = "none";
+            (<any>flagwindMap).titleMarker.getElement().style.display = "none";
         }
 
         //#endregion
