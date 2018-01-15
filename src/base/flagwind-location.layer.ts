@@ -6,7 +6,7 @@ namespace flagwind {
         }
     };
 
-    export interface ILocationLayer {
+    export interface IFlagwindLocationLayer {
         clear(): void;
     }
 }

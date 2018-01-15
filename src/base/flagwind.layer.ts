@@ -15,7 +15,8 @@ namespace flagwind {
             if (url) {
                 this.layer = mapService.createTiledLayer({
                     url: url,
-                    id: id
+                    id: id,
+                    title: title
                 });
             }
         }

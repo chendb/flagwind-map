@@ -29,7 +29,7 @@ namespace flagwind {
             mapEl: any,
             options: any) {
             this.mapEl = mapEl;
-            this.options = {...flagwindMapOptions, ...options};
+            this.options = { ...flagwindMapOptions, ...options };
             this.createMap();
             this.createBaseLayer();
             const _this = this;
@@ -104,7 +104,7 @@ namespace flagwind {
          * 创建点要素
          */
         public getPoint(item: any) {
-            let lnglat = { "lat": item.latitude, "lon": item.longitude };
+            let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
             if (!MapUtils.validDevice(item)) {
                 lnglat.lon = item.x;
                 lnglat.lat = item.y;

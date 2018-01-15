@@ -202,6 +202,10 @@ declare namespace flagwind {
     class EsriMapService implements IMapService {
         ROUTE_MAP: Map<FlagwindRouteLayer, EsriRouteService>;
         GRAPHIC_SYMBOL_MAP: Map<any, any>;
+        showInfoWindow(evt: {
+            graphic: any;
+            mapPoint: any;
+        }): void;
         getTrackLineMarkerGraphic(trackline: TrackLine, graphic: any, angle: number): any;
         getStandardStops(name: string, stops: Array<any>): Array<any>;
         showSegmentLine(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment): void;
@@ -221,6 +225,7 @@ declare namespace flagwind {
         createTiledLayer(options: {
             url: string;
             id: string;
+            title: string;
         }): any;
         clearLayer(layer: any): void;
         removeLayer(layer: any, map: any): void;
@@ -819,17 +824,18 @@ declare namespace flagwind {
 declare namespace flagwind {
     interface IMapService {
         createTiledLayer(options: {
-            url: string;
+            url: string | null;
             id: string;
+            title: string | null;
         }): any;
         createBaseLayer(flagwindMap: FlagwindMap): Array<FlagwindTiledLayer>;
+        createGraphicsLayer(options: any): any;
         clearLayer(layer: any): void;
         removeLayer(layer: any, map: any): void;
         addLayer(layer: any, map: any): void;
         showLayer(layer: any): void;
         hideLayer(layer: any): void;
         getGraphicListByLayer(lay: any): Array<any>;
-        createGraphicsLayer(options: any): any;
         removeGraphic(graphic: any, layer: any): void;
         addGraphic(graphic: any, layer: any): void;
         showGraphic(graphic: any): void;
@@ -843,6 +849,10 @@ declare namespace flagwind {
         createPoint(options: any): any;
         createSpatial(wkid: any): any;
         getInfoWindow(map: any): any;
+        showInfoWindow(evt: {
+            graphic: any;
+            mapPoint: any;
+        }): void;
         formPoint(point: any, flagwindMap: FlagwindMap): {
             longitude: number;
             latitude: number;
@@ -1532,6 +1542,15 @@ declare namespace flagwind {
         y: number;
         spatial: any;
         constructor(x: number, y: number, spatial: any);
+        geometry: MinemapGeometry;
+    }
+    /**
+     * 几何对象
+     */
+    class MinemapGeometry {
+        type: string;
+        coordinates: Array<any>;
+        constructor(type: string, coordinates: Array<any>);
     }
     /**
      * 空间投影
@@ -1540,6 +1559,134 @@ declare namespace flagwind {
         wkid: number;
         constructor(wkid: number);
     }
+    interface IMinemapGraphic {
+        id: string;
+        attributers: any;
+        isShow: boolean;
+        isInsided: boolean;
+        kind: string;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: {
+            type: string;
+            coordinates: Array<any>;
+        }): void;
+        addTo(map: any): void;
+    }
+    class MinemapMarker implements IMinemapGraphic {
+        private _kind;
+        _geometry: MinemapGeometry;
+        /**
+         * 是否在地图上
+         */
+        _isInsided: boolean;
+        id: string;
+        isShow: boolean;
+        symbol: any;
+        marker: any;
+        element: any;
+        attributers: any;
+        layer: MinemapMarkerLayer;
+        constructor(options: any);
+        readonly kind: string;
+        readonly isInsided: boolean;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        geometry: MinemapGeometry;
+        setGeometry(geometry: {
+            type: string;
+            coordinates: Array<any>;
+        }): void;
+        addTo(map: any): void;
+    }
+    class MinemapGeoJson implements IMinemapGraphic {
+        private _kind;
+        /**
+         * 是否在地图上
+         */
+        _isInsided: boolean;
+        id: string;
+        isShow: boolean;
+        data: {
+            type: string;
+            geometry: {
+                type: string;
+                coordinates: Array<any>;
+            };
+        };
+        type: string;
+        layout: any;
+        paint: any;
+        layer: MinemapMarkerLayer;
+        attributers: any;
+        readonly kind: string;
+        readonly isInsided: boolean;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: {
+            type: string;
+            coordinates: Array<any>;
+        }): void;
+        addTo(map: any): void;
+        addLayer(map: any): void;
+    }
+    interface IMinemapGraphicsLayer {
+        graphics: Array<any>;
+        show(): void;
+        hide(): void;
+        add(graphic: any): void;
+        remove(graphic: any): void;
+        addToMap(map: any): void;
+        removeFromMap(map: any): void;
+    }
+    class MinemapMarkerLayer implements IMinemapGraphicsLayer {
+        options: any;
+        private GRAPHICS_MAP;
+        /**
+         * 是否在地图上
+         */
+        _isInsided: boolean;
+        id: string;
+        map: any;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        readonly graphics: (() => MinemapMarker[])[];
+        show(): void;
+        hide(): void;
+        remove(graphic: IMinemapGraphic): void;
+        clear(): void;
+        add(graphic: MinemapMarker): void;
+        addToMap(map: any): void;
+        removeFromMap(map: any): void;
+    }
+    class MinemapGeoJsonLayer implements IMinemapGraphicsLayer {
+        private GRAPHICS_MAP;
+        /**
+         * 是否在地图上
+         */
+        _isInsided: boolean;
+        id: string;
+        map: any;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        readonly graphics: (() => MinemapGeoJson[])[];
+        show(): void;
+        hide(): void;
+        remove(graphic: IMinemapGraphic): void;
+        clear(): void;
+        add(graphic: MinemapGeoJson): void;
+        addToMap(map: any): void;
+        removeFromMap(map: any): void;
+    }
 }
 declare var minemap: any;
 declare namespace flagwind {
@@ -1547,15 +1694,16 @@ declare namespace flagwind {
         createTiledLayer(options: {
             url: string;
             id: string;
+            title: string;
         }): void;
         createBaseLayer(flagwindMap: FlagwindMap): Array<FlagwindTiledLayer>;
+        createGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
         clearLayer(layer: any): void;
         removeLayer(layer: any, map: any): void;
         addLayer(layer: any, map: any): void;
         showLayer(layer: any): void;
         hideLayer(layer: any): void;
-        getGraphicListByLayer(lay: any): Array<any>;
-        createGraphicsLayer(options: any): void;
+        getGraphicListByLayer(layer: any): Array<any>;
         removeGraphic(graphic: any, layer: any): void;
         addGraphic(graphic: any, layer: any): void;
         showGraphic(graphic: any): void;
@@ -1563,12 +1711,16 @@ declare namespace flagwind {
         setGeometryByGraphic(graphic: any, geometry: any): void;
         setSymbolByGraphic(graphic: any, symbol: any): void;
         createMarkerSymbol(options: any): void;
-        getGraphicAttributes(graphic: any): void;
+        getGraphicAttributes(graphic: any): any;
         addEventListener(target: any, eventName: string, callback: Function): void;
         centerAt(point: any, map: any): void;
         createPoint(options: any): MinemapPoint;
         createSpatial(wkid: any): MinemapSpatial;
         getInfoWindow(map: any): void;
+        showInfoWindow(evt: {
+            graphic: any;
+            mapPoint: any;
+        }): void;
         formPoint(point: any, flagwindMap: FlagwindMap): {
             longitude: number;
             latitude: number;

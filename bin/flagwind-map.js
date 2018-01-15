@@ -209,7 +209,8 @@ var flagwind;
             if (url) {
                 this.layer = mapService.createTiledLayer({
                     url: url,
-                    id: id
+                    id: id,
+                    title: title
                 });
             }
         }
@@ -703,6 +704,9 @@ var flagwind;
             this.ROUTE_MAP = new flagwind.Map();
             this.GRAPHIC_SYMBOL_MAP = new flagwind.Map();
         }
+        EsriMapService.prototype.showInfoWindow = function (evt) {
+            throw new Error("Method not implemented.");
+        };
         //#region 轨迹
         EsriMapService.prototype.getTrackLineMarkerGraphic = function (trackline, graphic, angle) {
             return flagwind.EsriRouteService.getTrackLineMarkerGraphic(trackline, graphic, angle);
@@ -767,7 +771,7 @@ var flagwind;
             flagwindMap.titleDiv.style.display = "none";
         };
         EsriMapService.prototype.createTiledLayer = function (options) {
-            return new esri.layers.ArcGISTiledMapServiceLayer(options.url, { id: options.id });
+            return new esri.layers.ArcGISTiledMapServiceLayer(options.url, { id: options.id, title: options.title });
         };
         EsriMapService.prototype.clearLayer = function (layer) {
             if (layer && layer._map != null) {
@@ -874,7 +878,7 @@ var flagwind;
             };
         };
         EsriMapService.prototype.toPoint = function (item, flagwindMap) {
-            var lnglat = { "lat": item.latitude, "lon": item.longitude };
+            var lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
             if (!flagwind.MapUtils.validDevice(item)) {
                 lnglat.lon = item.x;
                 lnglat.lat = item.y;
@@ -2215,7 +2219,7 @@ var flagwind;
          * 创建点要素
          */
         FlagwindMap.prototype.getPoint = function (item) {
-            var lnglat = { "lat": item.latitude, "lon": item.longitude };
+            var lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
             if (!flagwind.MapUtils.validDevice(item)) {
                 lnglat.lon = item.x;
                 lnglat.lat = item.y;
@@ -3539,9 +3543,31 @@ var flagwind;
             this.y = y;
             this.spatial = spatial;
         }
+        Object.defineProperty(MinemapPoint.prototype, "geometry", {
+            get: function () {
+                return new MinemapGeometry("Point", [this.x, this.y]);
+            },
+            set: function (value) {
+                this.x = value.coordinates[0];
+                this.y = value.coordinates[1];
+            },
+            enumerable: true,
+            configurable: true
+        });
         return MinemapPoint;
     }());
     flagwind.MinemapPoint = MinemapPoint;
+    /**
+     * 几何对象
+     */
+    var MinemapGeometry = /** @class */ (function () {
+        function MinemapGeometry(type, coordinates) {
+            this.type = type;
+            this.coordinates = coordinates;
+        }
+        return MinemapGeometry;
+    }());
+    flagwind.MinemapGeometry = MinemapGeometry;
     /**
      * 空间投影
      */
@@ -3552,6 +3578,300 @@ var flagwind;
         return MinemapSpatial;
     }());
     flagwind.MinemapSpatial = MinemapSpatial;
+    var MinemapMarker = /** @class */ (function () {
+        function MinemapMarker(options) {
+            this._kind = "marker";
+            /**
+             * 是否在地图上
+             */
+            this._isInsided = false;
+            this.isShow = true;
+            this.id = options.id;
+            this.element = document.createElement("div");
+            this.element.id = this.id;
+            if (options.symbol && options.symbol.className) {
+                this.element.classList = [options.symbol.className];
+            }
+            this.marker = new minemap.Marker(this.element, { offset: [-25, -25] });
+            if (options.point) {
+                this._geometry = new MinemapGeometry("Point", [options.point.x, options.point.y]);
+                this.marker.setLngLat([options.point.x, options.point.y]);
+            }
+        }
+        Object.defineProperty(MinemapMarker.prototype, "kind", {
+            get: function () {
+                return this._kind;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MinemapMarker.prototype, "isInsided", {
+            get: function () {
+                return this._isInsided;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapMarker.prototype.show = function () {
+            this.marker.addTo(this.layer.map);
+            this.isShow = false;
+        };
+        MinemapMarker.prototype.hide = function () {
+            this.marker.remove();
+            this.isShow = false;
+        };
+        MinemapMarker.prototype.remove = function () {
+            if (this._isInsided) {
+                this.marker.remove();
+                this._isInsided = false;
+            }
+        };
+        MinemapMarker.prototype.delete = function () {
+            if (this._isInsided) {
+                this.marker.remove();
+                this._isInsided = false;
+            }
+            this.layer.remove(this);
+        };
+        MinemapMarker.prototype.setSymbol = function (symbol) {
+            if (symbol.className) {
+                this.element.classList.add(symbol.className);
+            }
+        };
+        Object.defineProperty(MinemapMarker.prototype, "geometry", {
+            get: function () {
+                return this._geometry;
+            },
+            set: function (geometry) {
+                this._geometry = geometry;
+                this.marker.setLngLat(geometry.coordinates);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapMarker.prototype.setGeometry = function (geometry) {
+            this._geometry = geometry;
+            this.marker.setLngLat(geometry.coordinates);
+        };
+        MinemapMarker.prototype.addTo = function (map) {
+            this._isInsided = true;
+            this.marker.addTo(map);
+        };
+        return MinemapMarker;
+    }());
+    flagwind.MinemapMarker = MinemapMarker;
+    var MinemapGeoJson = /** @class */ (function () {
+        function MinemapGeoJson() {
+            this._kind = "geojson";
+            /**
+             * 是否在地图上
+             */
+            this._isInsided = false;
+            this.isShow = true;
+        }
+        Object.defineProperty(MinemapGeoJson.prototype, "kind", {
+            get: function () {
+                return this._kind;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MinemapGeoJson.prototype, "isInsided", {
+            get: function () {
+                return this._isInsided;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapGeoJson.prototype.show = function () {
+            if (!this.isShow) {
+                this.addLayer(this.layer.map);
+                this.isShow = true;
+            }
+        };
+        MinemapGeoJson.prototype.hide = function () {
+            this.layer.map.removeLayer(this.id);
+            this.isShow = false;
+        };
+        MinemapGeoJson.prototype.remove = function () {
+            this.layer.map.removeLayer(this.id);
+        };
+        MinemapGeoJson.prototype.delete = function () {
+            if (this.isInsided) {
+                this.layer.map.removeLayer(this.id);
+                this._isInsided = false;
+                this.layer.remove(this);
+            }
+        };
+        MinemapGeoJson.prototype.setSymbol = function (symbol) {
+            throw new flagwind.Exception("尚未实现");
+        };
+        MinemapGeoJson.prototype.setGeometry = function (geometry) {
+            if (this.data && this.data.geometry) {
+                this.data.geometry = geometry;
+            }
+        };
+        MinemapGeoJson.prototype.addTo = function (map) {
+            if (!map)
+                return;
+            map.addSource(this.id + "_source", {
+                type: this.kind,
+                data: this.data
+            });
+        };
+        MinemapGeoJson.prototype.addLayer = function (map) {
+            map.addLayer({
+                id: this.id,
+                source: this.id + "_source",
+                type: this.type,
+                paint: this.paint,
+                layout: this.layout
+            });
+        };
+        return MinemapGeoJson;
+    }());
+    flagwind.MinemapGeoJson = MinemapGeoJson;
+    var MinemapMarkerLayer = /** @class */ (function () {
+        function MinemapMarkerLayer(options) {
+            this.options = options;
+            this.GRAPHICS_MAP = new flagwind.Map();
+            /**
+             * 是否在地图上
+             */
+            this._isInsided = false;
+            this.id = options.id;
+        }
+        Object.defineProperty(MinemapMarkerLayer.prototype, "isInsided", {
+            get: function () {
+                return this._isInsided;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MinemapMarkerLayer.prototype, "graphics", {
+            get: function () {
+                return new Array(this.GRAPHICS_MAP.values);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapMarkerLayer.prototype.show = function () {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                if (!g.value.isShow) {
+                    g.value.show();
+                }
+            });
+        };
+        MinemapMarkerLayer.prototype.hide = function () {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                if (g.value.isShow) {
+                    g.value.hide();
+                }
+            });
+        };
+        MinemapMarkerLayer.prototype.remove = function (graphic) {
+            this.GRAPHICS_MAP.delete(graphic.id);
+            if (graphic.isInsided) {
+                graphic.delete();
+            }
+        };
+        MinemapMarkerLayer.prototype.clear = function () {
+            this.GRAPHICS_MAP.forEach(function (g) { return g.value.remove(); });
+            this.GRAPHICS_MAP.clear();
+        };
+        MinemapMarkerLayer.prototype.add = function (graphic) {
+            this.GRAPHICS_MAP.set(graphic.id, graphic);
+            graphic.layer = this;
+            if (this.map) {
+                graphic.addTo(this.map);
+            }
+        };
+        MinemapMarkerLayer.prototype.addToMap = function (map) {
+            if (!this.map) {
+                this.GRAPHICS_MAP.forEach(function (g) {
+                    g.value.addTo(map);
+                });
+            }
+            this.map = map;
+            this._isInsided = true;
+        };
+        MinemapMarkerLayer.prototype.removeFromMap = function (map) {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                g.value.remove();
+            });
+            this._isInsided = false;
+        };
+        return MinemapMarkerLayer;
+    }());
+    flagwind.MinemapMarkerLayer = MinemapMarkerLayer;
+    var MinemapGeoJsonLayer = /** @class */ (function () {
+        function MinemapGeoJsonLayer(options) {
+            this.GRAPHICS_MAP = new flagwind.Map();
+            /**
+             * 是否在地图上
+             */
+            this._isInsided = false;
+            this.id = options.id;
+        }
+        Object.defineProperty(MinemapGeoJsonLayer.prototype, "isInsided", {
+            get: function () {
+                return this._isInsided;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MinemapGeoJsonLayer.prototype, "graphics", {
+            get: function () {
+                return new Array(this.GRAPHICS_MAP.values);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapGeoJsonLayer.prototype.show = function () {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                if (!g.value.isShow) {
+                    g.value.show();
+                }
+            });
+        };
+        MinemapGeoJsonLayer.prototype.hide = function () {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                if (g.value.isShow) {
+                    g.value.hide();
+                }
+            });
+        };
+        MinemapGeoJsonLayer.prototype.remove = function (graphic) {
+            this.GRAPHICS_MAP.delete(graphic.id);
+            if (graphic.isInsided) {
+                graphic.delete();
+            }
+        };
+        MinemapGeoJsonLayer.prototype.clear = function () {
+            this.GRAPHICS_MAP.forEach(function (g) { return g.value.remove(); });
+            this.GRAPHICS_MAP.clear();
+        };
+        MinemapGeoJsonLayer.prototype.add = function (graphic) {
+            this.GRAPHICS_MAP.set(graphic.id, graphic);
+            if (this.map) {
+                graphic.addTo(this.map);
+                graphic.addLayer(this.map);
+            }
+        };
+        MinemapGeoJsonLayer.prototype.addToMap = function (map) {
+            if (!this.map) {
+                this.GRAPHICS_MAP.forEach(function (g) { return g.value.addLayer(map); });
+            }
+            this.map = map;
+            this._isInsided = true;
+        };
+        MinemapGeoJsonLayer.prototype.removeFromMap = function (map) {
+            this.GRAPHICS_MAP.forEach(function (g) { return g.value.delete(); });
+            this._isInsided = false;
+        };
+        return MinemapGeoJsonLayer;
+    }());
+    flagwind.MinemapGeoJsonLayer = MinemapGeoJsonLayer;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
@@ -3560,63 +3880,87 @@ var flagwind;
     var MinemapService = /** @class */ (function () {
         function MinemapService() {
         }
+        //#region 
         MinemapService.prototype.createTiledLayer = function (options) {
+            // 该方法可不用实现
             throw new Error("Method not implemented.");
         };
         MinemapService.prototype.createBaseLayer = function (flagwindMap) {
             return new Array();
         };
+        MinemapService.prototype.createGraphicsLayer = function (options) {
+            if (options.kind === "marker") {
+                return new flagwind.MinemapMarkerLayer(options);
+            }
+            if (options.kind === "geojson") {
+                return new flagwind.MinemapGeoJsonLayer(options);
+            }
+            throw new Error("不支持的图层类型");
+        };
         MinemapService.prototype.clearLayer = function (layer) {
-            throw new Error("Method not implemented.");
+            if (layer.clear) {
+                layer.clear();
+            }
         };
         MinemapService.prototype.removeLayer = function (layer, map) {
-            throw new Error("Method not implemented.");
+            layer.removeFromMap(map);
+            // throw new Error("Method not implemented.");
         };
         MinemapService.prototype.addLayer = function (layer, map) {
-            throw new Error("Method not implemented.");
+            layer.addToMap(map);
+            // throw new Error("Method not implemented.");
         };
         MinemapService.prototype.showLayer = function (layer) {
-            throw new Error("Method not implemented.");
+            layer.show();
         };
         MinemapService.prototype.hideLayer = function (layer) {
-            throw new Error("Method not implemented.");
+            layer.hide();
         };
-        MinemapService.prototype.getGraphicListByLayer = function (lay) {
-            throw new Error("Method not implemented.");
-        };
-        MinemapService.prototype.createGraphicsLayer = function (options) {
-            throw new Error("Method not implemented.");
+        //#endregion
+        //#region 
+        MinemapService.prototype.getGraphicListByLayer = function (layer) {
+            var graphics = layer.graphics;
+            var result = new Array();
+            result.push(graphics);
+            return result;
         };
         MinemapService.prototype.removeGraphic = function (graphic, layer) {
-            throw new Error("Method not implemented.");
+            layer.remove(graphic);
         };
         MinemapService.prototype.addGraphic = function (graphic, layer) {
-            throw new Error("Method not implemented.");
+            layer.add(graphic);
         };
         MinemapService.prototype.showGraphic = function (graphic) {
-            throw new Error("Method not implemented.");
+            graphic.show();
         };
         MinemapService.prototype.hideGraphic = function (graphic) {
-            throw new Error("Method not implemented.");
+            graphic.hide();
         };
         MinemapService.prototype.setGeometryByGraphic = function (graphic, geometry) {
-            throw new Error("Method not implemented.");
+            graphic.setGeometry(geometry);
         };
         MinemapService.prototype.setSymbolByGraphic = function (graphic, symbol) {
-            throw new Error("Method not implemented.");
+            graphic.setSymbol(symbol);
         };
         MinemapService.prototype.createMarkerSymbol = function (options) {
             throw new Error("Method not implemented.");
         };
         MinemapService.prototype.getGraphicAttributes = function (graphic) {
-            throw new Error("Method not implemented.");
+            return graphic.attributers;
         };
+        //#endregion
+        //#region 地图
         MinemapService.prototype.addEventListener = function (target, eventName, callback) {
             var en = EVENT_MAP.get(eventName) || eventName;
             target.on(en, callback);
         };
         MinemapService.prototype.centerAt = function (point, map) {
-            throw new Error("Method not implemented.");
+            map.flyTo({
+                center: [
+                    point.x,
+                    point.y
+                ]
+            });
         };
         MinemapService.prototype.createPoint = function (options) {
             return new flagwind.MinemapPoint(options.x, options.y, options.spatial);
@@ -3625,6 +3969,9 @@ var flagwind;
             return new flagwind.MinemapSpatial(wkid);
         };
         MinemapService.prototype.getInfoWindow = function (map) {
+            throw new Error("Method not implemented.");
+        };
+        MinemapService.prototype.showInfoWindow = function (evt) {
             throw new Error("Method not implemented.");
         };
         MinemapService.prototype.formPoint = function (point, flagwindMap) {
@@ -3662,33 +4009,33 @@ var flagwind;
             };
         };
         MinemapService.prototype.toPoint = function (item, flagwindMap) {
-            var lnglat = { "lat": item.latitude, "lon": item.longitude };
-            if (!flagwind.MapUtils.validDevice(item)) {
-                lnglat.lon = item.x;
-                lnglat.lat = item.y;
+            var lnglat = { "latitude": item.latitude || item.lat, "longitude": item.longitude || item.lon };
+            if (!flagwind.MapUtils.validDevice(lnglat)) {
+                lnglat.longitude = item.x;
+                lnglat.latitude = item.y;
             }
             if (flagwindMap.spatial.wkid !== flagwindMap.mapSetting.wkidFromApp) {
                 if (flagwindMap.spatial.wkid === 3857 && flagwindMap.mapSetting.wkidFromApp === 4326) {
                     if (flagwindMap.mapSetting.is25D) {
-                        console.log("原始坐标：" + lnglat.lon + "," + lnglat.lat);
-                        lnglat = flagwind.MapUtils.gcj_encrypt(lnglat.lat, lnglat.lon);
-                        console.log("高德坐标：" + lnglat.lon + "," + lnglat.lat);
-                        lnglat = flagwind.MapUtils.point2To25(lnglat.lon, lnglat.lat);
-                        console.log("2.5D坐标：" + lnglat.lon + "," + lnglat.lat);
+                        console.log("原始坐标：" + lnglat.longitude + "," + lnglat.latitude);
+                        lnglat = flagwind.MapUtils.gcj_encrypt(lnglat.latitude, lnglat.longitude);
+                        console.log("高德坐标：" + lnglat.longitude + "," + lnglat.latitude);
+                        lnglat = flagwind.MapUtils.point2To25(lnglat.longitude, lnglat.latitude);
+                        console.log("2.5D坐标：" + lnglat.longitude + "," + lnglat.latitude);
                     }
                     else {
-                        lnglat = flagwind.MapUtils.lonlat2mercator(lnglat.lat, lnglat.lon);
+                        lnglat = flagwind.MapUtils.lonlat2mercator(lnglat.latitude, lnglat.longitude);
                     }
                 }
                 else if (flagwindMap.spatial.wkid === 102100 && flagwindMap.mapSetting.wkidFromApp === 4326) {
-                    lnglat = flagwind.MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
+                    lnglat = flagwind.MapUtils.mercator_encrypt(lnglat.latitude, lnglat.longitude);
                 }
                 else if (flagwindMap.spatial.wkid === 4326 && flagwindMap.mapSetting.wkidFromApp === 3857) {
-                    lnglat = flagwind.MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
+                    lnglat = flagwind.MapUtils.mercator_encrypt(lnglat.latitude, lnglat.longitude);
                 }
             }
             // 以x,y属性创建点
-            return new flagwind.MinemapPoint(lnglat.lon, lnglat.lat, flagwindMap.spatial);
+            return new flagwind.MinemapPoint(lnglat.longitude, lnglat.latitude, flagwindMap.spatial);
         };
         MinemapService.prototype.createMap = function (setting, flagwindMap) {
             minemap.domainUrl = "http://" + setting.mapDomain;
@@ -3719,6 +4066,8 @@ var flagwind;
         MinemapService.prototype.hideTitle = function (flagwindMap) {
             throw new Error("Method not implemented.");
         };
+        //#endregion
+        //#region 
         MinemapService.prototype.setSegmentByLine = function (flagwindRouteLayer, options, segment) {
             throw new Error("Method not implemented.");
         };

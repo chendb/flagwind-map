@@ -1,7 +1,7 @@
 /// <reference path="../base/flagwind.layer.ts" />
 namespace flagwind {
 
-    export class EsriEditLayer extends FlagwindFeatureLayer implements IEditLayer {
+    export class EsriEditLayer extends FlagwindFeatureLayer implements IFlagwindEditLayer {
 
         public editObj: any;
         public options: any;

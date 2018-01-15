@@ -10,6 +10,10 @@ namespace flagwind {
 
         public GRAPHIC_SYMBOL_MAP: Map<any, any> = new Map<any, any>();
 
+        public showInfoWindow(evt: { graphic: any; mapPoint: any }): void {
+            throw new Error("Method not implemented.");
+        }
+
         //#region 轨迹
         public getTrackLineMarkerGraphic(trackline: TrackLine, graphic: any, angle: number) {
             return EsriRouteService.getTrackLineMarkerGraphic(trackline, graphic, angle);
@@ -74,8 +78,8 @@ namespace flagwind {
             (<any>flagwindMap).titleDiv.style.display = "none";
         }
 
-        public createTiledLayer(options: { url: string; id: string }): any {
-            return new esri.layers.ArcGISTiledMapServiceLayer(options.url, { id: options.id });
+        public createTiledLayer(options: { url: string; id: string; title: string }): any {
+            return new esri.layers.ArcGISTiledMapServiceLayer(options.url, { id: options.id, title: options.title });
         }
 
         public clearLayer(layer: any): void {
@@ -174,7 +178,6 @@ namespace flagwind {
                     lnglat = MapUtils.mercator_decrypt(lnglat.lat, lnglat.lon);
                 }
             }
-            // console.log("-->坐标转换之后:" + lnglat.lon + "," + lnglat.lat);
 
             // 以x,y属性创建点
             return {
@@ -183,7 +186,7 @@ namespace flagwind {
             };
         }
         public toPoint(item: any, flagwindMap: FlagwindMap): any {
-            let lnglat = { "lat": item.latitude, "lon": item.longitude };
+            let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
             if (!MapUtils.validDevice(item)) {
                 lnglat.lon = item.x;
                 lnglat.lat = item.y;
@@ -200,15 +203,7 @@ namespace flagwind {
                     } else {
                         lnglat = MapUtils.lonlat2mercator(lnglat.lat, lnglat.lon);
                     }
-                    // lnglat.lon = lnglat.lon - (MapSetting.offsetX || 0);
-                    // lnglat.lat = lnglat.lat - (MapSetting.offsetY || 0);
                 } else if (flagwindMap.spatial.wkid === 102100 && flagwindMap.mapSetting.wkidFromApp === 4326) {
-                    // console.log("--原始坐标：" + lnglat.lon + "," + lnglat.lat);
-                    // let _lnglat = MapUtils.gcj_encrypt(lnglat.lat, lnglat.lon);
-                    // console.log("--高德坐标：" + _lnglat.lon + "," + _lnglat.lat);
-                    // _lnglat = MapUtils.gcj_decrypt(_lnglat.lat, _lnglat.lon);
-                    // console.log("--原始坐标：" + _lnglat.lon + "," + _lnglat.lat);
-
                     lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
                 }
                 else if (flagwindMap.spatial.wkid === 4326 && flagwindMap.mapSetting.wkidFromApp === 3857) {

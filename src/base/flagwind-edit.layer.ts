@@ -7,7 +7,7 @@ namespace flagwind {
         }
     };
 
-    export interface IEditLayer {
+    export interface IFlagwindEditLayer {
 
         /**
          * 激活编辑事件

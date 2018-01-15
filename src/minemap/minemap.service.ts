@@ -6,63 +6,91 @@ namespace flagwind {
     EVENT_MAP.set("onLoad", "load");
 
     export class MinemapService implements IMapService {
-        public createTiledLayer(options: { url: string; id: string }) {
+
+        //#region 
+        public createTiledLayer(options: { url: string; id: string; title: string }) {
+            // 该方法可不用实现
             throw new Error("Method not implemented.");
         }
         public createBaseLayer(flagwindMap: FlagwindMap): Array<FlagwindTiledLayer> {
             return new Array<FlagwindTiledLayer>();
         }
+        public createGraphicsLayer(options: any) {
+            if (options.kind === "marker") {
+                return new MinemapMarkerLayer(options);
+            }
+            if (options.kind === "geojson") {
+                return new MinemapGeoJsonLayer(options);
+            }
+            throw new Error("不支持的图层类型");
+        }
         public clearLayer(layer: any): void {
-            throw new Error("Method not implemented.");
+            if (layer.clear) {
+                layer.clear();
+            }
         }
         public removeLayer(layer: any, map: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphicsLayer>layer).removeFromMap(map);
+            // throw new Error("Method not implemented.");
         }
         public addLayer(layer: any, map: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphicsLayer>layer).addToMap(map);
+            // throw new Error("Method not implemented.");
         }
         public showLayer(layer: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphicsLayer>layer).show();
         }
         public hideLayer(layer: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphicsLayer>layer).hide();
         }
-        public getGraphicListByLayer(lay: any): Array<any> {
-            throw new Error("Method not implemented.");
-        }
-        public createGraphicsLayer(options: any) {
-            throw new Error("Method not implemented.");
+
+        //#endregion
+
+        //#region 
+        public getGraphicListByLayer(layer: any): Array<any> {
+            let graphics = (<IMinemapGraphicsLayer>layer).graphics;
+            let result = new Array<any>();
+            result.push(graphics);
+            return result;
         }
         public removeGraphic(graphic: any, layer: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphicsLayer>layer).remove(graphic);
         }
         public addGraphic(graphic: any, layer: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphicsLayer>layer).add(graphic);
         }
         public showGraphic(graphic: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphic>graphic).show();
         }
         public hideGraphic(graphic: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphic>graphic).hide();
         }
         public setGeometryByGraphic(graphic: any, geometry: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphic>graphic).setGeometry(geometry);
         }
         public setSymbolByGraphic(graphic: any, symbol: any): void {
-            throw new Error("Method not implemented.");
+            (<IMinemapGraphic>graphic).setSymbol(symbol);
         }
         public createMarkerSymbol(options: any) {
             throw new Error("Method not implemented.");
         }
         public getGraphicAttributes(graphic: any) {
-            throw new Error("Method not implemented.");
+            return (<IMinemapGraphic>graphic).attributers;
         }
+
+        //#endregion
+
+        //#region 地图
         public addEventListener(target: any, eventName: string, callback: Function): void {
             let en = EVENT_MAP.get(eventName) || eventName;
             target.on(en, callback);
         }
         public centerAt(point: any, map: any): void {
-            throw new Error("Method not implemented.");
+            map.flyTo({
+                center: [
+                    point.x,
+                    point.y]
+            });
         }
         public createPoint(options: any) {
             return new MinemapPoint(options.x, options.y, options.spatial);
@@ -73,7 +101,9 @@ namespace flagwind {
         public getInfoWindow(map: any) {
             throw new Error("Method not implemented.");
         }
-
+        public showInfoWindow(evt: { graphic: any; mapPoint: any }): void {
+            throw new Error("Method not implemented.");
+        }
         public formPoint(point: any, flagwindMap: FlagwindMap): { longitude: number; latitude: number } {
             let lnglat = { "lat": point.y, "lon": point.x };
             if (point.latitude && point.longitude) {
@@ -109,31 +139,31 @@ namespace flagwind {
         }
 
         public toPoint(item: any, flagwindMap: FlagwindMap) {
-            let lnglat = { "lat": item.latitude, "lon": item.longitude };
-            if (!MapUtils.validDevice(item)) {
-                lnglat.lon = item.x;
-                lnglat.lat = item.y;
+            let lnglat: any = { "latitude": item.latitude || item.lat, "longitude": item.longitude || item.lon };
+            if (!MapUtils.validDevice(lnglat)) {
+                lnglat.longitude = item.x;
+                lnglat.latitude = item.y;
             }
             if (flagwindMap.spatial.wkid !== flagwindMap.mapSetting.wkidFromApp) {
                 if (flagwindMap.spatial.wkid === 3857 && flagwindMap.mapSetting.wkidFromApp === 4326) {
                     if (flagwindMap.mapSetting.is25D) {
-                        console.log("原始坐标：" + lnglat.lon + "," + lnglat.lat);
-                        lnglat = MapUtils.gcj_encrypt(lnglat.lat, lnglat.lon);
-                        console.log("高德坐标：" + lnglat.lon + "," + lnglat.lat);
-                        lnglat = MapUtils.point2To25(lnglat.lon, lnglat.lat);
-                        console.log("2.5D坐标：" + lnglat.lon + "," + lnglat.lat);
+                        console.log("原始坐标：" + lnglat.longitude + "," + lnglat.latitude);
+                        lnglat = MapUtils.gcj_encrypt(lnglat.latitude, lnglat.longitude);
+                        console.log("高德坐标：" + lnglat.longitude + "," + lnglat.latitude);
+                        lnglat = MapUtils.point2To25(lnglat.longitude, lnglat.latitude);
+                        console.log("2.5D坐标：" + lnglat.longitude + "," + lnglat.latitude);
                     } else {
-                        lnglat = MapUtils.lonlat2mercator(lnglat.lat, lnglat.lon);
+                        lnglat = MapUtils.lonlat2mercator(lnglat.latitude, lnglat.longitude);
                     }
                 } else if (flagwindMap.spatial.wkid === 102100 && flagwindMap.mapSetting.wkidFromApp === 4326) {
-                    lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
+                    lnglat = MapUtils.mercator_encrypt(lnglat.latitude, lnglat.longitude);
                 }
                 else if (flagwindMap.spatial.wkid === 4326 && flagwindMap.mapSetting.wkidFromApp === 3857) {
-                    lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
+                    lnglat = MapUtils.mercator_encrypt(lnglat.latitude, lnglat.longitude);
                 }
             }
             // 以x,y属性创建点
-            return new MinemapPoint(lnglat.lon, lnglat.lat, flagwindMap.spatial);
+            return new MinemapPoint(lnglat.longitude, lnglat.latitude, flagwindMap.spatial);
 
         }
 
@@ -156,6 +186,21 @@ namespace flagwind {
             let popup = new minemap.Popup({ closeOnClick: false })
                 .addTo(map);
             map.infoWindow = popup;
+
+            let el = document.createElement("div");
+            el.id = "flagwind-map-title";
+        
+
+
+            let titleDiv = (<any>flagwindMap).titleDiv = document.createElement("div");
+            titleDiv.id = "flagwind-map-title";
+            titleDiv.classList.add("flagwind-map-title");
+            
+            (<any>flagwindMap).titleMarker = new minemap.Marker(titleDiv, {offset: [0, 0]})
+            .addTo(map);
+
+            // (<any>flagwindMap).innerMap._controlContainer.appendChild(div);
+            
             return map;
         }
 
@@ -163,11 +208,25 @@ namespace flagwind {
             throw new Error("Method not implemented.");
         }
         public showTitle(graphic: any, flagwindMap: FlagwindMap): void {
-            throw new Error("Method not implemented.");
+            let info = graphic.attributes;
+            let pt = new MinemapPoint(info.longitude, info.latitude, flagwindMap.spatial);
+            (<any>flagwindMap).titleMarker.setLngLat([pt.x,pt.y]);
+            (<any>flagwindMap).titleMarker.getElement().style.display = "block";
+            // let screenpt = flagwindMap.innerMap.toScreen(pt);
+            // let title = info.name;
+            // (<any>flagwindMap).titleDiv.innerHTML = "<div>" + title + "</div>";
+            // (<any>flagwindMap).titleDiv.style.left = (screenpt.x + 8) + "px";
+            // (<any>flagwindMap).titleDiv.style.top = (screenpt.y + 8) + "px";
+            // (<any>flagwindMap).titleDiv.style.display = "block";
         }
         public hideTitle(flagwindMap: FlagwindMap): void {
-            throw new Error("Method not implemented.");
+           // (<any>flagwindMap).titleDiv.style.display = "none";
+           (<any>flagwindMap).titleMarker.getElement().style.display = "none";
         }
+
+        //#endregion
+
+        //#region 
         public setSegmentByLine(flagwindRouteLayer: FlagwindRouteLayer, options: { points: Array<any>; spatial: any }, segment: TrackSegment): void {
             throw new Error("Method not implemented.");
         }
@@ -189,6 +248,7 @@ namespace flagwind {
         public showSegmentLine(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment) {
             throw new Error("Method not implemented.");
         }
+        //#endregion
 
     }
 }
