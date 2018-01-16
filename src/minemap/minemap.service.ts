@@ -105,10 +105,12 @@ namespace flagwind {
             return new MinemapSpatial(wkid);
         }
         public getInfoWindow(map: any) {
-            throw new Error("Method not implemented.");
+            return map.infoWindow;
         }
-        public showInfoWindow(evt: { graphic: any; mapPoint: any }): void {
-            throw new Error("Method not implemented.");
+        public showInfoWindow(evt: { target: any; mapPoint: any }, map: any): void {
+            map.setLngLat([116.46,39.92])
+            .setHTML("<h1>我是一个信息窗体</h1>")
+            .addTo(map);
         }
         public formPoint(point: any, flagwindMap: FlagwindMap): { longitude: number; latitude: number } {
             let lnglat = { "lat": point.y, "lon": point.x };
@@ -189,7 +191,7 @@ namespace flagwind {
                 minZoom: setting.minZoom || 9      // 地图最小缩放级别限制
             });
 
-            let popup = new minemap.Popup({ closeOnClick: false });
+            let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -15] }); // 创建全局信息框
             map.infoWindow = popup;
 
             let el = document.createElement("div");

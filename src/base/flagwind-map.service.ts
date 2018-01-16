@@ -13,7 +13,7 @@ namespace flagwind {
 
         getInfoWindow(map: any): any;
 
-        showInfoWindow(evt: { graphic: any; mapPoint: any }): void;
+        showInfoWindow(evt: { target: any; mapPoint: any }, map: any): void;
 
         // showInfoWindow(map: any): void;
 
