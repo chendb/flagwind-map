@@ -30,15 +30,70 @@ requirejs(['flagwindMap'],
             }
         });
 
+        var businessService = {
+            getDataList: function () {
+                return new Promise(function (resolve, reject) {
+                    resolve([{
+                        tollCode: "1",
+                        tollName: "1234567",
+                        lon: 116.46,
+                        lat: 39.92
+                    }, {
+                        tollCode: "2",
+                        tollName: "2234567",
+                        lon: 116.76,
+                        lat: 39.92
+                    }]);
+                });
+            },
+            getLastStatus: function () {
+                return new Promise(function (resolve, reject) {
+                    resolve([{
+                        tollCode: "1",
+                        tollName: "1234567",
+                        lon: 116.46,
+                        lat: 39.92
+                    }, {
+                        tollCode: "2",
+                        tollName: "2234567",
+                        lon: 116.46,
+                        lat: 39.92
+                    }]);
+                });
+            },
+            changeStandardModel: function (item) {
+                item.id = item.tollCode;
+                item.name = item.tollName;
+                item.longitude = item.lon;
+                item.latitude = item.lat;
+                return item;
+            },
+            getInfoWindowContext: function (item) {
+                return {
+                    title: item.name,
+                    content: "这是一个测试" + item.name
+                };
+            }
+        }
+
+        var tollgateLayer = flagwind.MinemapTollgateLayer(businessService, myMap, "tollgateLayer", {
+            onLoad:function () {
+                alert("测试");
+            }
+        });
+
+        tollgateLayer.showDataList();
+
+
         // var popup = new minemap.Popup({ offset: [0, -30] })
         //     .setText('这里是一个执勤人员');
-        var el = document.createElement('div');
-        el.id = 'marker11';
+        // var el = document.createElement('div');
+        // el.id = 'marker11';
 
-        var marker = new minemap.Marker(el, { offset: [-25, -25] })
-            .setLngLat([116.46, 39.92])
-            .setPopup(popup)
-            .addTo(myMap.innerMap);
+        // var marker = new minemap.Marker(el, { offset: [-25, -25] })
+        //     .setLngLat([116.46, 39.92])
+        //     .setPopup(popup)
+        //     .addTo(myMap.innerMap);
 
         // var layer = new flagwind.MinemapMarkerLayer({
         //     id: "tollgate"

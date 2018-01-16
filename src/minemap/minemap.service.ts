@@ -21,7 +21,9 @@ namespace flagwind {
             if (options.kind === "geojson") {
                 return new MinemapGeoJsonLayer(options);
             }
-            throw new Error("不支持的图层类型");
+            console.log("未指定图层类型");
+            return null;
+            // throw new Error("不支持的图层类型");
         }
         public clearLayer(layer: any): void {
             if (layer.clear) {
@@ -146,7 +148,7 @@ namespace flagwind {
 
         public toPoint(item: any, flagwindMap: FlagwindMap) {
             let lnglat: any = { "latitude": item.latitude || item.lat, "longitude": item.longitude || item.lon };
-            if (!MapUtils.validDevice(lnglat)) {
+            if (!MapUtils.validGeometryModel(lnglat)) {
                 lnglat.longitude = item.x;
                 lnglat.latitude = item.y;
             }
