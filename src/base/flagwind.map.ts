@@ -138,6 +138,14 @@ namespace flagwind {
             this.mapService.hideTitle(this);
         }
 
+        public getInfoWindow() {
+            return this.mapService.getInfoWindow(this.innerMap);
+        }
+
+        public showInfoWindow(evt: { target: any; mapPoint: any }, map: any) {
+            this.mapService.showInfoWindow(evt, map);
+        }
+
         protected onMapLoad() {
             if (this.options.onMapLoad) {
                 this.options.onMapLoad();
@@ -191,10 +199,6 @@ namespace flagwind {
             }
             return false;
         }
-
-        // public get infoWindow() {
-        //     return this.mapService.getInfoWindow(this.innerMap);
-        // }
 
         public get map() {
             return this.innerMap;

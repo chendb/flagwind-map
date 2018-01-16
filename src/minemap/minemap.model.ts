@@ -384,7 +384,6 @@ namespace flagwind {
 
     export class MinemapGeoJsonLayer implements IMinemapGraphicsLayer {
 
-
         private GRAPHICS_MAP: Map<string, MinemapGeoJson> = new Map<string, MinemapGeoJson>();
         /**
          * 是否在地图上
