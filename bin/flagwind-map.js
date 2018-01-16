@@ -553,9 +553,6 @@ var flagwind;
             this.ROUTE_MAP = new flagwind.Map();
             this.GRAPHIC_SYMBOL_MAP = new flagwind.Map();
         }
-        EsriMapService.prototype.showInfoWindow = function (evt) {
-            throw new Error("Method not implemented.");
-        };
         //#region 轨迹
         EsriMapService.prototype.getTrackLineMarkerGraphic = function (trackline, graphic, angle) {
             return flagwind.EsriRouteService.getTrackLineMarkerGraphic(trackline, graphic, angle);
@@ -688,6 +685,12 @@ var flagwind;
         };
         EsriMapService.prototype.getInfoWindow = function (map) {
             return map.infoWindow;
+        };
+        EsriMapService.prototype.showInfoWindow = function (graphic, mapPoint) {
+            throw new Error("Method not implemented.");
+        };
+        EsriMapService.prototype.openInfoWindow = function (option, map) {
+            throw new Error("Method not implemented.");
         };
         EsriMapService.prototype.hideInfoWindow = function (map) {
             map.infoWindow.hide();
@@ -2272,6 +2275,12 @@ var flagwind;
         FlagwindMap.prototype.hideTitle = function () {
             this.mapService.hideTitle(this);
         };
+        FlagwindMap.prototype.getInfoWindow = function () {
+            return this.mapService.getInfoWindow(this.innerMap);
+        };
+        FlagwindMap.prototype.openInfoWindow = function (option) {
+            this.mapService.openInfoWindow(option, this.innerMap);
+        };
         FlagwindMap.prototype.onMapLoad = function () {
             if (this.options.onMapLoad) {
                 this.options.onMapLoad();
@@ -2320,9 +2329,6 @@ var flagwind;
             return false;
         };
         Object.defineProperty(FlagwindMap.prototype, "map", {
-            // public get infoWindow() {
-            //     return this.mapService.getInfoWindow(this.innerMap);
-            // }
             get: function () {
                 return this.innerMap;
             },
@@ -3651,8 +3657,8 @@ var flagwind;
                     className: "graphic-tollgate"
                 },
                 point: {
-                    x: item.latitude,
-                    y: item.longitude
+                    y: item.latitude,
+                    x: item.longitude
                 }
             });
         };
@@ -3769,19 +3775,39 @@ var flagwind;
             // this.EVENT_MAP.set("onClick", "onclick");
             var me = this;
             this.element.onmouseover = function (args) {
-                me.onCallback("onMouseOver", args);
+                me.onCallBack("onMouseOver", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
             this.element.onmouseout = function (args) {
-                me.onCallback("onMouseOut", args);
+                me.onCallBack("onMouseOut", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
             this.element.onmousedown = function (args) {
-                me.onCallback("onMouseDown", args);
+                me.onCallBack("onMouseDown", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
             this.element.onmouseup = function (args) {
-                me.onCallback("onMouseUp", args);
+                me.onCallBack("onMouseUp", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
             this.element.onclick = function (args) {
-                me.onCallback("onClick", args);
+                me.onCallBack("onClick", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
         }
         Object.defineProperty(MinemapMarker.prototype, "kind", {
@@ -3802,7 +3828,7 @@ var flagwind;
         //     eventName = this.EVENT_MAP.get(eventName) || eventName;
         //     this.element[eventName] = callBack;
         // }
-        MinemapMarker.prototype.onCallback = function (eventName, arg) {
+        MinemapMarker.prototype.onCallBack = function (eventName, arg) {
             var callback = this.layer.getCallBack("onMouseOver");
             if (callback) {
                 callback(arg);
@@ -3947,7 +3973,12 @@ var flagwind;
         });
         Object.defineProperty(MinemapMarkerLayer.prototype, "graphics", {
             get: function () {
-                return new Array(this.GRAPHICS_MAP.values);
+                if (this.GRAPHICS_MAP.values.length === 0) {
+                    return new Array();
+                }
+                else {
+                    return new Array(this.GRAPHICS_MAP.values);
+                }
             },
             enumerable: true,
             configurable: true
@@ -4127,9 +4158,7 @@ var flagwind;
         //#region 
         MinemapService.prototype.getGraphicListByLayer = function (layer) {
             var graphics = layer.graphics;
-            var result = new Array();
-            result.push(graphics);
-            return result;
+            return graphics;
         };
         MinemapService.prototype.removeGraphic = function (graphic, layer) {
             layer.remove(graphic);
@@ -4182,10 +4211,35 @@ var flagwind;
             return new flagwind.MinemapSpatial(wkid);
         };
         MinemapService.prototype.getInfoWindow = function (map) {
+            return map.infoWindow;
+        };
+        MinemapService.prototype.showInfoWindow = function (map) {
             throw new Error("Method not implemented.");
         };
-        MinemapService.prototype.showInfoWindow = function (evt) {
-            throw new Error("Method not implemented.");
+        MinemapService.prototype.openInfoWindow = function (option, map) {
+            // 存在原始参数则创建新信息窗口
+            if (typeof option.closeButton === "boolean" || typeof option.closeOnClick === "boolean" || option.offset) {
+                var params = {};
+                if (typeof option.closeButton === "boolean")
+                    params["closeButton"] = option.closeButton;
+                if (typeof option.closeOnClick === "boolean")
+                    params["closeOnClick"] = option.closeOnClick;
+                if (option.offset)
+                    params["offset"] = option.offset;
+                map.infoWindow = new minemap.Popup(params);
+            }
+            switch (option.type) {
+                case "dom":
+                    map.infoWindow.setDOMContent(option.content || "");
+                    break;
+                case "html":
+                    map.infoWindow.setHTML(option.content || "");
+                    break;
+                case "text":
+                    map.infoWindow.setText(option.content || "");
+                    break;
+            }
+            map.infoWindow.setLngLat([option.point.x, option.point.y]).addTo(map);
         };
         MinemapService.prototype.formPoint = function (point, flagwindMap) {
             var lnglat = { "lat": point.y, "lon": point.x };
@@ -4265,7 +4319,7 @@ var flagwind;
                 maxZoom: setting.maxZoom || 17,
                 minZoom: setting.minZoom || 9 // 地图最小缩放级别限制
             });
-            var popup = new minemap.Popup({ closeOnClick: false });
+            var popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
             var el = document.createElement("div");
             el.id = "flagwind-map-title";

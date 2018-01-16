@@ -118,8 +118,8 @@ namespace flagwind {
                     className: "graphic-tollgate"
                 },
                 point: {
-                    x: item.latitude,
-                    y: item.longitude
+                    y: item.latitude,
+                    x: item.longitude
                 }
             });
         }

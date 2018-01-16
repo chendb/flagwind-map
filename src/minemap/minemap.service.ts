@@ -49,10 +49,8 @@ namespace flagwind {
 
         //#region 
         public getGraphicListByLayer(layer: any): Array<any> {
-            let graphics = (<IMinemapGraphicsLayer>layer).graphics;
-            let result = new Array<any>();
-            result.push(graphics);
-            return result;
+            let graphics = <Array<any>>(<IMinemapGraphicsLayer>layer).graphics;
+            return graphics;
         }
         public removeGraphic(graphic: any, layer: any): void {
             (<IMinemapGraphicsLayer>layer).remove(graphic);

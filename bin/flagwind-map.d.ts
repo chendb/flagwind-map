@@ -1699,7 +1699,7 @@ declare namespace flagwind {
         constructor(options: any);
         readonly kind: string;
         readonly isInsided: boolean;
-        onCallback(eventName: string, arg: any): void;
+        onCallBack(eventName: string, arg: any): void;
         show(): void;
         hide(): void;
         remove(): void;
@@ -1768,7 +1768,7 @@ declare namespace flagwind {
         map: any;
         readonly isInsided: boolean;
         constructor(options: any);
-        readonly graphics: (() => MinemapMarker[])[];
+        readonly graphics: any[];
         getCallBack(eventName: string): Function;
         on(eventName: string, callBack: Function): void;
         show(): void;
