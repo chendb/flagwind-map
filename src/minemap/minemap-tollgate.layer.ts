@@ -1,4 +1,3 @@
-/// <reference path="../base/flagwind-business.layer.ts" />
 namespace flagwind {
     /**
      * 卡口

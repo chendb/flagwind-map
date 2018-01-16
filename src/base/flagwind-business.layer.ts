@@ -1,4 +1,4 @@
-/// <reference path="./flagwind.layer.ts" />
+/// <reference path="./flagwind-feature.layer.ts" />
 namespace flagwind {
 
     export const BUSINESS_LAYER_OPTIONS: any = {
@@ -117,6 +117,8 @@ namespace flagwind {
          * 保存要素（如果存在，则修改，否则添加）
          */
         public saveGraphicByModel(item: any): void {
+            item = this.changeStandardModel(item);
+            if (!item || !item.id) return;
             const graphic = this.getGraphicById(item.id);
             if (graphic) {
                 return this.updateGraphicByModel(item, graphic);
