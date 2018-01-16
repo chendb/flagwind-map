@@ -15,6 +15,8 @@ namespace flagwind {
             //     });
             // }
 
+            this.onInit();
+
         }
 
         public onEditInfo(evt: any, isSave: boolean) {
@@ -142,12 +144,6 @@ namespace flagwind {
         public addEventListener(eventName: string, callback: Function): void {
             this.layer.on(eventName, callback);
         }
-
-        // protected onInit(): void {
-        //     this.layer = this.createGraphicsLayer({
-        //         id: this.id
-        //     });
-        // }
 
         /**
          * 更新设备状态

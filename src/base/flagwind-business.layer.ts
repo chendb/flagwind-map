@@ -1,3 +1,4 @@
+/// <reference path="./flagwind-feature.layer.ts" />
 namespace flagwind {
 
     export const BUSINESS_LAYER_OPTIONS: any = {
@@ -37,8 +38,9 @@ namespace flagwind {
 
             this.flagwindMap = flagwindMap;
             this.options = options;
+        }
 
-            this.onInit();
+        public onInit(): void {
             this.onAddLayerBefor();
             this.flagwindMap.addFeatureLayer(this);
             this.onAddLayerAfter();
@@ -51,7 +53,6 @@ namespace flagwind {
                     me.onLoad();
                 });
             }
-
         }
 
         public abstract showInfoWindow(evt: any): void;
@@ -116,6 +117,8 @@ namespace flagwind {
          * 保存要素（如果存在，则修改，否则添加）
          */
         public saveGraphicByModel(item: any): void {
+            item = this.changeStandardModel(item);
+            if (!item || !item.id) return;
             const graphic = this.getGraphicById(item.id);
             if (graphic) {
                 return this.updateGraphicByModel(item, graphic);
@@ -210,10 +213,6 @@ namespace flagwind {
 
         protected onAddLayerAfter(): void {
             console.log("onAddLayerAfter");
-        }
-
-        protected onInit(): void {
-            console.log("onInit");
         }
 
         protected onLoad() {

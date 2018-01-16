@@ -317,7 +317,11 @@ namespace flagwind {
         }
 
         public get graphics() {
-            return new Array(this.GRAPHICS_MAP.values);
+            if (this.GRAPHICS_MAP.values.length > 0) {
+                return new Array();
+            } else {
+                return new Array(this.GRAPHICS_MAP.values);
+            }
         }
 
         public getCallBack(eventName: string): Function {

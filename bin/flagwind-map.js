@@ -194,46 +194,6 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     /**
-     * 底图包装类
-     *
-     * @export
-     * @class FlagwindTiledLayer
-     */
-    var FlagwindTiledLayer = /** @class */ (function () {
-        function FlagwindTiledLayer(mapService, id, url, title) {
-            this.mapService = mapService;
-            this.id = id;
-            this.url = url;
-            this.title = title;
-            this.isShow = true;
-            if (url) {
-                this.layer = mapService.createTiledLayer({
-                    url: url,
-                    id: id,
-                    title: title
-                });
-            }
-        }
-        FlagwindTiledLayer.prototype.appendTo = function (map) {
-            if (this.layer) {
-                this.mapService.addLayer(this.layer, map);
-            }
-        };
-        FlagwindTiledLayer.prototype.removeLayer = function (map) {
-            this.mapService.removeLayer(this.layer, map);
-        };
-        FlagwindTiledLayer.prototype.show = function () {
-            this.isShow = true;
-            this.mapService.showLayer(this.layer);
-        };
-        FlagwindTiledLayer.prototype.hide = function () {
-            this.isShow = false;
-            this.mapService.hideLayer(this.layer);
-        };
-        return FlagwindTiledLayer;
-    }());
-    flagwind.FlagwindTiledLayer = FlagwindTiledLayer;
-    /**
      * 功能图层包装类
      *
      * @export
@@ -246,8 +206,11 @@ var flagwind;
             this.title = title;
             this.isShow = true;
             this.id = id;
-            this.mapService.createGraphicsLayer({ id: id });
+            this.layer = this.createGraphicsLayer({ id: id });
         }
+        FlagwindFeatureLayer.prototype.createGraphicsLayer = function (args) {
+            return this.mapService.createGraphicsLayer(args);
+        };
         Object.defineProperty(FlagwindFeatureLayer.prototype, "graphics", {
             get: function () {
                 return this.mapService.getGraphicListByLayer(this.layer);
@@ -315,121 +278,8 @@ var flagwind;
         return FlagwindFeatureLayer;
     }());
     flagwind.FlagwindFeatureLayer = FlagwindFeatureLayer;
-    /**
-     * 分组图层(用于需要多个要素叠加效果情况)
-     *
-     * @export
-     * @class FlagwindGroupLayer
-     */
-    var FlagwindGroupLayer = /** @class */ (function () {
-        function FlagwindGroupLayer(mapService, id) {
-            this.mapService = mapService;
-            this.id = id;
-            this.isShow = true;
-            this.layer = this.mapService.createGraphicsLayer({ id: id });
-        }
-        Object.defineProperty(FlagwindGroupLayer.prototype, "graphics", {
-            get: function () {
-                return this.mapService.getGraphicListByLayer(this.layer);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        FlagwindGroupLayer.prototype.appendTo = function (map) {
-            this.mapService.addLayer(this.layer, map);
-        };
-        FlagwindGroupLayer.prototype.removeLayer = function (map) {
-            this.mapService.removeLayer(this.layer, map);
-        };
-        FlagwindGroupLayer.prototype.clear = function () {
-            this.mapService.clearLayer(this.layer);
-        };
-        FlagwindGroupLayer.prototype.show = function () {
-            this.isShow = true;
-            this.mapService.showLayer(this.layer);
-        };
-        FlagwindGroupLayer.prototype.hide = function () {
-            this.isShow = false;
-            this.mapService.hideLayer(this.layer);
-        };
-        FlagwindGroupLayer.prototype.setGeometry = function (name, geometry) {
-            var _this = this;
-            this.getGraphicByName(name).forEach(function (g) {
-                _this.mapService.setGeometryByGraphic(g, geometry);
-            });
-        };
-        FlagwindGroupLayer.prototype.setSymbol = function (name, symbol) {
-            var _this = this;
-            this.getGraphicByName(name).forEach(function (g) {
-                _this.mapService.setSymbolByGraphic(g, symbol);
-            });
-        };
-        FlagwindGroupLayer.prototype.showGraphice = function (name) {
-            var _this = this;
-            this.getGraphicByName(name).forEach(function (g) {
-                _this.mapService.showGraphic(g);
-            });
-        };
-        FlagwindGroupLayer.prototype.hideGraphice = function (name) {
-            var _this = this;
-            this.getGraphicByName(name).forEach(function (g) {
-                _this.mapService.hideGraphic(g);
-            });
-        };
-        FlagwindGroupLayer.prototype.addGraphice = function (name, graphics) {
-            var _this = this;
-            if (graphics === undefined)
-                return;
-            graphics.forEach(function (g, index) {
-                if (g) {
-                    var item = _this.mapService.getGraphicAttributes(g);
-                    item.__master = index === 0;
-                    item.__name = name;
-                    _this.mapService.addGraphic(g, _this.layer);
-                }
-            });
-        };
-        FlagwindGroupLayer.prototype.getMasterGraphicByName = function (name) {
-            var _this = this;
-            this.graphics.forEach(function (element) {
-                var item = _this.mapService.getGraphicAttributes(element);
-                if (name === item.__name && item.__master) {
-                    return element;
-                }
-            });
-            return null;
-        };
-        /**
-         * 获取资源要素点
-         */
-        FlagwindGroupLayer.prototype.getGraphicByName = function (name) {
-            var list = [];
-            for (var i = 0; i < this.graphics.length; i++) {
-                var attrs = this.mapService.getGraphicAttributes(this.graphics[i]);
-                if (attrs.__name === name) {
-                    list.push(this.graphics[i]);
-                }
-            }
-            return list;
-        };
-        /**
-         * 删除资源要素点
-         */
-        FlagwindGroupLayer.prototype.removeGraphicByName = function (name) {
-            var _this = this;
-            var graphics = this.getGraphicByName(name);
-            if (graphics != null) {
-                var _layer_1 = this.layer;
-                graphics.forEach(function (g) {
-                    _this.mapService.removeGraphic(g, _layer_1);
-                });
-            }
-        };
-        return FlagwindGroupLayer;
-    }());
-    flagwind.FlagwindGroupLayer = FlagwindGroupLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind.layer.ts" />
+/// <reference path="../base/flagwind-feature.layer.ts" />
 var flagwind;
 (function (flagwind) {
     var EsriEditLayer = /** @class */ (function (_super) {
@@ -599,7 +449,6 @@ var flagwind;
     }(flagwind.FlagwindFeatureLayer));
     flagwind.EsriEditLayer = EsriEditLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind.layer.ts" />
 var flagwind;
 (function (flagwind) {
     var EsriLocationLayer = /** @class */ (function (_super) {
@@ -1842,6 +1691,7 @@ var flagwind;
     }());
     flagwind.EsriRouteService = EsriRouteService;
 })(flagwind || (flagwind = {}));
+/// <reference path="./flagwind-feature.layer.ts" />
 var flagwind;
 (function (flagwind) {
     flagwind.BUSINESS_LAYER_OPTIONS = {
@@ -1879,21 +1729,22 @@ var flagwind;
             options = __assign({}, flagwind.BUSINESS_LAYER_OPTIONS, options);
             _this.flagwindMap = flagwindMap;
             _this.options = options;
-            _this.onInit();
-            _this.onAddLayerBefor();
-            _this.flagwindMap.addFeatureLayer(_this);
-            _this.onAddLayerAfter();
-            if (_this.flagwindMap.innerMap.loaded) {
-                _this.onLoad();
+            return _this;
+        }
+        FlagwindBusinessLayer.prototype.onInit = function () {
+            this.onAddLayerBefor();
+            this.flagwindMap.addFeatureLayer(this);
+            this.onAddLayerAfter();
+            if (this.flagwindMap.innerMap.loaded) {
+                this.onLoad();
             }
             else {
-                var me_2 = _this;
-                _this.flagwindMap.innerMap.on("load", function () {
+                var me_2 = this;
+                this.flagwindMap.innerMap.on("load", function () {
                     me_2.onLoad();
                 });
             }
-            return _this;
-        }
+        };
         Object.defineProperty(FlagwindBusinessLayer.prototype, "map", {
             // /**
             //  * 获取资源图标
@@ -1946,6 +1797,9 @@ var flagwind;
          * 保存要素（如果存在，则修改，否则添加）
          */
         FlagwindBusinessLayer.prototype.saveGraphicByModel = function (item) {
+            item = this.changeStandardModel(item);
+            if (!item || !item.id)
+                return;
             var graphic = this.getGraphicById(item.id);
             if (graphic) {
                 return this.updateGraphicByModel(item, graphic);
@@ -2029,9 +1883,6 @@ var flagwind;
         };
         FlagwindBusinessLayer.prototype.onAddLayerAfter = function () {
             console.log("onAddLayerAfter");
-        };
-        FlagwindBusinessLayer.prototype.onInit = function () {
-            console.log("onInit");
         };
         FlagwindBusinessLayer.prototype.onLoad = function () {
             if (!this.layer._map) {
@@ -2128,11 +1979,181 @@ var flagwind;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
+    var FlagwindGroup1Layer = /** @class */ (function () {
+        function FlagwindGroup1Layer(id) {
+            this.id = id;
+            this.isShow = true;
+        }
+        FlagwindGroup1Layer.prototype.test = function () {
+            return 0;
+        };
+        return FlagwindGroup1Layer;
+    }());
+    flagwind.FlagwindGroup1Layer = FlagwindGroup1Layer;
+    /**
+     * 分组图层(用于需要多个要素叠加效果情况)
+     *
+     * @export
+     * @class FlagwindGroupLayer
+     */
+    var FlagwindGroupLayer = /** @class */ (function () {
+        function FlagwindGroupLayer(mapService, id) {
+            this.mapService = mapService;
+            this.id = id;
+            this.isShow = true;
+            this.layer = this.mapService.createGraphicsLayer({ id: id });
+        }
+        Object.defineProperty(FlagwindGroupLayer.prototype, "graphics", {
+            get: function () {
+                return this.mapService.getGraphicListByLayer(this.layer);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FlagwindGroupLayer.prototype.appendTo = function (map) {
+            this.mapService.addLayer(this.layer, map);
+        };
+        FlagwindGroupLayer.prototype.removeLayer = function (map) {
+            this.mapService.removeLayer(this.layer, map);
+        };
+        FlagwindGroupLayer.prototype.clear = function () {
+            this.mapService.clearLayer(this.layer);
+        };
+        FlagwindGroupLayer.prototype.show = function () {
+            this.isShow = true;
+            this.mapService.showLayer(this.layer);
+        };
+        FlagwindGroupLayer.prototype.hide = function () {
+            this.isShow = false;
+            this.mapService.hideLayer(this.layer);
+        };
+        FlagwindGroupLayer.prototype.setGeometry = function (name, geometry) {
+            var _this = this;
+            this.getGraphicByName(name).forEach(function (g) {
+                _this.mapService.setGeometryByGraphic(g, geometry);
+            });
+        };
+        FlagwindGroupLayer.prototype.setSymbol = function (name, symbol) {
+            var _this = this;
+            this.getGraphicByName(name).forEach(function (g) {
+                _this.mapService.setSymbolByGraphic(g, symbol);
+            });
+        };
+        FlagwindGroupLayer.prototype.showGraphice = function (name) {
+            var _this = this;
+            this.getGraphicByName(name).forEach(function (g) {
+                _this.mapService.showGraphic(g);
+            });
+        };
+        FlagwindGroupLayer.prototype.hideGraphice = function (name) {
+            var _this = this;
+            this.getGraphicByName(name).forEach(function (g) {
+                _this.mapService.hideGraphic(g);
+            });
+        };
+        FlagwindGroupLayer.prototype.addGraphice = function (name, graphics) {
+            var _this = this;
+            if (graphics === undefined)
+                return;
+            graphics.forEach(function (g, index) {
+                if (g) {
+                    var item = _this.mapService.getGraphicAttributes(g);
+                    item.__master = index === 0;
+                    item.__name = name;
+                    _this.mapService.addGraphic(g, _this.layer);
+                }
+            });
+        };
+        FlagwindGroupLayer.prototype.getMasterGraphicByName = function (name) {
+            var _this = this;
+            this.graphics.forEach(function (element) {
+                var item = _this.mapService.getGraphicAttributes(element);
+                if (name === item.__name && item.__master) {
+                    return element;
+                }
+            });
+            return null;
+        };
+        /**
+         * 获取资源要素点
+         */
+        FlagwindGroupLayer.prototype.getGraphicByName = function (name) {
+            var list = [];
+            for (var i = 0; i < this.graphics.length; i++) {
+                var attrs = this.mapService.getGraphicAttributes(this.graphics[i]);
+                if (attrs.__name === name) {
+                    list.push(this.graphics[i]);
+                }
+            }
+            return list;
+        };
+        /**
+         * 删除资源要素点
+         */
+        FlagwindGroupLayer.prototype.removeGraphicByName = function (name) {
+            var _this = this;
+            var graphics = this.getGraphicByName(name);
+            if (graphics != null) {
+                var _layer_1 = this.layer;
+                graphics.forEach(function (g) {
+                    _this.mapService.removeGraphic(g, _layer_1);
+                });
+            }
+        };
+        return FlagwindGroupLayer;
+    }());
+    flagwind.FlagwindGroupLayer = FlagwindGroupLayer;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
     flagwind.locationLayerOptions = {
         onMapClick: function (evt) {
             console.log("onMapClick");
         }
     };
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
+    /**
+     * 底图包装类
+     *
+     * @export
+     * @class FlagwindTiledLayer
+     */
+    var FlagwindTiledLayer = /** @class */ (function () {
+        function FlagwindTiledLayer(mapService, id, url, title) {
+            this.mapService = mapService;
+            this.id = id;
+            this.url = url;
+            this.title = title;
+            this.isShow = true;
+            if (url) {
+                this.layer = mapService.createTiledLayer({
+                    url: url,
+                    id: id,
+                    title: title
+                });
+            }
+        }
+        FlagwindTiledLayer.prototype.appendTo = function (map) {
+            if (this.layer) {
+                this.mapService.addLayer(this.layer, map);
+            }
+        };
+        FlagwindTiledLayer.prototype.removeLayer = function (map) {
+            this.mapService.removeLayer(this.layer, map);
+        };
+        FlagwindTiledLayer.prototype.show = function () {
+            this.isShow = true;
+            this.mapService.showLayer(this.layer);
+        };
+        FlagwindTiledLayer.prototype.hide = function () {
+            this.isShow = false;
+            this.mapService.hideLayer(this.layer);
+        };
+        return FlagwindTiledLayer;
+    }());
+    flagwind.FlagwindTiledLayer = FlagwindTiledLayer;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
@@ -3531,12 +3552,13 @@ var flagwind;
             var _this = _super.call(this, flagwindMap, id, options) || this;
             _this.businessService = businessService;
             _this.isLoading = false; // 设备是否正在加载
-            return _this;
             // if (this.options.enableEdit) {
             //     (<any>this).editLayer = new EditLayer(flagwindMap, this, {
             //         onEditInfo: this.onEditInfo
             //     });
             // }
+            _this.onInit();
+            return _this;
         }
         MinemapTollgateLayer.prototype.onEditInfo = function (evt, isSave) {
             // console.log(evt);
@@ -3653,11 +3675,6 @@ var flagwind;
         MinemapTollgateLayer.prototype.addEventListener = function (eventName, callback) {
             this.layer.on(eventName, callback);
         };
-        // protected onInit(): void {
-        //     this.layer = this.createGraphicsLayer({
-        //         id: this.id
-        //     });
-        // }
         /**
          * 更新设备状态
          */
