@@ -246,11 +246,8 @@ var flagwind;
             this.title = title;
             this.isShow = true;
             this.id = id;
-            this.layer = this.createGraphicsLayer({ id: id });
+            this.mapService.createGraphicsLayer({ id: id });
         }
-        FlagwindFeatureLayer.prototype.createGraphicsLayer = function (options) {
-            return this.mapService.createGraphicsLayer(options);
-        };
         Object.defineProperty(FlagwindFeatureLayer.prototype, "graphics", {
             get: function () {
                 return this.mapService.getGraphicListByLayer(this.layer);
@@ -3656,6 +3653,11 @@ var flagwind;
         MinemapTollgateLayer.prototype.addEventListener = function (eventName, callback) {
             this.layer.on(eventName, callback);
         };
+        // protected onInit(): void {
+        //     this.layer = this.createGraphicsLayer({
+        //         id: this.id
+        //     });
+        // }
         /**
          * 更新设备状态
          */
@@ -4081,7 +4083,9 @@ var flagwind;
             if (options.kind === "geojson") {
                 return new flagwind.MinemapGeoJsonLayer(options);
             }
-            throw new Error("不支持的图层类型");
+            console.log("未指定图层类型");
+            return null;
+            // throw new Error("不支持的图层类型");
         };
         MinemapService.prototype.clearLayer = function (layer) {
             if (layer.clear) {

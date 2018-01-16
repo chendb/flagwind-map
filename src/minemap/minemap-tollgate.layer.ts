@@ -143,6 +143,12 @@ namespace flagwind {
             this.layer.on(eventName, callback);
         }
 
+        // protected onInit(): void {
+        //     this.layer = this.createGraphicsLayer({
+        //         id: this.id
+        //     });
+        // }
+
         /**
          * 更新设备状态
          */

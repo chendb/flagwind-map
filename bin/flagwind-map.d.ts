@@ -100,7 +100,6 @@ declare namespace flagwind {
         protected layer: any;
         isShow: boolean;
         constructor(mapService: IMapService, id: string, title: string | null);
-        createGraphicsLayer(options: any): any;
         readonly graphics: Array<any>;
         readonly items: Array<any>;
         appendTo(map: any): void;
