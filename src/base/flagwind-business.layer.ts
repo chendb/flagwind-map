@@ -60,7 +60,7 @@ namespace flagwind {
 
         public abstract onUpdateGraphicByModel(item: any): void;
 
-        public abstract addEventListener(target: any, eventName: string, callback: Function): void;
+        public abstract addEventListener(eventName: string, callback: Function): void;
 
         // /**
         //  * 获取资源图标
@@ -230,15 +230,15 @@ namespace flagwind {
 
         protected registerEvent(): void {
             let _deviceLayer = this;
-            this.addEventListener(this.layer, "onCliick", function (evt: any) {
+            this.addEventListener("onCliick", function (evt: any) {
                 _deviceLayer.onLayerClick(_deviceLayer, evt);
             });
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
-                this.addEventListener(this.layer, "onMouseOver", function (evt: any) {
+                this.addEventListener("onMouseOver", function (evt: any) {
                     _deviceLayer.flagwindMap.showTitle(evt.graphic);
                 });
-                this.addEventListener(this.layer, "onMouseOut", function (evt: any) {
+                this.addEventListener("onMouseOut", function (evt: any) {
                     _deviceLayer.flagwindMap.hideTitle();
                 });
             }
@@ -267,7 +267,6 @@ namespace flagwind {
                     let item = evt.graphic.attributes;
                     deviceLayer.setSelectStatus(item, true);
                 }
-                console.log("check-------" + evt.graphic.attributes);
                 deviceLayer.options.onCheck({
                     target: [evt.graphic.attributes],
                     check: evt.graphic.attributes.selected,

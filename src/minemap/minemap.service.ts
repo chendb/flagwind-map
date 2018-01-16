@@ -144,7 +144,7 @@ namespace flagwind {
 
         public toPoint(item: any, flagwindMap: FlagwindMap) {
             let lnglat: any = { "latitude": item.latitude || item.lat, "longitude": item.longitude || item.lon };
-            if (!MapUtils.validDevice(lnglat)) {
+            if (!MapUtils.validGeometryModel(lnglat)) {
                 lnglat.longitude = item.x;
                 lnglat.latitude = item.y;
             }

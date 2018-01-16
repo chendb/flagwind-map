@@ -318,18 +318,18 @@ namespace flagwind {
 
             const flagwindRoute = this;
 
-            const trackSegmentOptions = new TrackSegmentOptions(lineOptions.numsOfKilometer, lineOptions.speed, lineOptions.autoShowLine);
+            const trackSegmentOptions = lineOptions;
 
-            trackSegmentOptions.onShowSegmentLineEvent = function (segment) {
+            trackSegmentOptions.onShowSegmentLineEvent = function (segment: TrackSegment) {
                 flagwindRoute.onShowSegmentLineEvent(flagwindRoute, segment, lineOptions);
             };
-            trackSegmentOptions.onMoveStartEvent = function (segment, graphic, angle) {
+            trackSegmentOptions.onMoveStartEvent = function (segment: TrackSegment, graphic: any, angle: number) {
                 flagwindRoute.onMoveStartEvent(flagwindRoute, segment, graphic, angle);
             };
-            trackSegmentOptions.onMoveEvent = function (segment, point, angle) {
+            trackSegmentOptions.onMoveEvent = function (segment: TrackSegment, point: any, angle: number) {
                 flagwindRoute.onMoveEvent(flagwindRoute, segment, point, angle);
             };
-            trackSegmentOptions.onMoveEndEvent = function (segment, graphic, angle) {
+            trackSegmentOptions.onMoveEndEvent = function (segment: TrackSegment, graphic: any, angle: number) {
                 flagwindRoute.onMoveEndEvent(flagwindRoute, segment, graphic, angle);
             };
 
