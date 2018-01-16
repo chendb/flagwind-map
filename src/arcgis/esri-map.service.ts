@@ -10,10 +10,6 @@ namespace flagwind {
 
         public GRAPHIC_SYMBOL_MAP: Map<any, any> = new Map<any, any>();
 
-        public showInfoWindow(evt: { graphic: any; mapPoint: any }): void {
-            throw new Error("Method not implemented.");
-        }
-
         //#region 轨迹
         public getTrackLineMarkerGraphic(trackline: TrackLine, graphic: any, angle: number) {
             return EsriRouteService.getTrackLineMarkerGraphic(trackline, graphic, angle);
@@ -149,7 +145,12 @@ namespace flagwind {
         public getInfoWindow(map: any): any {
             return map.infoWindow;
         }
-
+        public showInfoWindow(graphic: any, mapPoint: any): void {
+            throw new Error("Method not implemented.");
+        }
+        public openInfoWindow(option: any, map: any): void {
+            throw new Error("Method not implemented.");
+        }
         public hideInfoWindow(map: any): void {
             map.infoWindow.hide();
         }

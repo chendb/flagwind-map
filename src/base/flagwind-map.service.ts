@@ -13,9 +13,9 @@ namespace flagwind {
 
         getInfoWindow(map: any): any;
 
-        showInfoWindow(evt: { target: any; mapPoint: any }, map: any): void;
+        openInfoWindow(option: any, map: any): void; // 打开信息窗口
 
-        // showInfoWindow(map: any): void;
+        showInfoWindow(graphic: any, mapPoint: any): void;
 
         // hideInfoWindow(map: any): void;
 

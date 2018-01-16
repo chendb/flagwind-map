@@ -202,10 +202,6 @@ declare namespace flagwind {
     class EsriMapService implements IMapService {
         ROUTE_MAP: Map<FlagwindRouteLayer, EsriRouteService>;
         GRAPHIC_SYMBOL_MAP: Map<any, any>;
-        showInfoWindow(evt: {
-            graphic: any;
-            mapPoint: any;
-        }): void;
         getTrackLineMarkerGraphic(trackline: TrackLine, graphic: any, angle: number): any;
         getStandardStops(name: string, stops: Array<any>): Array<any>;
         showSegmentLine(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment): void;
@@ -246,6 +242,8 @@ declare namespace flagwind {
         createPoint(options: any): any;
         createSpatial(wkid: any): any;
         getInfoWindow(map: any): any;
+        showInfoWindow(graphic: any, mapPoint: any): void;
+        openInfoWindow(option: any, map: any): void;
         hideInfoWindow(map: any): void;
         formPoint(point: any, flagwindMap: FlagwindMap): {
             longitude: number;
@@ -669,10 +667,8 @@ declare namespace flagwind {
         createPoint(options: any): any;
         createSpatial(wkid: any): any;
         getInfoWindow(map: any): any;
-        showInfoWindow(evt: {
-            graphic: any;
-            mapPoint: any;
-        }): void;
+        openInfoWindow(option: any, map: any): void;
+        showInfoWindow(graphic: any, mapPoint: any): void;
         formPoint(point: any, flagwindMap: FlagwindMap): {
             longitude: number;
             latitude: number;
@@ -752,6 +748,8 @@ declare namespace flagwind {
          */
         showTitle(graphic: any): void;
         hideTitle(): void;
+        getInfoWindow(): any;
+        openInfoWindow(option: any): void;
         protected onMapLoad(): void;
         protected showBaseLayer(id: string): boolean;
         protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null;
@@ -1818,11 +1816,9 @@ declare namespace flagwind {
         centerAt(point: any, map: any): void;
         createPoint(options: any): MinemapPoint;
         createSpatial(wkid: any): MinemapSpatial;
-        getInfoWindow(map: any): void;
-        showInfoWindow(evt: {
-            graphic: any;
-            mapPoint: any;
-        }): void;
+        getInfoWindow(map: any): any;
+        showInfoWindow(map: any): void;
+        openInfoWindow(option: any, map: any): void;
         formPoint(point: any, flagwindMap: FlagwindMap): {
             longitude: number;
             latitude: number;

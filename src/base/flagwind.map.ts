@@ -142,8 +142,8 @@ namespace flagwind {
             return this.mapService.getInfoWindow(this.innerMap);
         }
 
-        public showInfoWindow(evt: { target: any; mapPoint: any }, map: any) {
-            this.mapService.showInfoWindow(evt, map);
+        public openInfoWindow(option: any) {
+            this.mapService.openInfoWindow(option, this.innerMap);
         }
 
         protected onMapLoad() {

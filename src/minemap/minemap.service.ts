@@ -107,10 +107,24 @@ namespace flagwind {
         public getInfoWindow(map: any) {
             return map.infoWindow;
         }
-        public showInfoWindow(evt: { target: any; mapPoint: any }, map: any): void {
-            map.setLngLat([116.46,39.92])
-            .setHTML("<h1>我是一个信息窗体</h1>")
-            .addTo(map);
+        public showInfoWindow(map: any) {
+            throw new Error("Method not implemented.");
+        }
+        public openInfoWindow(option: any, map: any): void {
+            // 存在原始参数则创建新信息窗口
+            if (typeof option.closeButton === "boolean" || typeof option.closeOnClick === "boolean" || option.offset) {
+                let params = {};
+                if (typeof option.closeButton === "boolean") params["closeButton"] = option.closeButton;
+                if (typeof option.closeOnClick === "boolean") params["closeOnClick"] = option.closeOnClick;
+                if (option.offset) params["offset"] = option.offset;
+                map.infoWindow = new minemap.Popup(params);
+            }
+            switch (option.type) {
+                case "dom": map.infoWindow.setDOMContent(option.content || "");break;
+                case "html": map.infoWindow.setHTML(option.content || "");break;
+                case "text": map.infoWindow.setText(option.content || "");break;
+            }
+            map.infoWindow.setLngLat([option.point.x, option.point.y]).addTo(map);
         }
         public formPoint(point: any, flagwindMap: FlagwindMap): { longitude: number; latitude: number } {
             let lnglat = { "lat": point.y, "lon": point.x };
@@ -191,7 +205,7 @@ namespace flagwind {
                 minZoom: setting.minZoom || 9      // 地图最小缩放级别限制
             });
 
-            let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -15] }); // 创建全局信息框
+            let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
 
             let el = document.createElement("div");
