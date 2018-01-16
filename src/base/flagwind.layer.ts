@@ -55,7 +55,7 @@ namespace flagwind {
 
         public constructor(public mapService: IMapService, public id: string, public title: string | null) {
             this.id = id;
-            this.mapService.createGraphicsLayer({ id: id });
+            this.layer = this.mapService.createGraphicsLayer({ id: id });
         }
 
         public get graphics(): Array<any> {

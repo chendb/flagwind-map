@@ -76,6 +76,8 @@ requirejs(['flagwindMap'],
             }
         }
 
+        var cat = new flagwind.Dog("ttt");
+
         var tollgateLayer = flagwind.MinemapTollgateLayer(businessService, myMap, "tollgateLayer", {
             onLoad:function () {
                 alert("测试");

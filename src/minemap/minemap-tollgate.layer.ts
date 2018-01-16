@@ -1,3 +1,4 @@
+/// <reference path="../base/flagwind-business.layer.ts" />
 namespace flagwind {
     /**
      * 卡口
@@ -14,6 +15,8 @@ namespace flagwind {
             //         onEditInfo: this.onEditInfo
             //     });
             // }
+
+            this.onInit();
 
         }
 
@@ -142,12 +145,6 @@ namespace flagwind {
         public addEventListener(eventName: string, callback: Function): void {
             this.layer.on(eventName, callback);
         }
-
-        // protected onInit(): void {
-        //     this.layer = this.createGraphicsLayer({
-        //         id: this.id
-        //     });
-        // }
 
         /**
          * 更新设备状态

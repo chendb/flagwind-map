@@ -1,3 +1,4 @@
+/// <reference path="./flagwind.layer.ts" />
 namespace flagwind {
 
     export const BUSINESS_LAYER_OPTIONS: any = {
@@ -37,8 +38,9 @@ namespace flagwind {
 
             this.flagwindMap = flagwindMap;
             this.options = options;
+        }
 
-            this.onInit();
+        public onInit(): void {
             this.onAddLayerBefor();
             this.flagwindMap.addFeatureLayer(this);
             this.onAddLayerAfter();
@@ -51,7 +53,6 @@ namespace flagwind {
                     me.onLoad();
                 });
             }
-
         }
 
         public abstract showInfoWindow(evt: any): void;
@@ -210,10 +211,6 @@ namespace flagwind {
 
         protected onAddLayerAfter(): void {
             console.log("onAddLayerAfter");
-        }
-
-        protected onInit(): void {
-            console.log("onInit");
         }
 
         protected onLoad() {

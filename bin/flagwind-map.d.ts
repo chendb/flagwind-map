@@ -552,6 +552,7 @@ declare namespace flagwind {
         id: string;
         options: any;
         constructor(flagwindMap: FlagwindMap, id: string, options: any);
+        onInit(): void;
         abstract showInfoWindow(evt: any): void;
         abstract onCreatGraphicByModel(item: any): any;
         abstract onUpdateGraphicByModel(item: any): void;
@@ -585,7 +586,6 @@ declare namespace flagwind {
         formPoint(point: any): any;
         protected onAddLayerBefor(): void;
         protected onAddLayerAfter(): void;
-        protected onInit(): void;
         protected onLoad(): void;
         protected onMapLoad(): void;
         protected registerEvent(): void;
@@ -1574,6 +1574,24 @@ declare namespace flagwind {
      */
     class InvalidOperationException extends Exception {
         constructor(message?: string);
+    }
+}
+declare namespace flagwind {
+    class Animal {
+        name: string;
+        constructor(name: string);
+    }
+}
+declare namespace flagwind {
+    class Cat extends Animal {
+        name: string;
+        constructor(name: string);
+        test(): void;
+    }
+    class Dog extends Cat {
+        name: string;
+        constructor(name: string);
+        test2(): void;
     }
 }
 declare namespace flagwind {

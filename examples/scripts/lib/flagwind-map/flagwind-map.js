@@ -261,7 +261,7 @@ var flagwind;
             this.title = title;
             this.isShow = true;
             this.id = id;
-            this.mapService.createGraphicsLayer({ id: id });
+            this.layer = this.mapService.createGraphicsLayer({ id: id });
         }
         Object.defineProperty(FlagwindFeatureLayer.prototype, "graphics", {
             get: function () {
@@ -1857,6 +1857,7 @@ var flagwind;
     }());
     flagwind.EsriRouteService = EsriRouteService;
 })(flagwind || (flagwind = {}));
+/// <reference path="./flagwind.layer.ts" />
 var flagwind;
 (function (flagwind) {
     flagwind.BUSINESS_LAYER_OPTIONS = {
@@ -1894,21 +1895,22 @@ var flagwind;
             options = __assign({}, flagwind.BUSINESS_LAYER_OPTIONS, options);
             _this.flagwindMap = flagwindMap;
             _this.options = options;
-            _this.onInit();
-            _this.onAddLayerBefor();
-            _this.flagwindMap.addFeatureLayer(_this);
-            _this.onAddLayerAfter();
-            if (_this.flagwindMap.innerMap.loaded) {
-                _this.onLoad();
+            return _this;
+        }
+        FlagwindBusinessLayer.prototype.onInit = function () {
+            this.onAddLayerBefor();
+            this.flagwindMap.addFeatureLayer(this);
+            this.onAddLayerAfter();
+            if (this.flagwindMap.innerMap.loaded) {
+                this.onLoad();
             }
             else {
-                var me_2 = _this;
-                _this.flagwindMap.innerMap.on("load", function () {
+                var me_2 = this;
+                this.flagwindMap.innerMap.on("load", function () {
                     me_2.onLoad();
                 });
             }
-            return _this;
-        }
+        };
         Object.defineProperty(FlagwindBusinessLayer.prototype, "map", {
             // /**
             //  * 获取资源图标
@@ -2044,9 +2046,6 @@ var flagwind;
         };
         FlagwindBusinessLayer.prototype.onAddLayerAfter = function () {
             console.log("onAddLayerAfter");
-        };
-        FlagwindBusinessLayer.prototype.onInit = function () {
-            console.log("onInit");
         };
         FlagwindBusinessLayer.prototype.onLoad = function () {
             if (!this.layer._map) {
@@ -3537,6 +3536,49 @@ var flagwind;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
+    var Animal = /** @class */ (function () {
+        function Animal(name) {
+            this.name = name;
+        }
+        return Animal;
+    }());
+    flagwind.Animal = Animal;
+})(flagwind || (flagwind = {}));
+/// <reference path="./Animal" />
+var flagwind;
+(function (flagwind) {
+    var Cat = /** @class */ (function (_super) {
+        __extends(Cat, _super);
+        function Cat(name) {
+            var _this = _super.call(this, name) || this;
+            _this.name = name;
+            _this.test();
+            return _this;
+        }
+        Cat.prototype.test = function () {
+            console.log("test");
+        };
+        return Cat;
+    }(flagwind.Animal));
+    flagwind.Cat = Cat;
+    var Dog = /** @class */ (function (_super) {
+        __extends(Dog, _super);
+        function Dog(name) {
+            var _this = _super.call(this, name) || this;
+            _this.name = name;
+            _this.test();
+            return _this;
+        }
+        Dog.prototype.test2 = function () {
+            console.log("test2");
+        };
+        return Dog;
+    }(Cat));
+    flagwind.Dog = Dog;
+})(flagwind || (flagwind = {}));
+/// <reference path="../base/flagwind-business.layer.ts" />
+var flagwind;
+(function (flagwind) {
     /**
      * 卡口
      */
@@ -3546,12 +3588,13 @@ var flagwind;
             var _this = _super.call(this, flagwindMap, id, options) || this;
             _this.businessService = businessService;
             _this.isLoading = false; // 设备是否正在加载
-            return _this;
             // if (this.options.enableEdit) {
             //     (<any>this).editLayer = new EditLayer(flagwindMap, this, {
             //         onEditInfo: this.onEditInfo
             //     });
             // }
+            _this.onInit();
+            return _this;
         }
         MinemapTollgateLayer.prototype.onEditInfo = function (evt, isSave) {
             // console.log(evt);
@@ -3668,11 +3711,6 @@ var flagwind;
         MinemapTollgateLayer.prototype.addEventListener = function (eventName, callback) {
             this.layer.on(eventName, callback);
         };
-        // protected onInit(): void {
-        //     this.layer = this.createGraphicsLayer({
-        //         id: this.id
-        //     });
-        // }
         /**
          * 更新设备状态
          */
