@@ -18,21 +18,21 @@ namespace flagwind {
 
     export abstract class FlagwindMap {
 
-        private baseLayers: Array<FlagwindTiledLayer> = [];
         private featureLayers: Array<FlagwindFeatureLayer> = [];
-
+        protected baseLayers: Array<FlagwindTiledLayer> = [];
         public options: any;
-        public mapEl: any;
         public spatial: any;
         public innerMap: any;
         public loaded: boolean = false;
 
         public constructor(
             public mapSetting: IMapSetting,
-            mapEl: any,
+            public mapEl: any,
             options: any) {
-            this.mapEl = mapEl;
             this.options = { ...MAP_OPTIONS, ...options };
+        }
+
+        public onInit(): void {
             this.onCreateMap();
             this.onCreateBaseLayers();
             const _this = this;
@@ -49,7 +49,6 @@ namespace flagwind {
             _this.onAddEventListener("zoom-end", function (evt: any) {
                 _this.onMapZoomEnd(evt);
             });
-
         }
 
         public abstract onAddEventListener(eventName: string, callBack: Function): void;
@@ -93,8 +92,8 @@ namespace flagwind {
         public onToPoint(item: any) {
             let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
             if (!MapUtils.validGeometryModel(item)) {
-                lnglat.lon = item.x;
-                lnglat.lat = item.y;
+                lnglat.lon = item.x || lnglat.lon;
+                lnglat.lat = item.y || lnglat.lat;
             }
             // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
@@ -116,7 +115,9 @@ namespace flagwind {
                 }
             }
             // 以x,y属性创建点
-            return new esri.geometry.Point(lnglat.lon, lnglat.lat, this.spatial);
+            return this.onCreatePoint({
+                x: lnglat.lon, y: lnglat.lat, spatial: this.spatial
+            });
         }
 
         public abstract onCreateMap(): any;
@@ -166,12 +167,7 @@ namespace flagwind {
          * 创建点要素
          */
         public getPoint(item: any) {
-            let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
-            if (!MapUtils.validGeometryModel(item)) {
-                lnglat.lon = item.x;
-                lnglat.lat = item.y;
-            }
-            return this.onToPoint(lnglat);
+            return this.onToPoint(item);
         }
 
         public addFeatureLayer(deviceLayer: FlagwindFeatureLayer) {
