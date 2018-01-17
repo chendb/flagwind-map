@@ -337,7 +337,7 @@ namespace flagwind {
         }
 
         public get graphics() {
-            if (this.GRAPHICS_MAP.values.length === 0) {
+            if (this.GRAPHICS_MAP.size === 0) {
                 return new Array();
             } else {
                 return new Array(this.GRAPHICS_MAP.values);

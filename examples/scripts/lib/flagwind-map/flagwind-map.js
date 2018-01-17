@@ -3844,7 +3844,7 @@ var flagwind;
         });
         Object.defineProperty(MinemapMarkerLayer.prototype, "graphics", {
             get: function () {
-                if (this.GRAPHICS_MAP.values.length === 0) {
+                if (this.GRAPHICS_MAP.size === 0) {
                     return new Array();
                 }
                 else {

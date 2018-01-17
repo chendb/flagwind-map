@@ -36,14 +36,19 @@ requirejs(['flagwindMap'],
                 return new Promise(function (resolve, reject) {
                     resolve([{
                         tollCode: "1",
-                        tollName: "1234567",
-                        lon: 116.46,
-                        lat: 39.92
+                        tollName: "关山大道卡口",
+                        lon: 116.461,
+                        lat: 39.929
                     }, {
                         tollCode: "2",
-                        tollName: "2234567",
-                        lon: 116.76,
-                        lat: 39.92
+                        tollName: "北京路卡口",
+                        lon: 116.465,
+                        lat: 39.922
+                    }, {
+                        tollCode: "3",
+                        tollName: "天津路卡口",
+                        lon: 116.465,
+                        lat: 39.922
                     }]);
                 });
             },
@@ -51,14 +56,16 @@ requirejs(['flagwindMap'],
                 return new Promise(function (resolve, reject) {
                     resolve([{
                         tollCode: "1",
-                        tollName: "1234567",
-                        lon: 116.46,
-                        lat: 39.92
+                        tollName: "关山大道卡口",
+                        lon: 116.461,
+                        lat: 39.929,
+                        satus:Math.random()
                     }, {
                         tollCode: "2",
-                        tollName: "2234567",
-                        lon: 116.46,
-                        lat: 39.92
+                        tollName: "北京路卡口",
+                        lon: 116.465,
+                        lat: 39.922,
+                        satus:Math.random()
                     }]);
                 });
             },
@@ -89,6 +96,49 @@ requirejs(['flagwindMap'],
 
 
         tollgateLayer.showDataList();
+
+        var graphic = null;
+
+        document.getElementById("btnShow").onclick = function () {
+            tollgateLayer.show();
+        }
+
+        document.getElementById("btnHide").onclick = function () {
+            tollgateLayer.hide();
+        }
+
+        document.getElementById("btnClear").onclick = function () {
+            tollgateLayer.clear();
+        }
+
+        document.getElementById("btnGetGraphic").onclick = function () {
+            graphic = tollgateLayer.getGraphicById("1");
+            if (tollgateLayer.graphics.length == 0) {
+                alert("图层无数据，请重新加载数据");
+                return;
+            }
+            if (graphic == null) {
+                alert("获取失败");
+            } else {
+                alert("获取到要素" + graphic.attributes.tollName);
+            }
+        }
+
+        document.getElementById("btnShowGraphic").onclick = function () {
+            if (graphic == null) {
+                alert("请先获取要素数据");
+                return;
+            }
+            graphic.show();
+        }
+
+        document.getElementById("btnHideGraphic").onclick = function () {
+            if (graphic == null) {
+                alert("请先获取要素数据");
+                return;
+            }
+            graphic.hide();
+        }
 
     }
 );
