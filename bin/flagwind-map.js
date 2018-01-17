@@ -724,8 +724,7 @@ var flagwind;
          * 创建点要素
          */
         FlagwindMap.prototype.getPoint = function (item) {
-            var lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
-            return this.onToPoint(lnglat);
+            return this.onToPoint(item);
         };
         FlagwindMap.prototype.addFeatureLayer = function (deviceLayer) {
             if (this.getFeatureLayerById(deviceLayer.id)) {

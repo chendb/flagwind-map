@@ -167,8 +167,7 @@ namespace flagwind {
          * 创建点要素
          */
         public getPoint(item: any) {
-            let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
-            return this.onToPoint(lnglat);
+            return this.onToPoint(item);
         }
 
         public addFeatureLayer(deviceLayer: FlagwindFeatureLayer) {
