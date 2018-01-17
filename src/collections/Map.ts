@@ -119,7 +119,7 @@ namespace flagwind {
          * @returns Array
          */
         public keys(): Array<K> {
-            return this._keys.concat();
+            return this._keys;
         }
 
         /**
@@ -127,7 +127,7 @@ namespace flagwind {
          * @returns Array
          */
         public values(): Array<V> {
-            return this._values.concat();
+            return this._values;
         }
 
         /**

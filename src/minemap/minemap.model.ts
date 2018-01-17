@@ -52,7 +52,7 @@ namespace flagwind {
 
         id: string;
 
-        attributers: any;
+        attributes: any;
 
         isShow: boolean;
 
@@ -90,7 +90,7 @@ namespace flagwind {
 
         public marker: any;
         public element: any;
-        public attributers: any;
+        public attributes: any;
 
         public layer: MinemapMarkerLayer;
 
@@ -101,7 +101,7 @@ namespace flagwind {
             this.element = document.createElement("div");
             this.element.id = this.id;
             this.symbol = options.symbol;
-            this.attributers = options.attributers;
+            this.attributes = options.attributes;
             if (options.symbol && options.symbol.className) {
                 this.element.classList = [options.symbol.className];
             }
@@ -238,7 +238,7 @@ namespace flagwind {
         public layout: any;
         public paint: any;
         public layer: MinemapMarkerLayer;
-        public attributers: any;
+        public attributes: any;
 
         public get kind() {
             return this._kind;
@@ -302,7 +302,7 @@ namespace flagwind {
     }
 
     export interface IMinemapGraphicsLayer {
-        graphics: Array<any>;
+        graphics: Array<IMinemapGraphic>;
         show(): void;
         hide(): void;
         add(graphic: any): void;
@@ -337,10 +337,10 @@ namespace flagwind {
         }
 
         public get graphics() {
-            if (this.GRAPHICS_MAP.values.length === 0) {
-                return new Array();
+            if (this.GRAPHICS_MAP.size === 0) {
+                return new Array<IMinemapGraphic>();
             } else {
-                return new Array(this.GRAPHICS_MAP.values);
+                return <any>this.GRAPHICS_MAP.values();
             }
         }
 
@@ -427,7 +427,7 @@ namespace flagwind {
         }
 
         public get graphics() {
-            return new Array(this.GRAPHICS_MAP.values);
+            return <any>this.GRAPHICS_MAP.values();
         }
 
         public show(): void {
