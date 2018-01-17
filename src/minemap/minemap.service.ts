@@ -117,14 +117,16 @@ namespace flagwind {
                 if (typeof option.closeButton === "boolean") params["closeButton"] = option.closeButton;
                 if (typeof option.closeOnClick === "boolean") params["closeOnClick"] = option.closeOnClick;
                 if (option.offset) params["offset"] = option.offset;
-                map.infoWindow = new minemap.Popup(params);
+                map.userInfoWindow.remove();
+                map.userInfoWindow = new minemap.Popup(params);
             }
             switch (option.type) {
-                case "dom": map.infoWindow.setDOMContent(option.content || "");break;
-                case "html": map.infoWindow.setHTML(option.content || "");break;
-                case "text": map.infoWindow.setText(option.content || "");break;
+                case "dom": map.userInfoWindow.setDOMContent(option.content || "");break;
+                case "html": map.userInfoWindow.setHTML(option.content || "");break;
+                case "text": map.userInfoWindow.setText(option.content || "");break;
+                default: map.userInfoWindow.setHTML(option.content || "");break;
             }
-            map.infoWindow.setLngLat([option.point.x, option.point.y]).addTo(map);
+            map.userInfoWindow.setLngLat([option.point.x, option.point.y]).addTo(map);
         }
         public formPoint(point: any, flagwindMap: FlagwindMap): { longitude: number; latitude: number } {
             let lnglat = { "lat": point.y, "lon": point.x };
@@ -205,8 +207,8 @@ namespace flagwind {
                 minZoom: setting.minZoom || 9      // 地图最小缩放级别限制
             });
 
-            let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
-            map.infoWindow = popup;
+            let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] });
+            map.infoWindow = map.userInfoWindow = popup; // 创建全局内部信息框，和外部使用信息框
 
             let el = document.createElement("div");
             el.id = "flagwind-map-title";
