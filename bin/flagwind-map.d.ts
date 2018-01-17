@@ -74,14 +74,12 @@ declare namespace flagwind {
      * @export
      * @class FlagwindFeatureLayer
      */
-    class FlagwindFeatureLayer {
-        mapService: IMapService;
+    abstract class FlagwindFeatureLayer {
         id: string;
         title: string | null;
         protected layer: any;
         isShow: boolean;
-        constructor(mapService: IMapService, id: string, title: string | null);
-        createGraphicsLayer(args: any): any;
+        constructor(id: string, title: string | null);
         readonly graphics: Array<any>;
         readonly items: Array<any>;
         appendTo(map: any): void;
@@ -98,15 +96,18 @@ declare namespace flagwind {
          * 删除资源要素点
          */
         removeGraphicById(key: string): void;
+        abstract onCreateGraphicsLayer(args: any): any;
     }
 }
+declare let esri: any;
+declare let dojo: any;
+declare let dijit: any;
 declare namespace flagwind {
     class EsriEditLayer extends FlagwindFeatureLayer implements IFlagwindEditLayer {
         editObj: any;
         options: any;
         businessLayer: FlagwindBusinessLayer;
         flagwindMap: FlagwindMap;
-        mapService: IMapService;
         constructor(flagwindMap: FlagwindMap, businessLayer: FlagwindBusinessLayer, options: any);
         /**
          * 激活编辑事件
@@ -117,109 +118,136 @@ declare namespace flagwind {
          * 取消编辑要素
          */
         cancelEdit(key: string): void;
-        bindModifyEvent(modifySeletor: string): void;
-        bindDeleteEvent(deleteSeletor: string): void;
+        registerModifyEvent(modifySeletor: string): void;
+        registerDeleteEvent(deleteSeletor: string): void;
         onLoad(): void;
         readonly map: any;
         readonly spatial: any;
+        onCreateGraphicsLayer(args: any): any;
         onChanged(options: any, isSave: boolean): Promise<boolean>;
         protected registerEvent(): void;
         protected onLayerClick(editLayer: this, evt: any): void;
     }
 }
 declare namespace flagwind {
-    class EsriLocationLayer extends FlagwindFeatureLayer implements IFlagwindLocationLayer {
-        flagwindMap: FlagwindMap;
-        options: any;
-        private timer;
-        graphic: any;
-        mapService: IMapService;
-        constructor(flagwindMap: FlagwindMap, options: any);
-        readonly map: any;
-        readonly spatial: any;
-        protected onLoad(): void;
-        protected createAnimation(): void;
-        protected onMapClick(evt: any): void;
-        protected createSymbol(color: any): any;
-        protected creatGraphic(pt: any): any;
+    /**
+     * 分组图层(用于需要多个要素叠加效果情况)
+     *
+     * @export
+     * @class FlagwindGroupLayer
+     */
+    abstract class FlagwindGroupLayer {
+        id: string;
+        layer: any;
+        isShow: boolean;
+        constructor(id: string);
+        readonly graphics: Array<any>;
+        appendTo(map: any): void;
+        removeLayer(map: any): void;
+        clear(): void;
+        show(): void;
+        hide(): void;
+        setGeometry(name: string, geometry: any): void;
+        setSymbol(name: string, symbol: any): void;
+        showGraphic(name: string): void;
+        hideGraphic(name: string): void;
+        addGraphice(name: string, graphics: Array<any>): void;
+        getMasterGraphicByName(name: string): any;
+        /**
+         * 获取资源要素点
+         */
+        getGraphicByName(name: String): Array<any>;
+        /**
+         * 删除资源要素点
+         */
+        removeGraphicByName(name: string): void;
+        abstract onCreateGraphicsLayer(args: any): any;
     }
 }
-declare let esri: any;
-declare let dojo: any;
-declare let dijit: any;
 declare namespace flagwind {
-    class EsriMapService implements IMapService {
-        ROUTE_MAP: Map<FlagwindRouteLayer, EsriRouteService>;
-        GRAPHIC_SYMBOL_MAP: Map<any, any>;
-        getTrackLineMarkerGraphic(trackline: TrackLine, graphic: any, angle: number): any;
-        getStandardStops(name: string, stops: Array<any>): Array<any>;
-        showSegmentLine(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment): void;
-        solveByService(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
-        solveByJoinPoint(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment): void;
-        setSegmentByLine(flagwindRouteLayer: FlagwindRouteLayer, options: {
-            points: Array<any>;
-            spatial: any;
-        }, segment: TrackSegment): void;
-        setSegmentByPolyLine(flagwindRouteLayer: FlagwindRouteLayer, options: {
-            polyline: any;
-            length: number;
-        }, segment: TrackSegment): void;
-        createMarkerSymbol(options: any): any;
-        showTitle(graphic: any, flagwindMap: FlagwindMap): void;
-        hideTitle(flagwindMap: FlagwindMap): void;
-        createTiledLayer(options: {
-            url: string;
-            id: string;
-            title: string;
-        }): any;
-        clearLayer(layer: any): void;
-        removeLayer(layer: any, map: any): void;
-        addLayer(layer: any, map: any): void;
-        showLayer(layer: any): void;
-        hideLayer(layer: any): void;
-        getGraphicListByLayer(lay: any): Array<any>;
-        createGraphicsLayer(options: any): any;
-        removeGraphic(graphic: any, layer: any): void;
-        addGraphic(graphic: any, layer: any): void;
-        showGraphic(graphic: any): void;
-        hideGraphic(graphic: any): void;
-        setGeometryByGraphic(graphic: any, geometry: any): void;
-        setSymbolByGraphic(graphic: any, symbol: any): void;
-        getGraphicAttributes(graphic: any): any;
-        addEventListener(target: any, eventName: string, callback: Function): void;
-        centerAt(map: any, point: any): void;
-        createPoint(options: any): any;
-        createSpatial(wkid: any): any;
-        getInfoWindow(map: any): any;
-        showInfoWindow(graphic: any, mapPoint: any): void;
-        openInfoWindow(option: any, map: any): void;
-        hideInfoWindow(map: any): void;
-        formPoint(point: any, flagwindMap: FlagwindMap): {
+    class EsriGroupLayer extends FlagwindGroupLayer {
+        onCreateGraphicsLayer(args: any): any;
+    }
+}
+declare namespace flagwind {
+    const MAP_OPTIONS: {
+        onMapLoad(): void;
+        onMapZoomEnd(level: number): void;
+        onMapClick(evt: any): void;
+        onCreateContextMenu(args: {
+            contextMenu: any[];
+            contextMenuClickEvent: any;
+        }): void;
+    };
+    abstract class FlagwindMap {
+        mapSetting: IMapSetting;
+        private baseLayers;
+        private featureLayers;
+        options: any;
+        mapEl: any;
+        spatial: any;
+        innerMap: any;
+        loaded: boolean;
+        constructor(mapSetting: IMapSetting, mapEl: any, options: any);
+        abstract onAddEventListener(eventName: string, callBack: Function): void;
+        abstract onCenterAt(point: any): void;
+        abstract onCreatePoint(point: any): any;
+        onFormPoint(point: any): {
             longitude: number;
             latitude: number;
         };
-        toPoint(item: any, flagwindMap: FlagwindMap): any;
-        createBaseLayer(flagwindMap: FlagwindMap): Array<FlagwindTiledLayer>;
-        createMap(setting: IMapSetting, flagwindMap: FlagwindMap): any;
-        createContextMenu(options: {
+        onToPoint(item: any): any;
+        abstract onCreateMap(): any;
+        abstract onShowInfoWindow(options: any): void;
+        abstract onCreateBaseLayers(): any;
+        abstract onShowTitle(graphic: any): void;
+        abstract onHideTitle(graphic: any): void;
+        abstract onCreateContextMenu(options: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;
-        }, flagwindMap: FlagwindMap): void;
+        }): void;
+        goToCenter(): void;
+        getBaseLayerById(id: string): FlagwindTiledLayer | null;
         /**
-         * 获取菜单单击的坐标信息
-         *
-         * @param {any} box
-         * @returns {*}
-         * @memberof FlagwindMap
+         * 中心定位
          */
-        protected getMapPointFromMenuPosition(box: any, map: any): any;
+        centerAt(x: number, y: number): void;
+        /**
+         * 创建点要素
+         */
+        getPoint(item: any): any;
+        addFeatureLayer(deviceLayer: FlagwindFeatureLayer): void;
+        openInfoWindow(option: any): void;
+        protected onMapLoad(): void;
+        protected showBaseLayer(id: string): boolean;
+        protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null;
+        protected showFeatureLayer(id: string): boolean;
+        protected removeFeatureLayer(id: string): boolean;
+        readonly map: any;
+        protected onMapZoomEnd(evt: any): void;
+    }
+}
+declare namespace flagwind {
+    class EsriMap extends FlagwindMap {
+        onAddEventListener(eventName: string, callBack: Function): void;
+        onCenterAt(point: any): void;
+        onCreatePoint(options: any): any;
+        onCreateMap(): void;
+        onShowInfoWindow(options: any): void;
+        onCreateBaseLayers(): FlagwindTiledLayer[];
+        onShowTitle(graphic: any): void;
+        onHideTitle(graphic: any): void;
+        onCreateContextMenu(options: {
+            contextMenu: Array<any>;
+            contextMenuClickEvent: any;
+        }): void;
         /**
          * tileInfo必须是单例模式，否则地图无法正常显示
          *
          * @returns
          * @memberof FlagwindMap
          */
-        protected getTileInfo(flagwindMap: FlagwindMap): any;
+        protected getTileInfo(): any;
     }
 }
 declare namespace flagwind {
@@ -229,20 +257,39 @@ declare namespace flagwind {
         flagwindMap: FlagwindMap;
         layerName: string;
         options: any;
-        mapService: IMapService;
         moveLineLayer: FlagwindGroupLayer;
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
         constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
-        abstract equalGraphic(originGraphic: any, targetGraphic: any): boolean;
-        abstract showSegmentLine(segment: TrackSegment): void;
+        abstract onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        abstract onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
+        abstract onShowSegmentLine(segment: TrackSegment): void;
+        abstract onGetStandardStops(name: String, stops: Array<any>): Array<any>;
+        onSetSegmentByLine(options: any, segment: TrackSegment): any;
+        onSetSegmentByPolyLine(options: any, segment: TrackSegment): any;
+        /**
+         * 由网络分析服务来求解轨迹并播放
+         *
+         * @param {TrackSegment} segment 要播放的路段
+         * @param {*} start 起点要素
+         * @param {*} end 终点要素
+         * @param {any[]} [waypoints] 途经要素点
+         * @memberof flagwindRoute
+         */
+        abstract onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
+        /**
+         * 由连线求解轨迹
+         * @param segment
+         */
+        abstract onSolveByJoinPoint(segment: TrackSegment): void;
+        abstract onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
         /**
          * 创建移动要素
          * @param {*} trackline 线路
          * @param {*} graphic 要素
          * @param {*} angle 偏转角
          */
-        abstract createMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
+        abstract onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
         readonly spatial: any;
         show(): void;
         hide(): void;
@@ -324,21 +371,6 @@ declare namespace flagwind {
          */
         post(index: number, name: string, start: any, end: any, lineOptions: any, waypoints?: Array<any>): void;
         /**
-         * 由网络分析服务来求解轨迹并播放
-         *
-         * @param {TrackSegment} segment 要播放的路段
-         * @param {*} start 起点要素
-         * @param {*} end 终点要素
-         * @param {any[]} [waypoints] 途经要素点
-         * @memberof flagwindRoute
-         */
-        solveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
-        /**
-         * 由连线求解轨迹
-         * @param segment
-         */
-        solveByJoinPoint(segment: TrackSegment): void;
-        /**
          * 路由分析完成回调
          */
         solveComplete(options: {
@@ -389,84 +421,47 @@ declare namespace flagwind {
         flagwindMap: FlagwindMap;
         layerName: string;
         options: any;
-        mapService: IMapService;
         moveLineLayer: FlagwindGroupLayer;
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
         constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
-        showSegmentLine(segment: TrackSegment): void;
-        createMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
-        equalGraphic(originGraphic: any, targetGraphic: any): boolean;
-        /**
-         * 由网络分析服务来求解轨迹并播放
-         *
-         * @param {TrackSegment} segment 要播放的路段
-         * @param {*} start 起点要素
-         * @param {*} end 终点要素
-         * @param {any[]} [waypoints] 途经要素点
-         * @memberof flagwindRoute
-         */
-        solveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
-        /**
-         * 由连线求解轨迹
-         * @param segment
-         */
-        solveByJoinPoint(segment: TrackSegment): void;
+        onShowSegmentLine(segment: TrackSegment): void;
+        onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
+        onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
+        onGetStandardStops(name: String, stops: Array<any>): Array<any>;
+        onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
+        onSolveByJoinPoint(segment: TrackSegment): void;
+        onAddEventListener(groupLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
+        getSpatialReferenceFormNA(): any;
+        protected getStandardGraphic(graphic: any): any;
+        protected cloneStopGraphic(graphic: any): any;
     }
 }
 declare namespace flagwind {
-    class EsriRouteService {
-        flagwindRouteLayer: FlagwindRouteLayer;
-        constructor(flagwindRouteLayer: FlagwindRouteLayer);
-        showSegmentLine(segment: TrackSegment): void;
-        /**
-         * 由连线求解轨迹
-         * @param segment
-         */
-        solveByJoinPoint(segment: TrackSegment): void;
-        solveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
-        setSegmentByLine(options: {
-            points: Array<any>;
-            spatial: any;
-        }, segment: TrackSegment): void;
-        setSegmentByPolyLine(options: {
-            polyline: any;
-            length: number;
-        }, segment: TrackSegment): void;
-        getSpatialReferenceFormNA(): any;
-        protected cloneStopGraphic(graphic: any): any;
-        protected getLength(tmppolyline: any, units: number): number;
-        /**
-         * 把一个直线，切成多个点
-         * @param start 始点
-         * @param end 终点
-         * @param n 点数
-         */
-        static extractPoints(start: {
-            x: number;
-            y: number;
-        }, end: {
-            x: number;
-            y: number;
-        }, n: number): {
-            x: number;
-            y: number;
-        }[];
-        /**
-         * 线段抽稀操作
-         * @param paths  线段
-         * @param length 长度
-         * @param numsOfKilometer 公里点数
-         */
-        static vacuate(paths: Array<any>, length: number, numsOfKilometer: number): any[];
-        /**
-         * 线路上移动要素的构建（子）
-         */
-        static getTrackLineMarkerGraphic(trackline: TrackLine, graphic: any, angle: number): any;
-        /**
-         * 标准化停靠点
-         */
-        static getStandardStops(name: string, stops: Array<any>, stopSymbol: any): any[];
+    /**
+     * 底图包装类
+     *
+     * @export
+     * @class FlagwindTiledLayer
+     */
+    abstract class FlagwindTiledLayer {
+        id: string;
+        url: string | null;
+        title: string | null;
+        layer: any;
+        isShow: boolean;
+        constructor(id: string, url: string | null, title: string | null);
+        abstract onCreateTiledLayer(args: any): any;
+        appendTo(map: any): void;
+        removeLayer(map: any): void;
+        show(): void;
+        hide(): void;
+    }
+}
+declare namespace flagwind {
+    class EsriTiledLayer extends FlagwindTiledLayer {
+        onCreateTiledLayer(args: any): any;
     }
 }
 declare namespace flagwind {
@@ -500,10 +495,12 @@ declare namespace flagwind {
         options: any;
         constructor(flagwindMap: FlagwindMap, id: string, options: any);
         onInit(): void;
-        abstract showInfoWindow(evt: any): void;
+        abstract onShowInfoWindow(evt: any): void;
         abstract onCreatGraphicByModel(item: any): any;
         abstract onUpdateGraphicByModel(item: any): void;
-        abstract addEventListener(eventName: string, callback: Function): void;
+        abstract onAddEventListener(eventName: string, callback: Function): void;
+        onAddLayerBefor(): void;
+        onAddLayerAfter(): void;
         readonly map: any;
         readonly spatial: any;
         gotoCenterById(key: string): void;
@@ -531,14 +528,12 @@ declare namespace flagwind {
          * @param {*} point
          */
         formPoint(point: any): any;
-        protected onAddLayerBefor(): void;
-        protected onAddLayerAfter(): void;
         protected onLoad(): void;
         protected onMapLoad(): void;
         protected registerEvent(): void;
         protected onLayerClick(deviceLayer: this, evt: any): void;
         protected fireEvent(eventName: string, event: any): void;
-        protected validModel(item: any): any;
+        protected setSelectStatus(item: any, selected: boolean): void;
         /**
          * 变换成标准实体（最好子类重写）
          *
@@ -547,8 +542,8 @@ declare namespace flagwind {
          * @returns {{ id: String, name: String, longitude: number, latitude: number }}
          * @memberof FlagwindBusinessLayer
          */
-        protected changeStandardModel(item: any): any;
-        protected setSelectStatus(item: any, selected: boolean): void;
+        protected abstract onChangeStandardModel(item: any): any;
+        protected onValidModel(item: any): any;
     }
 }
 declare namespace flagwind {
@@ -567,209 +562,11 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    /**
-     * 地图要素服务
-     */
-    interface IFlagwindGraphicService {
-        removeGraphic(graphic: any, layer: any): void;
-        addGraphic(graphic: any, layer: any): void;
-        showGraphic(graphic: any): void;
-        hideGraphic(graphic: any): void;
-        setGeometryByGraphic(graphic: any, geometry: any): void;
-        setSymbolByGraphic(graphic: any, symbol: any): void;
-        createMarkerSymbol(options: any): any;
-        getGraphicAttributes(graphic: any): any;
-    }
-}
-declare namespace flagwind {
-    class FlagwindGroup1Layer {
-        id: string;
-        layer: any;
-        isShow: boolean;
-        constructor(id: string);
-        test(): number;
-    }
-    /**
-     * 分组图层(用于需要多个要素叠加效果情况)
-     *
-     * @export
-     * @class FlagwindGroupLayer
-     */
-    class FlagwindGroupLayer {
-        mapService: IMapService;
-        id: string;
-        layer: any;
-        isShow: boolean;
-        constructor(mapService: IMapService, id: string);
-        readonly graphics: any[];
-        appendTo(map: any): void;
-        removeLayer(map: any): void;
-        clear(): void;
-        show(): void;
-        hide(): void;
-        setGeometry(name: string, geometry: any): void;
-        setSymbol(name: string, symbol: any): void;
-        showGraphice(name: string): void;
-        hideGraphice(name: string): void;
-        addGraphice(name: string, graphics: Array<any>): void;
-        getMasterGraphicByName(name: string): any;
-        /**
-         * 获取资源要素点
-         */
-        getGraphicByName(name: String): Array<any>;
-        /**
-         * 删除资源要素点
-         */
-        removeGraphicByName(name: string): void;
-    }
-}
-declare namespace flagwind {
-    /**
-     * 图层操作服务
-     */
-    interface IFlaywindLayerService {
-        createTiledLayer(options: {
-            url: string | null;
-            id: string;
-            title: string | null;
-        }): any;
-        createBaseLayer(flagwindMap: FlagwindMap): Array<FlagwindTiledLayer>;
-        createGraphicsLayer(options: any): any;
-        clearLayer(layer: any): void;
-        removeLayer(layer: any, map: any): void;
-        addLayer(layer: any, map: any): void;
-        showLayer(layer: any): void;
-        hideLayer(layer: any): void;
-        getGraphicListByLayer(lay: any): Array<any>;
-    }
-}
-declare namespace flagwind {
     const locationLayerOptions: {
         onMapClick: (evt: any) => void;
     };
     interface IFlagwindLocationLayer {
         clear(): void;
-    }
-}
-declare namespace flagwind {
-    interface IFlagwindMapService {
-        addEventListener(target: any, eventName: string, callback: Function): void;
-        centerAt(point: any, map: any): void;
-        createPoint(options: any): any;
-        createSpatial(wkid: any): any;
-        getInfoWindow(map: any): any;
-        openInfoWindow(option: any, map: any): void;
-        showInfoWindow(graphic: any, mapPoint: any): void;
-        formPoint(point: any, flagwindMap: FlagwindMap): {
-            longitude: number;
-            latitude: number;
-        };
-        toPoint(item: any, flagwindMap: FlagwindMap): any;
-        createMap(setting: IMapSetting, flagwindMap: FlagwindMap): any;
-        createContextMenu(options: {
-            contextMenu: Array<any>;
-            contextMenuClickEvent: any;
-        }, flagwindMap: FlagwindMap): void;
-        showTitle(graphic: any, flagwindMap: FlagwindMap): void;
-        hideTitle(flagwindMap: FlagwindMap): void;
-    }
-}
-declare namespace flagwind {
-    interface IFlagwindRouteService {
-        setSegmentByLine(flagwindRouteLayer: FlagwindRouteLayer, options: {
-            points: Array<any>;
-            spatial: any;
-        }, segment: TrackSegment): void;
-        setSegmentByPolyLine(flagwindRouteLayer: FlagwindRouteLayer, options: {
-            polyline: any;
-            length: number;
-        }, segment: TrackSegment): void;
-        solveByService(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
-        solveByJoinPoint(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment): void;
-        getTrackLineMarkerGraphic(trackline: TrackLine, graphic: any, angle: number): any;
-        getStandardStops(name: string, stops: Array<any>): Array<any>;
-        showSegmentLine(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment): any;
-    }
-}
-declare namespace flagwind {
-    /**
-     * 底图包装类
-     *
-     * @export
-     * @class FlagwindTiledLayer
-     */
-    class FlagwindTiledLayer {
-        mapService: IMapService;
-        id: string;
-        url: string | null;
-        title: string | null;
-        layer: any;
-        isShow: boolean;
-        constructor(mapService: IMapService, id: string, url: string | null, title: string | null);
-        appendTo(map: any): void;
-        removeLayer(map: any): void;
-        show(): void;
-        hide(): void;
-    }
-}
-declare namespace flagwind {
-    const MAP_OPTIONS: {
-        onMapLoad(): void;
-        onMapZoomEnd(level: number): void;
-        onMapClick(evt: any): void;
-    };
-    class FlagwindMap {
-        mapService: IMapService;
-        mapSetting: IMapSetting;
-        private options;
-        private baseLayers;
-        private featureLayers;
-        mapEl: any;
-        spatial: any;
-        innerMap: any;
-        constructor(mapService: IMapService, mapSetting: IMapSetting, mapEl: any, options: any);
-        goToCenter(): void;
-        getBaseLayerById(id: string): FlagwindTiledLayer | null;
-        formPoint(point: any): {
-            longitude: number;
-            latitude: number;
-        };
-        /**
-         * 中心定位
-         */
-        centerAt(x: number, y: number): void;
-        /**
-         *
-         * 创建菜单
-         *
-         * @param {{ contextMenu: any[], contextMenuClickEvent: any }} options
-         * @memberof FlagwindMap
-         */
-        createContextMenu(options: {
-            contextMenu: Array<any>;
-            contextMenuClickEvent: any;
-        }): void;
-        /**
-         * 创建点要素
-         */
-        getPoint(item: any): any;
-        createBaseLayer(): void;
-        addFeatureLayer(deviceLayer: FlagwindFeatureLayer): void;
-        /**
-         * 鼠标移动到点要素时显示title
-         */
-        showTitle(graphic: any): void;
-        hideTitle(): void;
-        getInfoWindow(): any;
-        openInfoWindow(option: any): void;
-        protected onMapLoad(): void;
-        protected showBaseLayer(id: string): boolean;
-        protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null;
-        protected showFeatureLayer(id: string): boolean;
-        protected removeFeatureLayer(id: string): boolean;
-        readonly map: any;
-        protected onMapZoomEnd(evt: any): void;
-        protected createMap(): void;
     }
 }
 declare namespace flagwind {
@@ -795,7 +592,6 @@ declare namespace flagwind {
         startGraphic: any;
         endGraphic: any;
         options: any;
-        mapService: IMapService;
         timer: any;
         position: number;
         length: number | null;
@@ -854,7 +650,6 @@ declare namespace flagwind {
          * 设置线路上移动要素(如：车辆图标)
          */
         markerGraphic: any;
-        mapService: IMapService;
         segments: Array<TrackSegment>;
         isMovingGraphicHide: boolean;
         constructor(flagwindMap: FlagwindMap, name: string, options: any);
@@ -927,10 +722,6 @@ declare namespace flagwind {
          * 获取监控最近播放完成的路段线路
          */
         readonly activeCompletedSegment: TrackSegment | null;
-    }
-}
-declare namespace flagwind {
-    interface IMapService extends IFlagwindGraphicService, IFlagwindMapService, IFlagwindRouteService, IFlaywindLayerService {
     }
 }
 declare namespace flagwind {
@@ -1587,6 +1378,56 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    class MinemapGroupLayer extends FlagwindGroupLayer {
+        onCreateGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
+    }
+}
+declare namespace flagwind {
+    class MinemapMap extends FlagwindMap {
+        MAP_EVENTS_MAP: Map<string, string>;
+        /**
+         * 事件监听
+         * @param eventName 事件名称
+         * @param callBack 回调
+         */
+        onAddEventListener(eventName: string, callBack: Function): void;
+        /**
+         * 中心定位
+         * @param point 坐标点
+         */
+        onCenterAt(point: any): void;
+        /**
+         * 创建点
+         * @param options 点属性
+         */
+        onCreatePoint(options: any): MinemapPoint;
+        /**
+         * 创建地图对象
+         */
+        onCreateMap(): any;
+        onShowInfoWindow(options: any): void;
+        onCreateBaseLayers(): FlagwindTiledLayer[];
+        onShowTitle(graphic: any): void;
+        onHideTitle(graphic: any): void;
+        onCreateContextMenu(args: {
+            contextMenu: Array<any>;
+            contextMenuClickEvent: any;
+        }): void;
+    }
+}
+declare namespace flagwind {
+    class MinemapRouteLayer extends FlagwindRouteLayer {
+        onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
+        onShowSegmentLine(segment: TrackSegment): void;
+        onGetStandardStops(name: String, stops: Array<any>): Array<any>;
+        onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
+        onSolveByJoinPoint(segment: TrackSegment): void;
+        onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
+        onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): void;
+    }
+}
+declare namespace flagwind {
     /**
      * 卡口
      */
@@ -1594,29 +1435,19 @@ declare namespace flagwind {
         businessService: IBusinessService;
         isLoading: boolean;
         constructor(businessService: IBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
-        onEditInfo(evt: any, isSave: boolean): void;
-        createGraphicsLayer(options: any): any;
-        showInfoWindow(evt: any): void;
-        openInfoWindow(id: string, context: any): void;
+        onCreateGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
+        onShowInfoWindow(evt: any): void;
         /**
-         * 加载并显示设备点位
-         *
-         * @memberof TollgateLayer
+         * 图层事件处理
+         * @param eventName 事件名称
+         * @param callback 回调
          */
-        showDataList(): void;
+        onAddEventListener(eventName: string, callback: Function): void;
         /**
          * 把实体转换成标准的要素属性信息
          * @param item 实体信息
          */
-        changeStandardModel(item: any): any;
-        /**
-         * 开启定时器
-         */
-        start(): void;
-        /**
-         * 关闭定时器
-         */
-        stop(): void;
+        onChangeStandardModel(item: any): any;
         /**
          * 创建要素方法
          * @param item 实体信息
@@ -1627,12 +1458,21 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onUpdateGraphicByModel(item: any): void;
+        openInfoWindow(id: string, context: any): void;
         /**
-         * 图层事件处理
-         * @param eventName 事件名称
-         * @param callback 回调
+         * 加载并显示设备点位
+         *
+         * @memberof TollgateLayer
          */
-        addEventListener(eventName: string, callback: Function): void;
+        showDataList(): void;
+        /**
+         * 开启定时器
+         */
+        start(): void;
+        /**
+         * 关闭定时器
+         */
+        stop(): void;
         /**
          * 更新设备状态
          */
@@ -1798,64 +1638,6 @@ declare namespace flagwind {
         addToMap(map: any): void;
         removeFromMap(map: any): void;
         on(eventName: string, callBack: Function): void;
-    }
-}
-declare var minemap: any;
-declare namespace flagwind {
-    class MinemapService implements IMapService {
-        createTiledLayer(options: {
-            url: string;
-            id: string;
-            title: string;
-        }): void;
-        createBaseLayer(flagwindMap: FlagwindMap): Array<FlagwindTiledLayer>;
-        createGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
-        clearLayer(layer: any): void;
-        removeLayer(layer: any, map: any): void;
-        addLayer(layer: any, map: any): void;
-        showLayer(layer: any): void;
-        hideLayer(layer: any): void;
-        getGraphicListByLayer(layer: any): Array<any>;
-        removeGraphic(graphic: any, layer: any): void;
-        addGraphic(graphic: any, layer: any): void;
-        showGraphic(graphic: any): void;
-        hideGraphic(graphic: any): void;
-        setGeometryByGraphic(graphic: any, geometry: any): void;
-        setSymbolByGraphic(graphic: any, symbol: any): void;
-        createMarkerSymbol(options: any): void;
-        getGraphicAttributes(graphic: any): any;
-        addEventListener(target: any, eventName: string, callback: Function): void;
-        centerAt(point: any, map: any): void;
-        createPoint(options: any): MinemapPoint;
-        createSpatial(wkid: any): MinemapSpatial;
-        getInfoWindow(map: any): any;
-        showInfoWindow(map: any): void;
-        openInfoWindow(option: any, map: any): void;
-        formPoint(point: any, flagwindMap: FlagwindMap): {
-            longitude: number;
-            latitude: number;
-        };
-        toPoint(item: any, flagwindMap: FlagwindMap): MinemapPoint;
-        createMap(setting: IMapSetting, flagwindMap: FlagwindMap): any;
-        createContextMenu(options: {
-            contextMenu: Array<any>;
-            contextMenuClickEvent: any;
-        }, flagwindMap: FlagwindMap): void;
-        showTitle(graphic: any, flagwindMap: FlagwindMap): void;
-        hideTitle(flagwindMap: FlagwindMap): void;
-        setSegmentByLine(flagwindRouteLayer: FlagwindRouteLayer, options: {
-            points: Array<any>;
-            spatial: any;
-        }, segment: TrackSegment): void;
-        setSegmentByPolyLine(flagwindRouteLayer: FlagwindRouteLayer, options: {
-            polyline: any;
-            length: number;
-        }, segment: TrackSegment): void;
-        solveByService(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
-        solveByJoinPoint(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment): void;
-        getTrackLineMarkerGraphic(trackline: TrackLine, graphic: any, angle: number): void;
-        getStandardStops(name: string, stops: Array<any>): Array<any>;
-        showSegmentLine(flagwindRouteLayer: FlagwindRouteLayer, segment: TrackSegment): void;
     }
 }
 declare var minemap: any;

@@ -27,7 +27,6 @@ namespace flagwind {
      * @class TrackSegment
      */
     export class TrackSegment {
-        public mapService: IMapService;
         public timer: any;
         public position = -1;
         public length: number | null;
@@ -63,14 +62,13 @@ namespace flagwind {
             public endGraphic: any,       // 终点要素
             public options: any) {
             this.options = { ...TRACKSEGMENT_OPTIONS, ...options };
-            this.mapService = flagwindRouteLayer.mapService;
         }
 
         /**
          * 设置拆线
          */
         public setPolyLine(polyline: any, length: number) {
-            this.mapService.setSegmentByPolyLine(this.flagwindRouteLayer, {
+            this.flagwindRouteLayer.onSetSegmentByPolyLine({
                 polyline: polyline,
                 length: length
             }, this);
@@ -83,7 +81,7 @@ namespace flagwind {
          */
         public setLine(points: Array<any>) {
 
-            this.mapService.setSegmentByLine(this.flagwindRouteLayer, {
+            this.flagwindRouteLayer.onSetSegmentByLine({
                 points: points,
                 spatial: this.flagwindRouteLayer.flagwindMap.spatial
             }, this);
@@ -207,8 +205,6 @@ namespace flagwind {
          */
         public markerGraphic: any;
 
-        public mapService: IMapService;
-
         public segments: Array<TrackSegment> = [];
         public isMovingGraphicHide = false;
 
@@ -216,7 +212,6 @@ namespace flagwind {
             public flagwindMap: FlagwindMap,
             public name: string,
             public options: any) {
-            this.mapService = flagwindMap.mapService;
 
         }
 
@@ -227,7 +222,8 @@ namespace flagwind {
          */
         public hideMovingGraphic() {
             this.isMovingGraphicHide = true;
-            this.mapService.hideGraphic(this.markerGraphic);
+            this.markerGraphic.hide();
+           // this.flagwindMap.onHideGraphic(this.markerGraphic);
         }
 
         /**
@@ -238,7 +234,8 @@ namespace flagwind {
         public showMovingGraphic() {
             if (this.isMovingGraphicHide) {
                 this.isMovingGraphicHide = false;
-                this.mapService.showGraphic(this.markerGraphic);
+                this.markerGraphic.show();
+                // this.flagwindMap.onShowGraphic(this.markerGraphic);
             }
         }
 

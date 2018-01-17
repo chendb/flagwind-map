@@ -1,80 +1,66 @@
 namespace flagwind {
 
-    export class FlagwindGroup1Layer {
-        public layer: any;
-        public isShow: boolean = true;
-
-        public constructor(public id: string) {
-
-        }
-
-        public test() {
-            return 0;
-        }
-    }
-
     /**
      * 分组图层(用于需要多个要素叠加效果情况)
      * 
      * @export
      * @class FlagwindGroupLayer
      */
-    export class FlagwindGroupLayer {
-
+    export abstract class FlagwindGroupLayer {
         public layer: any;
         public isShow: boolean = true;
 
-        public constructor(public mapService: IMapService, public id: string) {
-            this.layer = this.mapService.createGraphicsLayer({ id: id });
+        public constructor(public id: string) {
+            this.layer = this.onCreateGraphicsLayer({ id: id });
         }
 
-        public get graphics() {
-            return this.mapService.getGraphicListByLayer(this.layer);
+        public get graphics(): Array<any> {
+            return this.layer.graphics;
         }
 
         public appendTo(map: any) {
-            this.mapService.addLayer(this.layer, map);
+            this.layer.addToMap(map);
         }
 
         public removeLayer(map: any) {
-            this.mapService.removeLayer(this.layer, map);
+            this.layer.removeFormMap(map);
         }
 
         public clear() {
-            this.mapService.clearLayer(this.layer);
+            this.layer.clear();
         }
 
         public show() {
             this.isShow = true;
-            this.mapService.showLayer(this.layer);
+            this.layer.show();
         }
 
         public hide() {
             this.isShow = false;
-            this.mapService.hideLayer(this.layer);
+            this.layer.hide();
         }
 
         public setGeometry(name: string, geometry: any) {
             this.getGraphicByName(name).forEach(g => {
-                this.mapService.setGeometryByGraphic(g, geometry);
+                g.setGeometry(geometry);
             });
         }
 
         public setSymbol(name: string, symbol: any) {
             this.getGraphicByName(name).forEach(g => {
-                this.mapService.setSymbolByGraphic(g, symbol);
+                g.setSymbol(symbol);
             });
         }
 
-        public showGraphice(name: string) {
+        public showGraphic(name: string) {
             this.getGraphicByName(name).forEach(g => {
-                this.mapService.showGraphic(g);
+                g.show();
             });
         }
 
-        public hideGraphice(name: string) {
+        public hideGraphic(name: string) {
             this.getGraphicByName(name).forEach(g => {
-                this.mapService.hideGraphic(g);
+                g.hide();
             });
         }
 
@@ -82,17 +68,17 @@ namespace flagwind {
             if (graphics === undefined) return;
             graphics.forEach((g, index) => {
                 if (g) {
-                    let item = this.mapService.getGraphicAttributes(g);
+                    let item = g.attributes;
                     item.__master = index === 0;
                     item.__name = name;
-                    this.mapService.addGraphic(g, this.layer);
+                    this.layer.add(g);
                 }
             });
         }
 
         public getMasterGraphicByName(name: string): any {
             this.graphics.forEach(element => {
-                let item = this.mapService.getGraphicAttributes(element);
+                let item = element.attributes;
                 if (name === item.__name && item.__master) {
                     return element;
                 }
@@ -106,7 +92,7 @@ namespace flagwind {
         public getGraphicByName(name: String): Array<any> {
             const list = [];
             for (let i = 0; i < this.graphics.length; i++) {
-                let attrs = this.mapService.getGraphicAttributes(this.graphics[i]);
+                let attrs = this.graphics[i].attributes;
                 if (attrs.__name === name) {
                     list.push(this.graphics[i]);
                 }
@@ -120,11 +106,13 @@ namespace flagwind {
         public removeGraphicByName(name: string) {
             const graphics = this.getGraphicByName(name);
             if (graphics != null) {
-                const _layer = this.layer;
                 graphics.forEach(g => {
-                    this.mapService.removeGraphic(g, _layer);
+                    this.layer.remove(g);
                 });
             }
         }
+
+        public abstract onCreateGraphicsLayer(args: any): any;
+
     }
 }

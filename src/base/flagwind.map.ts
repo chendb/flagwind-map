@@ -10,31 +10,35 @@ namespace flagwind {
         },
         onMapClick(evt: any) {
             console.log("onMapClick");
+        },
+        onCreateContextMenu(args: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {
+            console.log("onCreateContextMenu");
         }
     };
 
-    export class FlagwindMap {
+    export abstract class FlagwindMap {
 
-        private options: any;
         private baseLayers: Array<FlagwindTiledLayer> = [];
         private featureLayers: Array<FlagwindFeatureLayer> = [];
 
+        public options: any;
         public mapEl: any;
         public spatial: any;
         public innerMap: any;
+        public loaded: boolean = false;
 
         public constructor(
-            public mapService: IMapService,
             public mapSetting: IMapSetting,
             mapEl: any,
             options: any) {
             this.mapEl = mapEl;
             this.options = { ...MAP_OPTIONS, ...options };
-            this.createMap();
-            this.createBaseLayer();
+            this.onCreateMap();
+            this.onCreateBaseLayers();
             const _this = this;
-            mapService.addEventListener(_this.innerMap, "onLoad", function () {
+            _this.onAddEventListener("onLoad", function () {
                 try {
+                    _this.loaded = true;
                     _this.goToCenter();
                     _this.onMapLoad();
                 } catch (ex) {
@@ -42,11 +46,90 @@ namespace flagwind {
                 }
             });
 
-            mapService.addEventListener(_this.innerMap, "zoom-end", function (evt: any) {
+            _this.onAddEventListener("zoom-end", function (evt: any) {
                 _this.onMapZoomEnd(evt);
             });
 
         }
+
+        public abstract onAddEventListener(eventName: string, callBack: Function): void;
+
+        public abstract onCenterAt(point: any): void;
+
+        public abstract onCreatePoint(point: any): any;
+
+        public onFormPoint(point: any) {
+            let lnglat = { "lat": point.y, "lon": point.x };
+            if (point.latitude && point.longitude) {
+                lnglat.lon = point.longitude;
+                lnglat.lat = point.latitude;
+            }
+            // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
+            if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
+                if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
+                    if (this.mapSetting.is25D) {
+                        console.log("2.5D坐标：" + lnglat.lon + "," + lnglat.lat);
+                        lnglat = MapUtils.point25To2(lnglat.lon, lnglat.lat);
+                        console.log("高德坐标：" + lnglat.lon + "," + lnglat.lat);
+                        lnglat = MapUtils.gcj_decrypt(lnglat.lat, lnglat.lon);
+                        console.log("原始坐标：" + lnglat.lon + "," + lnglat.lat);
+
+                    } else {
+                        lnglat = MapUtils.mercator2lonlat(lnglat.lat, lnglat.lon);
+                    }
+                } else if (this.spatial.wkid === 102100 && this.mapSetting.wkidFromApp === 4326) {
+                    lnglat = MapUtils.mercator_decrypt(lnglat.lat, lnglat.lon);
+                } else if (this.spatial.wkid === 4326 && this.mapSetting.wkidFromApp === 3857) {
+                    lnglat = MapUtils.mercator_decrypt(lnglat.lat, lnglat.lon);
+                }
+            }
+
+            // 以x,y属性创建点
+            return {
+                longitude: parseFloat(lnglat.lon.toFixed(8)),
+                latitude: parseFloat(lnglat.lat.toFixed(8))
+            };
+        }
+        public onToPoint(item: any) {
+            let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
+            if (!MapUtils.validGeometryModel(item)) {
+                lnglat.lon = item.x;
+                lnglat.lat = item.y;
+            }
+            // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
+            if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
+                if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
+                    if (this.mapSetting.is25D) {
+                        console.log("原始坐标：" + lnglat.lon + "," + lnglat.lat);
+                        lnglat = MapUtils.gcj_encrypt(lnglat.lat, lnglat.lon);
+                        console.log("高德坐标：" + lnglat.lon + "," + lnglat.lat);
+                        lnglat = MapUtils.point2To25(lnglat.lon, lnglat.lat);
+                        console.log("2.5D坐标：" + lnglat.lon + "," + lnglat.lat);
+                    } else {
+                        lnglat = MapUtils.lonlat2mercator(lnglat.lat, lnglat.lon);
+                    }
+                } else if (this.spatial.wkid === 102100 && this.mapSetting.wkidFromApp === 4326) {
+                    lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
+                }
+                else if (this.spatial.wkid === 4326 && this.mapSetting.wkidFromApp === 3857) {
+                    lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
+                }
+            }
+            // 以x,y属性创建点
+            return new esri.geometry.Point(lnglat.lon, lnglat.lat, this.spatial);
+        }
+
+        public abstract onCreateMap(): any;
+
+        public abstract onShowInfoWindow(options: any): void;
+
+        public abstract onCreateBaseLayers(): any;
+
+        public abstract onShowTitle(graphic: any): void;
+
+        public abstract onHideTitle(graphic: any): void;
+
+        public abstract onCreateContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }): void;
 
         public goToCenter() {
 
@@ -55,7 +138,7 @@ namespace flagwind {
                     x: this.mapSetting.center[0],
                     y: this.mapSetting.center[1]
                 });
-                this.mapService.centerAt(pt, this.innerMap);
+                this.onCenterAt(pt);
             }
         }
 
@@ -67,37 +150,16 @@ namespace flagwind {
             return null;
         }
 
-        public formPoint(point: any) {
-            let lnglat = { "lat": point.y, "lon": point.x };
-            if (point.latitude && point.longitude) {
-                lnglat.lon = point.longitude;
-                lnglat.lat = point.latitude;
-            }
-            return this.mapService.formPoint(lnglat, this);
-
-        }
-
         /**
          * 中心定位
          */
         public centerAt(x: number, y: number) {
-            let pt = this.mapService.createPoint({
+            let pt = this.onCreatePoint({
                 x: x,
                 y: y,
                 spatial: this.spatial
             });
-            this.mapService.centerAt(pt, this.innerMap);
-        }
-
-        /**
-         *
-         * 创建菜单
-         *
-         * @param {{ contextMenu: any[], contextMenuClickEvent: any }} options
-         * @memberof FlagwindMap
-         */
-        public createContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }) {
-            this.mapService.createContextMenu(options, this);
+            this.onCenterAt(pt);
         }
 
         /**
@@ -109,14 +171,7 @@ namespace flagwind {
                 lnglat.lon = item.x;
                 lnglat.lat = item.y;
             }
-            return this.mapService.toPoint(lnglat, this);
-        }
-
-        public createBaseLayer() {
-            let layers = this.mapService.createBaseLayer(this);
-            layers.forEach(g => {
-                g.appendTo(this.innerMap);
-            });
+            return this.onToPoint(lnglat);
         }
 
         public addFeatureLayer(deviceLayer: FlagwindFeatureLayer) {
@@ -127,23 +182,8 @@ namespace flagwind {
             deviceLayer.appendTo(this.innerMap);
         }
 
-        /**
-         * 鼠标移动到点要素时显示title
-         */
-        public showTitle(graphic: any) {
-            this.mapService.showTitle(graphic, this);
-        }
-
-        public hideTitle() {
-            this.mapService.hideTitle(this);
-        }
-
-        public getInfoWindow() {
-            return this.mapService.getInfoWindow(this.innerMap);
-        }
-
         public openInfoWindow(option: any) {
-            this.mapService.openInfoWindow(option, this.innerMap);
+            this.onShowInfoWindow(option);
         }
 
         protected onMapLoad() {
@@ -152,7 +192,7 @@ namespace flagwind {
             }
 
             const me: FlagwindMap = this;
-            this.mapService.addEventListener(this.innerMap, "click", function (evt: any) {
+            this.onAddEventListener("click", function (evt: any) {
                 me.options.onMapClick(evt);
             });
         }
@@ -170,15 +210,6 @@ namespace flagwind {
             const layers = this.featureLayers.filter(g => g.id === id);
             return layers != null && layers.length > 0 ? layers[0] : null;
         }
-
-        // protected addFeatureLayer(id: string, title: string) {
-        //     if (this.getFeatureLayerById(id)) {
-        //         throw Error("图层" + id + "已存在");
-        //     }
-        //     const layer = new FlagwindFeatureLayer(this.mapService, id, title);
-        //     this.featureLayers.push(layer);
-        //     layer.appendTo(this.innerMap);
-        // }
 
         protected showFeatureLayer(id: string) {
             const layer = this.getFeatureLayerById(id);
@@ -206,12 +237,6 @@ namespace flagwind {
 
         protected onMapZoomEnd(evt: any) {
             this.options.onMapZoomEnd(evt.level);
-        }
-
-        protected createMap() {
-            this.spatial = this.mapService.createSpatial(this.mapSetting.wkid);
-            const map = this.mapService.createMap(this.mapSetting, this);
-            this.innerMap = map;
         }
 
     }

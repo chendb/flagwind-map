@@ -6,34 +6,30 @@ namespace flagwind {
      * @export
      * @class FlagwindFeatureLayer
      */
-    export class FlagwindFeatureLayer {
+    export abstract class FlagwindFeatureLayer {
 
         protected layer: any;
         public isShow: boolean = true;
 
-        public constructor(public mapService: IMapService, public id: string, public title: string | null) {
+        public constructor(public id: string, public title: string | null) {
             this.id = id;
-            this.layer = this.createGraphicsLayer({ id: id });
-        }
-
-        public createGraphicsLayer(args: any): any {
-            return this.mapService.createGraphicsLayer(args);
+            this.layer = this.onCreateGraphicsLayer({ id: id });
         }
 
         public get graphics(): Array<any> {
-            return this.mapService.getGraphicListByLayer(this.layer);
+            return this.layer.graphics;
         }
 
         public get items(): Array<any> {
-            return this.graphics.map(g => this.mapService.getGraphicAttributes(g));
+            return this.graphics.map(g => g.attributes);
         }
 
         public appendTo(map: any) {
-            this.mapService.addLayer(this.layer, map);
+            this.layer.addToMap(map);
         }
 
         public removeLayer(map: any) {
-            this.mapService.removeLayer(this.layer, map);
+            this.layer.removeFormMap(map);
         }
 
         public get count() {
@@ -44,17 +40,17 @@ namespace flagwind {
         }
 
         public clear() {
-            this.mapService.clearLayer(this.layer);
+            this.layer.clear();
         }
 
         public show() {
             this.isShow = true;
-            this.mapService.showLayer(this.layer);
+            this.layer.show();
         }
 
         public hide() {
             this.isShow = false;
-            this.mapService.hideLayer(this.layer);
+            this.layer.hide();
         }
 
         /**
@@ -63,7 +59,7 @@ namespace flagwind {
         public getGraphicById(key: string): any {
             const graphics = this.graphics;
             for (let i = 0; i < graphics.length; i++) {
-                const attrs = this.mapService.getGraphicAttributes(graphics[i]);
+                const attrs = graphics[i].attributes;
                 if (attrs.id === key) {
                     return graphics[i];
                 }
@@ -77,8 +73,11 @@ namespace flagwind {
         public removeGraphicById(key: string) {
             const graphic = this.getGraphicById(key);
             if (graphic != null) {
-                this.mapService.removeGraphic(graphic, this.layer);
+                this.layer.remove(graphic);
             }
         }
+
+        public abstract onCreateGraphicsLayer(args: any): any;
+
     }
 }

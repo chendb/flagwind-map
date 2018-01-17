@@ -33,7 +33,7 @@ namespace flagwind {
         public constructor(
             public flagwindMap: FlagwindMap,
             public id: string, public options: any) {
-            super(flagwindMap.mapService, id, options.title || "设备图层");
+            super(id, options.title || "设备图层");
             options = { ...BUSINESS_LAYER_OPTIONS, ...options };
 
             this.flagwindMap = flagwindMap;
@@ -45,32 +45,31 @@ namespace flagwind {
             this.flagwindMap.addFeatureLayer(this);
             this.onAddLayerAfter();
 
-            if (this.flagwindMap.innerMap.loaded) {
+            if (this.flagwindMap.loaded) {
                 this.onLoad();
             } else {
                 const me = this;
-                this.flagwindMap.innerMap.on("load", function () {
+                this.flagwindMap.onAddEventListener("load", function () {
                     me.onLoad();
                 });
             }
         }
 
-        public abstract showInfoWindow(evt: any): void;
+        public abstract onShowInfoWindow(evt: any): void;
 
         public abstract onCreatGraphicByModel(item: any): any;
 
         public abstract onUpdateGraphicByModel(item: any): void;
 
-        public abstract addEventListener(eventName: string, callback: Function): void;
+        public abstract onAddEventListener(eventName: string, callback: Function): void;
 
-        // /**
-        //  * 获取资源图标
-        //  */
-        // public abstract getIconUrl(info: any): void;
+        public onAddLayerBefor(): void {
+            console.log("onAddLayerBefor");
+        }
 
-        // public abstract getGraphicWidth(level: number | null): number;
-
-        // public abstract getGraphicHeight(level: number | null): number;
+        public onAddLayerAfter(): void {
+            console.log("onAddLayerAfter");
+        }
 
         public get map(): any {
             return this.flagwindMap.map;
@@ -105,7 +104,7 @@ namespace flagwind {
         public setSelectStatusByModels(dataList: Array<any>): void {
             this.clearSelectStatus();
             for (let i = 0; i < dataList.length; i++) {
-                let model = this.changeStandardModel(dataList[i]);
+                let model = this.onChangeStandardModel(dataList[i]);
                 let graphic = this.getGraphicById(model.id);
                 if (graphic) {
                     this.setSelectStatus(graphic, true);
@@ -117,7 +116,7 @@ namespace flagwind {
          * 保存要素（如果存在，则修改，否则添加）
          */
         public saveGraphicByModel(item: any): void {
-            item = this.changeStandardModel(item);
+            item = this.onChangeStandardModel(item);
             if (!item || !item.id) return;
             const graphic = this.getGraphicById(item.id);
             if (graphic) {
@@ -133,18 +132,12 @@ namespace flagwind {
         }
 
         public creatGraphicByModel(item: any): any {
-            item = this.changeStandardModel(item);
-            if (!this.validModel(item)) {
+            item = this.onChangeStandardModel(item);
+            if (!this.onValidModel(item)) {
                 return null;
             }
             item.select = false; // select属性为true表示当前选中，false表示未选中
             const graphic = this.onCreatGraphicByModel(item);
-            // const pt = this.getPoint(item);
-            // const iconUrl = this.getIconUrl(item);
-            // const width = this.getGraphicWidth(null);
-            // const height = this.getGraphicHeight(null);
-            // const markerSymbol = new esri.symbol.PictureMarkerSymbol(iconUrl, width, height);
-            // const graphic = new esri.Graphic(pt, markerSymbol, item);
             return graphic;
         }
 
@@ -152,8 +145,8 @@ namespace flagwind {
          * 修改要素
          */
         public updateGraphicByModel(item: any, graphic: any | null = null): void {
-            item = this.changeStandardModel(item);
-            if (!this.validModel(item)) {
+            item = this.onChangeStandardModel(item);
+            if (!this.onValidModel(item)) {
                 return;
             }
             if (!graphic) {
@@ -204,15 +197,7 @@ namespace flagwind {
          * @param {*} point 
          */
         public formPoint(point: any): any {
-            return this.flagwindMap.formPoint(point);
-        }
-
-        protected onAddLayerBefor(): void {
-            console.log("onAddLayerBefor");
-        }
-
-        protected onAddLayerAfter(): void {
-            console.log("onAddLayerAfter");
+            return this.flagwindMap.onFormPoint(point);
         }
 
         protected onLoad() {
@@ -229,16 +214,16 @@ namespace flagwind {
 
         protected registerEvent(): void {
             let _deviceLayer = this;
-            this.addEventListener("onCliick", function (evt: any) {
+            this.onAddEventListener("onCliick", function (evt: any) {
                 _deviceLayer.onLayerClick(_deviceLayer, evt);
             });
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
-                this.addEventListener("onMouseOver", function (evt: any) {
-                    _deviceLayer.flagwindMap.showTitle(evt.graphic);
+                this.onAddEventListener("onMouseOver", function (evt: any) {
+                    _deviceLayer.flagwindMap.onShowTitle(evt.graphic);
                 });
-                this.addEventListener("onMouseOut", function (evt: any) {
-                    _deviceLayer.flagwindMap.hideTitle();
+                this.onAddEventListener("onMouseOut", function (evt: any) {
+                    _deviceLayer.flagwindMap.onHideTitle(evt.graphic);
                 });
             }
         }
@@ -250,7 +235,7 @@ namespace flagwind {
             }
             if (deviceLayer.options.showInfoWindow) {
                 evt.graphic.attributes.eventName = "";
-                deviceLayer.showInfoWindow(evt);
+                deviceLayer.onShowInfoWindow(evt);
             }
 
             if (deviceLayer.options.enableSelectMode) {
@@ -279,8 +264,9 @@ namespace flagwind {
             this.options.onEvent(eventName, event);
         }
 
-        protected validModel(item: any) {
-            return item.longitude && item.latitude;
+        protected setSelectStatus(item: any, selected: boolean): void {
+            item.selected = selected;
+            this.onUpdateGraphicByModel(item);
         }
 
         /**
@@ -291,19 +277,10 @@ namespace flagwind {
          * @returns {{ id: String, name: String, longitude: number, latitude: number }}
          * @memberof FlagwindBusinessLayer
          */
-        protected changeStandardModel(item: any) {
-            if (item.tollLongitude && item.tollLatitude) {
-                item.id = item.tollCode;
-                item.name = item.tollName;
-                item.longitude = item.tollLongitude;
-                item.latitude = item.tollLatitude;
-            }
-            return item;
-        }
+        protected abstract onChangeStandardModel(item: any): any;
 
-        protected setSelectStatus(item: any, selected: boolean): void {
-            item.selected = selected;
-            this.onUpdateGraphicByModel(item);
+        protected onValidModel(item: any) {
+            return item.longitude && item.latitude;
         }
     }
 

@@ -1,3 +1,4 @@
+/// <reference path="../base/flagwind-business.layer.ts" />
 namespace flagwind {
     /**
      * 卡口
@@ -8,49 +9,71 @@ namespace flagwind {
 
         public constructor(public businessService: IBusinessService, flagwindMap: FlagwindMap, id: string, options: any) {
             super(flagwindMap, id, options);
-
-            // if (this.options.enableEdit) {
-            //     (<any>this).editLayer = new EditLayer(flagwindMap, this, {
-            //         onEditInfo: this.onEditInfo
-            //     });
-            // }
-
             this.onInit();
-
         }
 
-        public onEditInfo(evt: any, isSave: boolean) {
-            // console.log(evt);
-            // return new Promise((reject, resolve) => {
-            //     if (isSave) {
-            //         updatePoint({
-            //             PointNo: evt.id,
-            //             Longitude: evt.longitude,
-            //             Latitude: evt.latitude
-            //         }).then(response => {
-            //             reject("坐标更新成功");
-            //         }).catch(error => {
-            //             app.$Message.error("坐标更新失败");
-            //             resolve("坐标更新失败");
-            //         });
-            //         // console.log("请执行坐标更新服务");
-            //     } else {
-            //         // resolve("用户取消了坐标更新操作");
-            //         console.log("用户取消了坐标更新操作");
-            //     }
-            // });
+        public onCreateGraphicsLayer(options: any) {
+            if (options.kind === "marker") {
+                return new MinemapMarkerLayer(options);
+            }
+            if (options.kind === "geojson") {
+                return new MinemapGeoJsonLayer(options);
+            }
+            console.log("未指定图层类型");
+            return null;
         }
 
-        public createGraphicsLayer(options: any) {
-            options.kind = "marker";
-            return this.mapService.createGraphicsLayer(options);
-        }
-
-        public showInfoWindow(evt: any) {
+        public onShowInfoWindow(evt: any): void {
             let context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
             let infoWindow = this.flagwindMap.innerMap.infoWindow;
             infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
             infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
+        }
+
+        /**
+         * 图层事件处理
+         * @param eventName 事件名称
+         * @param callback 回调
+         */
+        public onAddEventListener(eventName: string, callback: Function): void {
+            this.layer.on(eventName, callback);
+        }
+
+        /**
+         * 把实体转换成标准的要素属性信息
+         * @param item 实体信息
+         */
+        public onChangeStandardModel(item: any): any {
+            return this.businessService.changeStandardModel(item);
+        }
+
+        /**
+         * 创建要素方法
+         * @param item 实体信息
+         */
+        public onCreatGraphicByModel(item: any): any {
+            return new MinemapMarker({
+                id: item.id,
+                symbol: {
+                    className: this.options.kind || "graphic-tollgate"
+                },
+                point: {
+                    y: item.latitude,
+                    x: item.longitude
+                }
+            });
+        }
+
+        /**
+         * 更新要素方法
+         * @param item 实体信息
+         */
+        public onUpdateGraphicByModel(item: any): void {
+            this.removeGraphicById(item.id);
+            // let minemapMarker = <MinemapMarker>this.onCreatGraphicByModel(item);
+            this.addGraphicByModel(item);
+            // (<MinemapMarkerLayer>this.layer).add(minemapMarker);
+            // throw new Error("Method not implemented.");
         }
 
         public openInfoWindow(id: string, context: any) {
@@ -81,14 +104,6 @@ namespace flagwind {
         }
 
         /**
-         * 把实体转换成标准的要素属性信息
-         * @param item 实体信息
-         */
-        public changeStandardModel(item: any): any {
-            return this.businessService.changeStandardModel(item);
-        }
-
-        /**
          * 开启定时器
          */
         public start() {
@@ -105,44 +120,6 @@ namespace flagwind {
             if ((<any>this).timer) {
                 clearInterval((<any>this).timer);
             }
-        }
-
-        /**
-         * 创建要素方法
-         * @param item 实体信息
-         */
-        public onCreatGraphicByModel(item: any): any {
-            return new MinemapMarker({
-                id: item.id,
-                symbol: {
-                    className: "graphic-tollgate"
-                },
-                point: {
-                    y: item.latitude,
-                    x: item.longitude
-                }
-            });
-        }
-
-        /**
-         * 更新要素方法
-         * @param item 实体信息
-         */
-        public onUpdateGraphicByModel(item: any): void {
-            this.removeGraphicById(item.id);
-            // let minemapMarker = <MinemapMarker>this.onCreatGraphicByModel(item);
-            this.addGraphicByModel(item);
-            // (<MinemapMarkerLayer>this.layer).add(minemapMarker);
-            // throw new Error("Method not implemented.");
-        }
-
-        /**
-         * 图层事件处理
-         * @param eventName 事件名称
-         * @param callback 回调
-         */
-        public addEventListener(eventName: string, callback: Function): void {
-            this.layer.on(eventName, callback);
         }
 
         /**
