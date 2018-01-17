@@ -469,26 +469,6 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    /**
-     * 业务图层数据服务接口
-     */
-    interface IBusinessService {
-        changeStandardModel(model: any): any;
-        getInfoWindowContext(mode: any): {
-            title: string;
-            content: string;
-        };
-        /**
-         * 获取图层
-         */
-        getDataList(): Promise<Array<any>>;
-        /**
-         * 获取最新图层数据状态
-         */
-        getLastStatus(): Promise<Array<any>>;
-    }
-}
-declare namespace flagwind {
     const BUSINESS_LAYER_OPTIONS: any;
     /**
      * 业务图层
@@ -548,6 +528,26 @@ declare namespace flagwind {
          */
         protected abstract onChangeStandardModel(item: any): any;
         protected onValidModel(item: any): any;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 业务图层数据服务接口
+     */
+    interface IFlagwindBusinessService {
+        changeStandardModel(model: any): any;
+        getInfoWindowContext(mode: any): {
+            title: string;
+            content: string;
+        };
+        /**
+         * 获取图层
+         */
+        getDataList(): Promise<Array<any>>;
+        /**
+         * 获取最新图层数据状态
+         */
+        getLastStatus(): Promise<Array<any>>;
     }
 }
 declare namespace flagwind {
@@ -1426,25 +1426,13 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    class MinemapRouteLayer extends FlagwindRouteLayer {
-        onCreateGroupLayer(id: string): FlagwindGroupLayer;
-        onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
-        onShowSegmentLine(segment: TrackSegment): void;
-        onGetStandardStops(name: String, stops: Array<any>): Array<any>;
-        onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
-        onSolveByJoinPoint(segment: TrackSegment): void;
-        onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
-        onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): void;
-    }
-}
-declare namespace flagwind {
     /**
-     * 卡口
+     * 点图层
      */
-    class MinemapTollgateLayer extends FlagwindBusinessLayer {
-        businessService: IBusinessService;
+    class MinemapPointLayer extends FlagwindBusinessLayer {
+        businessService: IFlagwindBusinessService;
         isLoading: boolean;
-        constructor(businessService: IBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
+        constructor(businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
         onCreateGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
         onShowInfoWindow(evt: any): void;
         /**
@@ -1487,6 +1475,18 @@ declare namespace flagwind {
          * 更新设备状态
          */
         private updateStatus();
+    }
+}
+declare namespace flagwind {
+    class MinemapRouteLayer extends FlagwindRouteLayer {
+        onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
+        onShowSegmentLine(segment: TrackSegment): void;
+        onGetStandardStops(name: String, stops: Array<any>): Array<any>;
+        onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
+        onSolveByJoinPoint(segment: TrackSegment): void;
+        onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
+        onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): void;
     }
 }
 declare namespace flagwind {

@@ -1,13 +1,13 @@
 /// <reference path="../base/flagwind-business.layer.ts" />
 namespace flagwind {
     /**
-     * 卡口
+     * 点图层
      */
-    export class MinemapTollgateLayer extends FlagwindBusinessLayer {
+    export class MinemapPointLayer extends FlagwindBusinessLayer {
 
         public isLoading: boolean = false; // 设备是否正在加载
 
-        public constructor(public businessService: IBusinessService, flagwindMap: FlagwindMap, id: string, options: any) {
+        public constructor(public businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any) {
             super(flagwindMap, id, options);
             this.onInit();
         }

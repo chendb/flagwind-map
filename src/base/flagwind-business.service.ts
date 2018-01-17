@@ -3,7 +3,7 @@ namespace flagwind {
     /**
      * 业务图层数据服务接口
      */
-    export interface IBusinessService {
+    export interface IFlagwindBusinessService {
 
         changeStandardModel(model: any): any;
 

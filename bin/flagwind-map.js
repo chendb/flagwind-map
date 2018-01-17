@@ -725,10 +725,6 @@ var flagwind;
          */
         FlagwindMap.prototype.getPoint = function (item) {
             var lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
-            if (!flagwind.MapUtils.validGeometryModel(item)) {
-                lnglat.lon = item.x;
-                lnglat.lat = item.y;
-            }
             return this.onToPoint(lnglat);
         };
         FlagwindMap.prototype.addFeatureLayer = function (deviceLayer) {
@@ -3302,6 +3298,142 @@ var flagwind;
     }(flagwind.FlagwindMap));
     flagwind.MinemapMap = MinemapMap;
 })(flagwind || (flagwind = {}));
+/// <reference path="../base/flagwind-business.layer.ts" />
+var flagwind;
+(function (flagwind) {
+    /**
+     * 点图层
+     */
+    var MinemapPointLayer = /** @class */ (function (_super) {
+        __extends(MinemapPointLayer, _super);
+        function MinemapPointLayer(businessService, flagwindMap, id, options) {
+            var _this = _super.call(this, flagwindMap, id, options) || this;
+            _this.businessService = businessService;
+            _this.isLoading = false; // 设备是否正在加载
+            _this.onInit();
+            return _this;
+        }
+        MinemapPointLayer.prototype.onCreateGraphicsLayer = function (options) {
+            if (options.kind === "marker") {
+                return new flagwind.MinemapMarkerLayer(options);
+            }
+            if (options.kind === "geojson") {
+                return new flagwind.MinemapGeoJsonLayer(options);
+            }
+            console.warn("未指定图层类型");
+            return new flagwind.MinemapMarkerLayer(options);
+        };
+        MinemapPointLayer.prototype.onShowInfoWindow = function (evt) {
+            var context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
+            var infoWindow = this.flagwindMap.innerMap.infoWindow;
+            infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
+            infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
+        };
+        /**
+         * 图层事件处理
+         * @param eventName 事件名称
+         * @param callback 回调
+         */
+        MinemapPointLayer.prototype.onAddEventListener = function (eventName, callback) {
+            this.layer.on(eventName, callback);
+        };
+        /**
+         * 把实体转换成标准的要素属性信息
+         * @param item 实体信息
+         */
+        MinemapPointLayer.prototype.onChangeStandardModel = function (item) {
+            return this.businessService.changeStandardModel(item);
+        };
+        /**
+         * 创建要素方法
+         * @param item 实体信息
+         */
+        MinemapPointLayer.prototype.onCreatGraphicByModel = function (item) {
+            return new flagwind.MinemapMarker({
+                id: item.id,
+                symbol: {
+                    className: this.options.dataType || "graphic-tollgate"
+                },
+                point: {
+                    y: item.latitude,
+                    x: item.longitude
+                }
+            });
+        };
+        /**
+         * 更新要素方法
+         * @param item 实体信息
+         */
+        MinemapPointLayer.prototype.onUpdateGraphicByModel = function (item) {
+            this.removeGraphicById(item.id);
+            // let minemapMarker = <MinemapMarker>this.onCreatGraphicByModel(item);
+            this.addGraphicByModel(item);
+            // (<MinemapMarkerLayer>this.layer).add(minemapMarker);
+            // throw new Error("Method not implemented.");
+        };
+        MinemapPointLayer.prototype.openInfoWindow = function (id, context) {
+            var graphic = this.getGraphicById(id);
+            var infoWindow = this.flagwindMap.innerMap.infoWindow;
+            infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
+            infoWindow.setLngLat([graphic.geometry.x, graphic.geometry.y]);
+        };
+        /**
+         * 加载并显示设备点位
+         *
+         * @memberof TollgateLayer
+         */
+        MinemapPointLayer.prototype.showDataList = function () {
+            var me = this;
+            me.isLoading = true;
+            me.fireEvent("showDataList", { action: "start" });
+            this.businessService.getDataList().then(function (dataList) {
+                me.isLoading = false;
+                me.saveGraphicList(dataList);
+                me.fireEvent("showDataList", { action: "end", attributes: dataList });
+            }).catch(function (error) {
+                me.isLoading = false;
+                console.log("加载卡口数据时发生了错误：", error);
+                me.fireEvent("showDataList", { action: "error", attributes: error });
+            });
+        };
+        /**
+         * 开启定时器
+         */
+        MinemapPointLayer.prototype.start = function () {
+            var me = this;
+            this.timer = setInterval(function () {
+                me.updateStatus();
+            }, this.options.timeout || 20000);
+        };
+        /**
+         * 关闭定时器
+         */
+        MinemapPointLayer.prototype.stop = function () {
+            if (this.timer) {
+                clearInterval(this.timer);
+            }
+        };
+        /**
+         * 更新设备状态
+         */
+        MinemapPointLayer.prototype.updateStatus = function () {
+            var me = this;
+            me.isLoading = true;
+            me.fireEvent("updateStatus", { action: "start" });
+            this.businessService.getLastStatus().then(function (dataList) {
+                me.isLoading = false;
+                me.saveGraphicList(dataList);
+                me.fireEvent("updateStatus", { action: "end", attributes: dataList });
+            }).catch(function (error) {
+                me.isLoading = false;
+                console.log("加载卡口状态时发生了错误：", error);
+                me.fireEvent("updateStatus", { action: "error", attributes: error });
+            });
+        };
+        return MinemapPointLayer;
+    }(flagwind.FlagwindBusinessLayer));
+    flagwind.MinemapPointLayer = MinemapPointLayer;
+})(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
     var MinemapRouteLayer = /** @class */ (function (_super) {
@@ -3336,142 +3468,6 @@ var flagwind;
         return MinemapRouteLayer;
     }(flagwind.FlagwindRouteLayer));
     flagwind.MinemapRouteLayer = MinemapRouteLayer;
-})(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />
-var flagwind;
-(function (flagwind) {
-    /**
-     * 卡口
-     */
-    var MinemapTollgateLayer = /** @class */ (function (_super) {
-        __extends(MinemapTollgateLayer, _super);
-        function MinemapTollgateLayer(businessService, flagwindMap, id, options) {
-            var _this = _super.call(this, flagwindMap, id, options) || this;
-            _this.businessService = businessService;
-            _this.isLoading = false; // 设备是否正在加载
-            _this.onInit();
-            return _this;
-        }
-        MinemapTollgateLayer.prototype.onCreateGraphicsLayer = function (options) {
-            if (options.kind === "marker") {
-                return new flagwind.MinemapMarkerLayer(options);
-            }
-            if (options.kind === "geojson") {
-                return new flagwind.MinemapGeoJsonLayer(options);
-            }
-            console.warn("未指定图层类型");
-            return new flagwind.MinemapMarkerLayer(options);
-        };
-        MinemapTollgateLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
-            var infoWindow = this.flagwindMap.innerMap.infoWindow;
-            infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
-            infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
-        };
-        /**
-         * 图层事件处理
-         * @param eventName 事件名称
-         * @param callback 回调
-         */
-        MinemapTollgateLayer.prototype.onAddEventListener = function (eventName, callback) {
-            this.layer.on(eventName, callback);
-        };
-        /**
-         * 把实体转换成标准的要素属性信息
-         * @param item 实体信息
-         */
-        MinemapTollgateLayer.prototype.onChangeStandardModel = function (item) {
-            return this.businessService.changeStandardModel(item);
-        };
-        /**
-         * 创建要素方法
-         * @param item 实体信息
-         */
-        MinemapTollgateLayer.prototype.onCreatGraphicByModel = function (item) {
-            return new flagwind.MinemapMarker({
-                id: item.id,
-                symbol: {
-                    className: this.options.dataType || "graphic-tollgate"
-                },
-                point: {
-                    y: item.latitude,
-                    x: item.longitude
-                }
-            });
-        };
-        /**
-         * 更新要素方法
-         * @param item 实体信息
-         */
-        MinemapTollgateLayer.prototype.onUpdateGraphicByModel = function (item) {
-            this.removeGraphicById(item.id);
-            // let minemapMarker = <MinemapMarker>this.onCreatGraphicByModel(item);
-            this.addGraphicByModel(item);
-            // (<MinemapMarkerLayer>this.layer).add(minemapMarker);
-            // throw new Error("Method not implemented.");
-        };
-        MinemapTollgateLayer.prototype.openInfoWindow = function (id, context) {
-            var graphic = this.getGraphicById(id);
-            var infoWindow = this.flagwindMap.innerMap.infoWindow;
-            infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
-            infoWindow.setLngLat([graphic.geometry.x, graphic.geometry.y]);
-        };
-        /**
-         * 加载并显示设备点位
-         *
-         * @memberof TollgateLayer
-         */
-        MinemapTollgateLayer.prototype.showDataList = function () {
-            var me = this;
-            me.isLoading = true;
-            me.fireEvent("showDataList", { action: "start" });
-            this.businessService.getDataList().then(function (dataList) {
-                me.isLoading = false;
-                me.saveGraphicList(dataList);
-                me.fireEvent("showDataList", { action: "end", attributes: dataList });
-            }).catch(function (error) {
-                me.isLoading = false;
-                console.log("加载卡口数据时发生了错误：", error);
-                me.fireEvent("showDataList", { action: "error", attributes: error });
-            });
-        };
-        /**
-         * 开启定时器
-         */
-        MinemapTollgateLayer.prototype.start = function () {
-            var me = this;
-            this.timer = setInterval(function () {
-                me.updateStatus();
-            }, this.options.timeout || 20000);
-        };
-        /**
-         * 关闭定时器
-         */
-        MinemapTollgateLayer.prototype.stop = function () {
-            if (this.timer) {
-                clearInterval(this.timer);
-            }
-        };
-        /**
-         * 更新设备状态
-         */
-        MinemapTollgateLayer.prototype.updateStatus = function () {
-            var me = this;
-            me.isLoading = true;
-            me.fireEvent("updateStatus", { action: "start" });
-            this.businessService.getLastStatus().then(function (dataList) {
-                me.isLoading = false;
-                me.saveGraphicList(dataList);
-                me.fireEvent("updateStatus", { action: "end", attributes: dataList });
-            }).catch(function (error) {
-                me.isLoading = false;
-                console.log("加载卡口状态时发生了错误：", error);
-                me.fireEvent("updateStatus", { action: "error", attributes: error });
-            });
-        };
-        return MinemapTollgateLayer;
-    }(flagwind.FlagwindBusinessLayer));
-    flagwind.MinemapTollgateLayer = MinemapTollgateLayer;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {

@@ -82,7 +82,7 @@ requirejs(['flagwindMap'],
 
 
 
-        var tollgateLayer = new flagwind.MinemapTollgateLayer(businessService, myMap, "tollgateLayer", {
+        var tollgateLayer = new flagwind.MinemapPointLayer(businessService, myMap, "tollgateLayer", {
             onLoad: function () {
                 alert("测试");
             }
