@@ -1,3 +1,5 @@
+/// <reference path="./flagwind-group.layer.ts" />
+
 namespace flagwind {
     export const ROUTE_LAYER_OPTIONS: any = {
 
@@ -29,7 +31,6 @@ namespace flagwind {
     };
 
     export abstract class FlagwindRouteLayer {
-        public mapService: IMapService;
 
         public moveLineLayer: FlagwindGroupLayer;
         public moveMarkLayer: FlagwindGroupLayer;
@@ -39,12 +40,12 @@ namespace flagwind {
 
         public constructor(public flagwindMap: FlagwindMap, public layerName: string, public options: any) {
             this.options = { ...ROUTE_LAYER_OPTIONS, ...options };
-            this.mapService = flagwindMap.mapService;
+            // this.mapService = flagwindMap.mapService;
 
-            this.moveLineLayer = new FlagwindGroupLayer(flagwindMap.mapService, layerName + "LineLayer");
+            this.moveLineLayer = this.onCreateGroupLayer(layerName + "LineLayer");
 
             // 移动小车
-            this.moveMarkLayer = new FlagwindGroupLayer(flagwindMap.mapService, layerName + "MarkerLayer");
+            this.moveMarkLayer = this.onCreateGroupLayer(layerName + "MarkerLayer");
 
             this.onAddLayerBefor();
             this.moveLineLayer.appendTo(this.flagwindMap.innerMap);
@@ -52,21 +53,51 @@ namespace flagwind {
             this.onAddLayerAfter();
             const me = this;
             // 当地图已经加载时直接执行_onLoad方法
-            this.mapService.addEventListener(this.flagwindMap.innerMap, "load", function () {
+
+            if (this.flagwindMap.loaded) {
                 me.onLoad();
-            });
-            // if (this.flagwindMap.innerMap.loaded) {
-            //     me.onLoad();
-            // } else {
-            //     this.flagwindMap.innerMap.on("load", function () {
-            //         me.onLoad();
-            //     });
-            // }
+            } else {
+                this.flagwindMap.onAddEventListener("load", function () {
+                    me.onLoad();
+                });
+            }
         }
 
-        public abstract equalGraphic(originGraphic: any, targetGraphic: any): boolean;
+        public abstract onCreateGroupLayer(id: string): FlagwindGroupLayer;
 
-        public abstract showSegmentLine(segment: TrackSegment): void;
+        public abstract onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
+
+        public abstract onShowSegmentLine(segment: TrackSegment): void;
+
+        public abstract onGetStandardStops(name: String, stops: Array<any>): Array<any>;
+
+        public onSetSegmentByLine(options: any, segment: TrackSegment): any {
+            throw new Error("Method not implemented.");
+        }
+
+        // public mapService: IMapService;
+        public onSetSegmentByPolyLine(options: any, segment: TrackSegment): any {
+            throw new Error("Method not implemented.");
+        }
+
+        /**
+         * 由网络分析服务来求解轨迹并播放
+         * 
+         * @param {TrackSegment} segment 要播放的路段
+         * @param {*} start 起点要素
+         * @param {*} end 终点要素
+         * @param {any[]} [waypoints] 途经要素点
+         * @memberof flagwindRoute
+         */
+        public abstract onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
+
+        /**
+         * 由连线求解轨迹
+         * @param segment
+         */
+        public abstract onSolveByJoinPoint(segment: TrackSegment): void;
+
+        public abstract onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
 
         /**
          * 创建移动要素
@@ -74,7 +105,7 @@ namespace flagwind {
          * @param {*} graphic 要素
          * @param {*} angle 偏转角
          */
-        public abstract createMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
+        public abstract onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
 
         public get spatial(): any {
             return this.flagwindMap.spatial;
@@ -285,12 +316,12 @@ namespace flagwind {
                 throw Error("站点不能少于2");
             }
 
-            const stopGraphics = this.mapService.getStandardStops(name, stops);
+            const stopGraphics = this.onGetStandardStops(name, stops);
 
             const segment = this.getLastSegment(name);
             let startLineIndex = segment ? segment.index + 1 : 0;
             if (segment) {
-                const isEqual = this.equalGraphic(segment.endGraphic, stopGraphics[0]);
+                const isEqual = this.onEqualGraphic(segment.endGraphic, stopGraphics[0]);
                 const isNA = this.options.routeType === "NA";
                 // 若是网络分析服务且新增的路段与前一路段没有对接上，则增加一个路段用于连接他们
                 if (isNA && !isEqual) {
@@ -342,32 +373,11 @@ namespace flagwind {
             this.addTrackSegment(name, segment, lineOptions);
 
             if (this.options.routeType === "NA") {
-                this.solveByService(segment, start, end, waypoints);
+                this.onSolveByService(segment, start, end, waypoints);
             } else {
-                this.solveByJoinPoint(segment);
+                this.onSolveByJoinPoint(segment);
             }
 
-        }
-
-        /**
-         * 由网络分析服务来求解轨迹并播放
-         * 
-         * @param {TrackSegment} segment 要播放的路段
-         * @param {*} start 起点要素
-         * @param {*} end 终点要素
-         * @param {any[]} [waypoints] 途经要素点
-         * @memberof flagwindRoute
-         */
-        public solveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>) {
-            this.mapService.solveByService(this, segment, start, end, waypoints);
-        }
-
-        /**
-         * 由连线求解轨迹
-         * @param segment
-         */
-        public solveByJoinPoint(segment: TrackSegment) {
-            this.mapService.solveByJoinPoint(this, segment);
         }
 
         /**
@@ -438,7 +448,7 @@ namespace flagwind {
             // 是否自动显示轨迹
             if (lineOptions.autoShowSegmentLine) {
                 if (!segment.lineGraphic) {
-                    flagwindRoute.showSegmentLine(segment);
+                    flagwindRoute.onShowSegmentLine(segment);
                 }
             }
             if (lineOptions.onShowSegmentLineEvent) {
@@ -457,12 +467,12 @@ namespace flagwind {
             }
 
             if (!trackline.markerGraphic) {
-                flagwindRoute.createMoveMark(trackline, graphic, angle);
+                flagwindRoute.onCreateMoveMark(trackline, graphic, angle);
             }
             flagwindRoute.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
 
             if (!segment.lineGraphic) {
-                flagwindRoute.showSegmentLine(segment);
+                flagwindRoute.onShowSegmentLine(segment);
             }
 
             flagwindRoute.options.onStationEvent(segment.name, segment.index, graphic, true, flagwindRoute.getTrackLine(segment.name));
@@ -494,12 +504,12 @@ namespace flagwind {
          * 移动回调事件
          */
         protected onMoveEvent(flagwindRoute: this, segment: any, xy: any, angle: number) {
-            let point = this.mapService.createPoint({
+            let point = this.flagwindMap.onCreatePoint({
                 x: parseFloat(xy[0]),
                 y: parseFloat(xy[1]),
                 spatial: flagwindRoute.flagwindMap.spatial
             });
-            let trackline = flagwindRoute.getTrackLine(segment.name);
+            let trackline = flagwindRoute.getTrackLine(segment.na);
             if (trackline) {
                 flagwindRoute.changeMovingGraphicSymbol(trackline, point, angle);
                 flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
@@ -516,12 +526,11 @@ namespace flagwind {
 
         protected onLoad(): void {
             const me = this;
-            this.mapService.addEventListener(this.moveMarkLayer, "onClick", function (evt: any) {
+            this.onAddEventListener(this.moveMarkLayer, "onClick", function (evt: any) {
                 if (me.options.onMovingClick) {
                     me.options.onMovingClick(evt);
                 }
             });
         }
-
     }
 }

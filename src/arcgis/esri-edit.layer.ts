@@ -1,4 +1,9 @@
 /// <reference path="../base/flagwind-feature.layer.ts" />
+
+declare let esri: any;
+declare let dojo: any;
+declare let dijit: any;
+
 namespace flagwind {
 
     export class EsriEditLayer extends FlagwindFeatureLayer implements IFlagwindEditLayer {
@@ -7,16 +12,14 @@ namespace flagwind {
         public options: any;
         public businessLayer: FlagwindBusinessLayer;
         public flagwindMap: FlagwindMap;
-        public mapService: IMapService;
 
         public constructor(
             flagwindMap: FlagwindMap,
             businessLayer: FlagwindBusinessLayer,
             options: any) {
             options = { ...EDIT_LAYER_OPTIONS, ...options };
-            super(flagwindMap.mapService, "edit_" + businessLayer.id, "编辑图层");
+            super("edit_" + businessLayer.id, "编辑图层");
             this.flagwindMap = flagwindMap;
-            this.mapService = flagwindMap.mapService;
             this.businessLayer = businessLayer;
             this.options = options;
 
@@ -51,7 +54,7 @@ namespace flagwind {
             let tool = esri.toolbars.Edit.MOVE;
             // map.disableDoubleClickZoom();//禁掉鼠标双击事件
             this.editObj.activate(tool, editGraphic, null); // 激活编辑工具
-            this.businessLayer.showInfoWindow({
+            this.businessLayer.onShowInfoWindow({
                 graphic: graphic
             });
         }
@@ -68,12 +71,12 @@ namespace flagwind {
 
             let graphic = this.businessLayer.getGraphicById(key);
             graphic.attributes.eventName = "delete";
-            this.businessLayer.showInfoWindow({
+            this.businessLayer.onShowInfoWindow({
                 graphic: graphic
             });
         }
 
-        public bindModifyEvent(modifySeletor: string): void {
+        public registerModifyEvent(modifySeletor: string): void {
             const me = this;
             dojo.connect(dojo.byId(modifySeletor), "onclick", function (evt: any) {
                 const key = evt.target.attributes["key"].value;
@@ -81,7 +84,7 @@ namespace flagwind {
             });
         }
 
-        public bindDeleteEvent(deleteSeletor: string): void {
+        public registerDeleteEvent(deleteSeletor: string): void {
             const _editLayer = this;
             dojo.connect(dojo.byId(deleteSeletor), "onclick", function (evt: any) {
                 const key = evt.target.attributes["key"].value;
@@ -106,6 +109,17 @@ namespace flagwind {
 
         public get spatial(): any {
             return this.flagwindMap.spatial;
+        }
+
+        public onCreateGraphicsLayer(args: any) {
+            let layer = new esri.layers.GraphicsLayer(args);
+            layer.addToMap = function (map: any) {
+                map.addLayer(this);
+            };
+            layer.removeFormMap = function (map: any) {
+                map.removeLayer(this);
+            };
+            return layer;
         }
 
         public onChanged(options: any, isSave: boolean): Promise<boolean> {
@@ -176,8 +190,9 @@ namespace flagwind {
             }
 
             if (editLayer.businessLayer.options.showInfoWindow) {
-                editLayer.businessLayer.showInfoWindow(evt);
+                editLayer.businessLayer.onShowInfoWindow(evt);
             }
         }
+        
     }
 }

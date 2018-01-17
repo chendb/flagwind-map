@@ -115,19 +115,39 @@ namespace flagwind {
             // this.EVENT_MAP.set("onClick", "onclick");
             let me = this;
             this.element.onmouseover = function (args: any) {
-                me.onCallback("onMouseOver", args);
+                me.onCallBack("onMouseOver", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
             this.element.onmouseout = function (args: any) {
-                me.onCallback("onMouseOut", args);
+                me.onCallBack("onMouseOut", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
             this.element.onmousedown = function (args: any) {
-                me.onCallback("onMouseDown", args);
+                me.onCallBack("onMouseDown", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
             this.element.onmouseup = function (args: any) {
-                me.onCallback("onMouseUp", args);
+                me.onCallBack("onMouseUp", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
             this.element.onclick = function (args: any) {
-                me.onCallback("onClick", args);
+                me.onCallBack("onClick", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
             };
         }
 
@@ -144,7 +164,7 @@ namespace flagwind {
         //     this.element[eventName] = callBack;
         // }
 
-        public onCallback(eventName: string, arg: any) {
+        public onCallBack(eventName: string, arg: any) {
             let callback = this.layer.getCallBack("onMouseOver");
             if (callback) {
                 callback(arg);
@@ -317,7 +337,7 @@ namespace flagwind {
         }
 
         public get graphics() {
-            if (this.GRAPHICS_MAP.values.length > 0) {
+            if (this.GRAPHICS_MAP.values.length === 0) {
                 return new Array();
             } else {
                 return new Array(this.GRAPHICS_MAP.values);

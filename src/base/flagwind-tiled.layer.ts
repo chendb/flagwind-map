@@ -5,15 +5,15 @@ namespace flagwind {
      * @export
      * @class FlagwindTiledLayer
      */
-    export class FlagwindTiledLayer {
+    export abstract class FlagwindTiledLayer {
 
         public layer: any;
         public isShow: boolean = true;
 
-        public constructor(public mapService: IMapService, public id: string, public url: string | null, public title: string | null) {
+        public constructor(public id: string, public url: string | null, public title: string | null) {
 
             if (url) {
-                this.layer = mapService.createTiledLayer({
+                this.layer = this.onCreateTiledLayer({
                     url: url,
                     id: id,
                     title: title
@@ -21,24 +21,26 @@ namespace flagwind {
             }
         }
 
+        public abstract onCreateTiledLayer(args: any): any;
+
         public appendTo(map: any) {
             if (this.layer) {
-                this.mapService.addLayer(this.layer, map);
+                this.layer.addToMap(map);
             }
         }
 
         public removeLayer(map: any) {
-            this.mapService.removeLayer(this.layer, map);
+            this.layer.removeFormMap(map);
         }
 
         public show() {
             this.isShow = true;
-            this.mapService.showLayer(this.layer);
+            this.layer.show();
         }
 
         public hide() {
             this.isShow = false;
-            this.mapService.hideLayer(this.layer);
+            this.layer.hide();
         }
     }
 }
