@@ -158,5 +158,23 @@ namespace flagwind {
 
             return JSON.stringify(obj);
         }
+
+        public static of(...kvs: Array<any>) {
+
+            if (kvs == null) {
+                return null;
+            }
+
+            let map = new Map<any, any>();
+            kvs.forEach(g => {
+                if (g instanceof Array) {
+                    let a = <Array<any>>g;
+                    map.set(a[0], a[1]);
+                } else {
+                    throw new Exception("参数不正确");
+                }
+            });
+            return map;
+        }
     }
 }

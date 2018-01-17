@@ -19,8 +19,8 @@ namespace flagwind {
             if (options.kind === "geojson") {
                 return new MinemapGeoJsonLayer(options);
             }
-            console.log("未指定图层类型");
-            return null;
+            console.warn("未指定图层类型");
+            return new MinemapMarkerLayer(options);
         }
 
         public onShowInfoWindow(evt: any): void {
@@ -55,7 +55,7 @@ namespace flagwind {
             return new MinemapMarker({
                 id: item.id,
                 symbol: {
-                    className: this.options.kind || "graphic-tollgate"
+                    className: this.options.dataType || "graphic-tollgate"
                 },
                 point: {
                     y: item.latitude,

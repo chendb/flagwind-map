@@ -21,10 +21,9 @@ requirejs.config({
 requirejs(['flagwindMap'],
     function (flagwindMap) {
         var flagwind = flagwindMap.default;
-        var mapService = new flagwind.MinemapService();
         var mapSetting = new flagwind.MinemapSetting();
         mapSetting.center = [116.46, 39.92];
-        var myMap = new flagwind.FlagwindMap(mapService, mapSetting, 'map', {
+        var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
             onLoad: function () {
 
             }

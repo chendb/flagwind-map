@@ -181,14 +181,15 @@ declare namespace flagwind {
     };
     abstract class FlagwindMap {
         mapSetting: IMapSetting;
-        private baseLayers;
-        private featureLayers;
-        options: any;
         mapEl: any;
+        private featureLayers;
+        protected baseLayers: Array<FlagwindTiledLayer>;
+        options: any;
         spatial: any;
         innerMap: any;
         loaded: boolean;
         constructor(mapSetting: IMapSetting, mapEl: any, options: any);
+        onInit(): void;
         abstract onAddEventListener(eventName: string, callBack: Function): void;
         abstract onCenterAt(point: any): void;
         abstract onCreatePoint(point: any): any;
@@ -229,6 +230,9 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     class EsriMap extends FlagwindMap {
+        mapSetting: IMapSetting;
+        mapEl: any;
+        constructor(mapSetting: IMapSetting, mapEl: any, options: any);
         onAddEventListener(eventName: string, callBack: Function): void;
         onCenterAt(point: any): void;
         onCreatePoint(options: any): any;
@@ -1225,6 +1229,7 @@ declare namespace flagwind {
          * @returns string
          */
         toString(): string;
+        static of(...kvs: Array<any>): Map<any, any>;
     }
 }
 declare namespace flagwind {
@@ -1384,7 +1389,9 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     class MinemapMap extends FlagwindMap {
-        MAP_EVENTS_MAP: Map<string, string>;
+        mapSetting: IMapSetting;
+        mapEl: any;
+        constructor(mapSetting: IMapSetting, mapEl: any, options: any);
         /**
          * 事件监听
          * @param eventName 事件名称
@@ -1406,6 +1413,9 @@ declare namespace flagwind {
          */
         onCreateMap(): any;
         onShowInfoWindow(options: any): void;
+        /**
+         * 创建底图
+         */
         onCreateBaseLayers(): FlagwindTiledLayer[];
         onShowTitle(graphic: any): void;
         onHideTitle(graphic: any): void;

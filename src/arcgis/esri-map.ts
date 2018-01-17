@@ -2,6 +2,14 @@
 namespace flagwind {
     export class EsriMap extends FlagwindMap {
 
+        public constructor(
+            public mapSetting: IMapSetting,
+            public mapEl: any,
+            options: any) {
+            super(mapSetting, mapEl, options);
+            this.onInit();
+        }
+
         public onAddEventListener(eventName: string, callBack: Function): void {
             dojo.on(this.map, eventName, callBack);
         }
@@ -15,6 +23,9 @@ namespace flagwind {
         }
 
         public onCreateMap() {
+            this.spatial = new esri.SpatialReference({
+                wkid: this.mapSetting.wkid || 4326
+            });
             let setting = this.mapSetting;
             let mapArguments = <any>{
                 logo: setting.logo,
@@ -55,7 +66,7 @@ namespace flagwind {
         public onShowInfoWindow(options: any): void {
             throw new Error("Method not implemented.");
         }
-        
+
         public onCreateBaseLayers() {
             let baseLayers = new Array<FlagwindTiledLayer>();
             if (this.mapSetting.baseUrl) {
@@ -72,6 +83,8 @@ namespace flagwind {
                 layer.layer = cycleLayer;
                 baseLayers.push(layer);
             }
+            this.baseLayers = baseLayers;
+            this.baseLayers.forEach(g => g.appendTo(this.innerMap));
             return baseLayers;
         }
         public onShowTitle(graphic: any): void {

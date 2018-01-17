@@ -1,16 +1,23 @@
 namespace flagwind {
+    const MINEMAP_MAP_EVENTS_MAP: Map<string, string> = Map.of(["onLoad", "load"]);
+    // MINEMAP_MAP_EVENTS_MAP.set("onLoad", "load");
 
     export class MinemapMap extends FlagwindMap {
 
-        public MAP_EVENTS_MAP: Map<string, string> = new Map<string, string>().set("onLoad", "load");
-
+        public constructor(
+            public mapSetting: IMapSetting,
+            public mapEl: any,
+            options: any) {
+            super(mapSetting, mapEl, options);
+            this.onInit();
+        }
         /**
          * 事件监听
          * @param eventName 事件名称
          * @param callBack 回调
          */
         public onAddEventListener(eventName: string, callBack: Function): void {
-            let en = this.MAP_EVENTS_MAP.get(eventName) || eventName;
+            let en = MINEMAP_MAP_EVENTS_MAP.get(eventName) || eventName;
             this.innerMap.on(en, callBack);
         }
         /**
@@ -40,16 +47,18 @@ namespace flagwind {
             minemap.spriteUrl = "http://" + this.mapSetting.mapDomain + "/minemapapi/" + this.mapSetting.mapVersion + "/sprite/sprite";
             minemap.serviceUrl = "http://" + this.mapSetting.mapDomain + "/service";
             minemap.accessToken = this.mapSetting.accessToken || "25cc55a69ea7422182d00d6b7c0ffa93";
-            minemap.solution = 2365;
+            minemap.solution = this.mapSetting.wkid || 2365;
             const map = new minemap.Map({
                 container: this.mapEl,
-                style: "http://" + this.mapSetting.mapDomain + "/service/solu/style/id/2365",
+                style: "http://" + this.mapSetting.mapDomain + "/service/solu/style/id/" + minemap.solution,
                 center: this.mapSetting.center || [116.46, 39.92],
                 zoom: this.mapSetting.zoom,
                 pitch: 60,
                 maxZoom: this.mapSetting.maxZoom || 17,    // 地图最大缩放级别限制
                 minZoom: this.mapSetting.minZoom || 9      // 地图最小缩放级别限制
             });
+
+            this.spatial = new MinemapSpatial(minemap.wkid);
 
             let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
@@ -65,7 +74,7 @@ namespace flagwind {
                 .setLngLat([116.46, 39.92])
                 .addTo(map);
 
-            // (<any>flagwindMap).innerMap._controlContainer.appendChild(div);
+            this.innerMap = map;
 
             return map;
         }
@@ -86,8 +95,13 @@ namespace flagwind {
 
             this.innerMap.infoWindow.setLngLat([options.point.x, options.point.y]).addTo(this.innerMap);
         }
+        /**
+         * 创建底图
+         */
         public onCreateBaseLayers() {
-            return new Array<FlagwindTiledLayer>();
+            let baseLayers = new Array<FlagwindTiledLayer>();
+            this.baseLayers = baseLayers;
+            return baseLayers;
         }
         public onShowTitle(graphic: any): void {
             let info = graphic.attributes;

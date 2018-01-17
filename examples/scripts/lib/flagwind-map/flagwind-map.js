@@ -619,11 +619,13 @@ var flagwind;
     var FlagwindMap = /** @class */ (function () {
         function FlagwindMap(mapSetting, mapEl, options) {
             this.mapSetting = mapSetting;
-            this.baseLayers = [];
-            this.featureLayers = [];
-            this.loaded = false;
             this.mapEl = mapEl;
+            this.featureLayers = [];
+            this.baseLayers = [];
+            this.loaded = false;
             this.options = __assign({}, flagwind.MAP_OPTIONS, options);
+        }
+        FlagwindMap.prototype.onInit = function () {
             this.onCreateMap();
             this.onCreateBaseLayers();
             var _this = this;
@@ -640,7 +642,7 @@ var flagwind;
             _this.onAddEventListener("zoom-end", function (evt) {
                 _this.onMapZoomEnd(evt);
             });
-        }
+        };
         FlagwindMap.prototype.onFormPoint = function (point) {
             var lnglat = { "lat": point.y, "lon": point.x };
             if (point.latitude && point.longitude) {
@@ -702,7 +704,9 @@ var flagwind;
                 }
             }
             // 以x,y属性创建点
-            return new esri.geometry.Point(lnglat.lon, lnglat.lat, this.spatial);
+            return this.onCreatePoint({
+                x: lnglat.lon, y: lnglat.lat, spatial: this.spatial
+            });
         };
         FlagwindMap.prototype.goToCenter = function () {
             if (this.mapSetting.center && this.mapSetting.center.length === 2) {
@@ -810,8 +814,12 @@ var flagwind;
 (function (flagwind) {
     var EsriMap = /** @class */ (function (_super) {
         __extends(EsriMap, _super);
-        function EsriMap() {
-            return _super !== null && _super.apply(this, arguments) || this;
+        function EsriMap(mapSetting, mapEl, options) {
+            var _this = _super.call(this, mapSetting, mapEl, options) || this;
+            _this.mapSetting = mapSetting;
+            _this.mapEl = mapEl;
+            _this.onInit();
+            return _this;
         }
         EsriMap.prototype.onAddEventListener = function (eventName, callBack) {
             dojo.on(this.map, eventName, callBack);
@@ -825,6 +833,9 @@ var flagwind;
             return new esri.geometry.Point(options.x, options.y, options.spatial || this.spatial);
         };
         EsriMap.prototype.onCreateMap = function () {
+            this.spatial = new esri.SpatialReference({
+                wkid: this.mapSetting.wkid || 4326
+            });
             var setting = this.mapSetting;
             var mapArguments = {
                 logo: setting.logo,
@@ -862,6 +873,7 @@ var flagwind;
             throw new Error("Method not implemented.");
         };
         EsriMap.prototype.onCreateBaseLayers = function () {
+            var _this = this;
             var baseLayers = new Array();
             if (this.mapSetting.baseUrl) {
                 var layer = new flagwind.EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, "瓦片图层");
@@ -876,6 +888,8 @@ var flagwind;
                 layer.layer = cycleLayer;
                 baseLayers.push(layer);
             }
+            this.baseLayers = baseLayers;
+            this.baseLayers.forEach(function (g) { return g.appendTo(_this.innerMap); });
             return baseLayers;
         };
         EsriMap.prototype.onShowTitle = function (graphic) {
@@ -2893,6 +2907,26 @@ var flagwind;
             });
             return JSON.stringify(obj);
         };
+        Map.of = function () {
+            var kvs = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                kvs[_i] = arguments[_i];
+            }
+            if (kvs == null) {
+                return null;
+            }
+            var map = new Map();
+            kvs.forEach(function (g) {
+                if (g instanceof Array) {
+                    var a = g;
+                    map.set(a[0], a[1]);
+                }
+                else {
+                    throw new flagwind.Exception("参数不正确");
+                }
+            });
+            return map;
+        };
         return Map;
     }());
     flagwind.Map = Map;
@@ -3161,11 +3195,15 @@ var flagwind;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
+    var MINEMAP_MAP_EVENTS_MAP = flagwind.Map.of(["onLoad", "load"]);
+    // MINEMAP_MAP_EVENTS_MAP.set("onLoad", "load");
     var MinemapMap = /** @class */ (function (_super) {
         __extends(MinemapMap, _super);
-        function MinemapMap() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.MAP_EVENTS_MAP = new flagwind.Map().set("onLoad", "load");
+        function MinemapMap(mapSetting, mapEl, options) {
+            var _this = _super.call(this, mapSetting, mapEl, options) || this;
+            _this.mapSetting = mapSetting;
+            _this.mapEl = mapEl;
+            _this.onInit();
             return _this;
         }
         /**
@@ -3174,7 +3212,7 @@ var flagwind;
          * @param callBack 回调
          */
         MinemapMap.prototype.onAddEventListener = function (eventName, callBack) {
-            var en = this.MAP_EVENTS_MAP.get(eventName) || eventName;
+            var en = MINEMAP_MAP_EVENTS_MAP.get(eventName) || eventName;
             this.innerMap.on(en, callBack);
         };
         /**
@@ -3204,16 +3242,17 @@ var flagwind;
             minemap.spriteUrl = "http://" + this.mapSetting.mapDomain + "/minemapapi/" + this.mapSetting.mapVersion + "/sprite/sprite";
             minemap.serviceUrl = "http://" + this.mapSetting.mapDomain + "/service";
             minemap.accessToken = this.mapSetting.accessToken || "25cc55a69ea7422182d00d6b7c0ffa93";
-            minemap.solution = 2365;
+            minemap.solution = this.mapSetting.wkid || 2365;
             var map = new minemap.Map({
                 container: this.mapEl,
-                style: "http://" + this.mapSetting.mapDomain + "/service/solu/style/id/2365",
+                style: "http://" + this.mapSetting.mapDomain + "/service/solu/style/id/" + minemap.solution,
                 center: this.mapSetting.center || [116.46, 39.92],
                 zoom: this.mapSetting.zoom,
                 pitch: 60,
                 maxZoom: this.mapSetting.maxZoom || 17,
                 minZoom: this.mapSetting.minZoom || 9 // 地图最小缩放级别限制
             });
+            this.spatial = new flagwind.MinemapSpatial(minemap.wkid);
             var popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
             var el = document.createElement("div");
@@ -3224,7 +3263,7 @@ var flagwind;
             this.titleMarker = new minemap.Marker(titleDiv, { offset: [-25, -25] })
                 .setLngLat([116.46, 39.92])
                 .addTo(map);
-            // (<any>flagwindMap).innerMap._controlContainer.appendChild(div);
+            this.innerMap = map;
             return map;
         };
         MinemapMap.prototype.onShowInfoWindow = function (options) {
@@ -3252,8 +3291,13 @@ var flagwind;
             }
             this.innerMap.infoWindow.setLngLat([options.point.x, options.point.y]).addTo(this.innerMap);
         };
+        /**
+         * 创建底图
+         */
         MinemapMap.prototype.onCreateBaseLayers = function () {
-            return new Array();
+            var baseLayers = new Array();
+            this.baseLayers = baseLayers;
+            return baseLayers;
         };
         MinemapMap.prototype.onShowTitle = function (graphic) {
             var info = graphic.attributes;
@@ -3330,8 +3374,8 @@ var flagwind;
             if (options.kind === "geojson") {
                 return new flagwind.MinemapGeoJsonLayer(options);
             }
-            console.log("未指定图层类型");
-            return null;
+            console.warn("未指定图层类型");
+            return new flagwind.MinemapMarkerLayer(options);
         };
         MinemapTollgateLayer.prototype.onShowInfoWindow = function (evt) {
             var context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
@@ -3362,7 +3406,7 @@ var flagwind;
             return new flagwind.MinemapMarker({
                 id: item.id,
                 symbol: {
-                    className: this.options.kind || "graphic-tollgate"
+                    className: this.options.dataType || "graphic-tollgate"
                 },
                 point: {
                     y: item.latitude,
