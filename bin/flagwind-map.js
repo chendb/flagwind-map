@@ -2855,14 +2855,14 @@ var flagwind;
          * @returns Array
          */
         Map.prototype.keys = function () {
-            return this._keys.concat();
+            return this._keys;
         };
         /**
          * 获取包含 Map<K, V> 中的值列表。
          * @returns Array
          */
         Map.prototype.values = function () {
-            return this._values.concat();
+            return this._values;
         };
         /**
          * 获取包含 Map<K, V> 中的成员列表。
@@ -3617,7 +3617,7 @@ var flagwind;
             this.element = document.createElement("div");
             this.element.id = this.id;
             this.symbol = options.symbol;
-            this.attributers = options.attributers;
+            this.attributes = options.attributes;
             if (options.symbol && options.symbol.className) {
                 this.element.classList = [options.symbol.className];
             }
@@ -3833,7 +3833,7 @@ var flagwind;
                     return new Array();
                 }
                 else {
-                    return new Array(this.GRAPHICS_MAP.values);
+                    return this.GRAPHICS_MAP.values();
                 }
             },
             enumerable: true,
@@ -3912,7 +3912,7 @@ var flagwind;
         });
         Object.defineProperty(MinemapGeoJsonLayer.prototype, "graphics", {
             get: function () {
-                return new Array(this.GRAPHICS_MAP.values);
+                return this.GRAPHICS_MAP.values();
             },
             enumerable: true,
             configurable: true

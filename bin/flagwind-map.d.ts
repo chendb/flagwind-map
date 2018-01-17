@@ -1545,7 +1545,7 @@ declare namespace flagwind {
     }
     interface IMinemapGraphic {
         id: string;
-        attributers: any;
+        attributes: any;
         isShow: boolean;
         isInsided: boolean;
         kind: string;
@@ -1572,7 +1572,7 @@ declare namespace flagwind {
         symbol: any;
         marker: any;
         element: any;
-        attributers: any;
+        attributes: any;
         layer: MinemapMarkerLayer;
         constructor(options: any);
         readonly kind: string;
@@ -1609,7 +1609,7 @@ declare namespace flagwind {
         layout: any;
         paint: any;
         layer: MinemapMarkerLayer;
-        attributers: any;
+        attributes: any;
         readonly kind: string;
         readonly isInsided: boolean;
         show(): void;
@@ -1625,7 +1625,7 @@ declare namespace flagwind {
         addLayer(map: any): void;
     }
     interface IMinemapGraphicsLayer {
-        graphics: Array<any>;
+        graphics: Array<IMinemapGraphic>;
         show(): void;
         hide(): void;
         add(graphic: any): void;
@@ -1646,7 +1646,7 @@ declare namespace flagwind {
         map: any;
         readonly isInsided: boolean;
         constructor(options: any);
-        readonly graphics: any[];
+        readonly graphics: any;
         getCallBack(eventName: string): Function;
         on(eventName: string, callBack: Function): void;
         show(): void;
@@ -1667,7 +1667,7 @@ declare namespace flagwind {
         map: any;
         readonly isInsided: boolean;
         constructor(options: any);
-        readonly graphics: (() => MinemapGeoJson[])[];
+        readonly graphics: any;
         show(): void;
         hide(): void;
         remove(graphic: IMinemapGraphic): void;
