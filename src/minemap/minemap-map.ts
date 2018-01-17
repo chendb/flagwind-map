@@ -76,14 +76,15 @@ namespace flagwind {
                 if (typeof options.closeButton === "boolean") params["closeButton"] = options.closeButton;
                 if (typeof options.closeOnClick === "boolean") params["closeOnClick"] = options.closeOnClick;
                 if (options.offset) params["offset"] = options.offset;
+                this.innerMap.infoWindow.remove();
                 this.innerMap.infoWindow = new minemap.Popup(params);
             }
             switch (options.type) {
-                case "dom": this.innerMap.infoWindow.setDOMContent(options.content || ""); break;
-                case "html": this.innerMap.infoWindow.setHTML(options.content || ""); break;
-                case "text": this.innerMap.infoWindow.setText(options.content || ""); break;
+                case "dom": this.innerMap.infoWindow.setDOMContent(options.content || "");break;
+                case "html": this.innerMap.infoWindow.setHTML(options.content || "");break;
+                case "text": this.innerMap.infoWindow.setText(options.content || "");break;
+                default: this.innerMap.infoWindow.setHTML(options.content || "");break;
             }
-
             this.innerMap.infoWindow.setLngLat([options.point.x, options.point.y]).addTo(this.innerMap);
         }
         public onCreateBaseLayers() {
