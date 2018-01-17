@@ -58,7 +58,7 @@ namespace flagwind {
                 minZoom: this.mapSetting.minZoom || 9      // 地图最小缩放级别限制
             });
 
-            this.spatial = new MinemapSpatial(minemap.wkid);
+            this.spatial = new MinemapSpatial(minemap.solution);
 
             let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;

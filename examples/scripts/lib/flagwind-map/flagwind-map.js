@@ -679,8 +679,8 @@ var flagwind;
         FlagwindMap.prototype.onToPoint = function (item) {
             var lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
             if (!flagwind.MapUtils.validGeometryModel(item)) {
-                lnglat.lon = item.x;
-                lnglat.lat = item.y;
+                lnglat.lon = item.x || lnglat.lon;
+                lnglat.lat = item.y || lnglat.lat;
             }
             // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
@@ -3252,7 +3252,7 @@ var flagwind;
                 maxZoom: this.mapSetting.maxZoom || 17,
                 minZoom: this.mapSetting.minZoom || 9 // 地图最小缩放级别限制
             });
-            this.spatial = new flagwind.MinemapSpatial(minemap.wkid);
+            this.spatial = new flagwind.MinemapSpatial(minemap.solution);
             var popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
             var el = document.createElement("div");

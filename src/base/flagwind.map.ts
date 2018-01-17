@@ -92,8 +92,8 @@ namespace flagwind {
         public onToPoint(item: any) {
             let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
             if (!MapUtils.validGeometryModel(item)) {
-                lnglat.lon = item.x;
-                lnglat.lat = item.y;
+                lnglat.lon = item.x || lnglat.lon;
+                lnglat.lat = item.y || lnglat.lat;
             }
             // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
@@ -168,10 +168,6 @@ namespace flagwind {
          */
         public getPoint(item: any) {
             let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
-            if (!MapUtils.validGeometryModel(item)) {
-                lnglat.lon = item.x;
-                lnglat.lat = item.y;
-            }
             return this.onToPoint(lnglat);
         }
 
