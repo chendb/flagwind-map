@@ -20,6 +20,9 @@ requirejs.config({
 // Start the main app logic.
 requirejs(['flagwindMap'],
     function (flagwindMap) {
+
+
+
         var flagwind = flagwindMap.default;
         var mapSetting = new flagwind.MinemapSetting();
         mapSetting.center = [116.46, 39.92];
@@ -83,6 +86,8 @@ requirejs(['flagwindMap'],
 
 
         var tollgateLayer = new flagwind.MinemapPointLayer(businessService, myMap, "tollgateLayer", {
+            kind:"marker",
+            dataType:"tollgate",
             onLoad: function () {
                 alert("测试");
             }

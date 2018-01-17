@@ -60,7 +60,8 @@ namespace flagwind {
                 point: {
                     y: item.latitude,
                     x: item.longitude
-                }
+                },
+                attributes: item
             });
         }
 

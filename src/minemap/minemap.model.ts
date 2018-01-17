@@ -100,6 +100,8 @@ namespace flagwind {
             this.id = options.id;
             this.element = document.createElement("div");
             this.element.id = this.id;
+            this.symbol = options.symbol;
+            this.attributers = options.attributers;
             if (options.symbol && options.symbol.className) {
                 this.element.classList = [options.symbol.className];
             }
@@ -108,11 +110,6 @@ namespace flagwind {
                 this._geometry = new MinemapGeometry("Point", [options.point.x, options.point.y]);
                 this.marker.setLngLat([options.point.x, options.point.y]);
             }
-            // this.EVENT_MAP.set("onMouseOver", "onmouseover");
-            // this.EVENT_MAP.set("onMouseOut", "onmouseout");
-            // this.EVENT_MAP.set("onMouseDown", "onmousedown");
-            // this.EVENT_MAP.set("onMouseUp", "onmouseup");
-            // this.EVENT_MAP.set("onClick", "onclick");
             let me = this;
             this.element.onmouseover = function (args: any) {
                 me.onCallBack("onMouseOver", {
@@ -197,8 +194,11 @@ namespace flagwind {
         }
 
         public setSymbol(symbol: any): void {
+            if (this.symbol && this.symbol.className) {
+                this.element.classList.remove(this.symbol.className);
+            }
             if (symbol.className) {
-                this.element.classList.add(symbol.className);
+                this.element.classList.push(symbol.className);
             }
         }
 
