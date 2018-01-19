@@ -108,7 +108,7 @@ declare namespace flagwind {
         options: any;
         businessLayer: FlagwindBusinessLayer;
         flagwindMap: FlagwindMap;
-        constructor(flagwindMap: FlagwindMap, businessLayer: FlagwindBusinessLayer, options: any);
+        constructor(businessLayer: FlagwindBusinessLayer, options: any);
         /**
          * 激活编辑事件
          * @param key 要编辑要素的id
@@ -1417,6 +1417,25 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    /**
+     * 编辑要素图层
+     */
+    class MinemapEditLayer implements IFlagwindEditLayer {
+        businessLayer: MinemapPointLayer;
+        private graphic;
+        private draggingFlag;
+        private cursorOverPointFlag;
+        constructor(businessLayer: MinemapPointLayer);
+        readonly map: any;
+        registerEvent(graphic: MinemapMarker): void;
+        updatePoint(editLayer: this): void;
+        mouseMovePoint(e: any): void;
+        activateEdit(key: string): void;
+        cancelEdit(key: string): void;
+        onChanged(options: any, isSave: boolean): Promise<boolean>;
+    }
+}
+declare namespace flagwind {
     class MinemapGroupLayer extends FlagwindGroupLayer {
         onCreateGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
     }
@@ -1697,9 +1716,27 @@ declare namespace flagwind {
         element: any;
         attributes: any;
         layer: MinemapMarkerLayer;
+        EVENTS_MAP: Map<string, Function>;
         constructor(options: any);
+        /**
+         * 复制节点
+         * @param id 元素ID
+         */
+        clone(id: string): MinemapMarker;
         readonly kind: string;
         readonly isInsided: boolean;
+        /**
+         * 注册事件
+         * @param eventName 事件名称
+         * @param callback 回调
+         */
+        on(eventName: string, callback: Function): void;
+        /**
+         * 取消註冊的事件
+         * @param eventName
+         * @param callback
+         */
+        off(eventName: string, callback: Function): void;
         onCallBack(eventName: string, arg: any): void;
         show(): void;
         hide(): void;

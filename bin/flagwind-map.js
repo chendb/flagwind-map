@@ -279,12 +279,12 @@ var flagwind;
 (function (flagwind) {
     var EsriEditLayer = /** @class */ (function (_super) {
         __extends(EsriEditLayer, _super);
-        function EsriEditLayer(flagwindMap, businessLayer, options) {
+        function EsriEditLayer(businessLayer, options) {
             var _this = this;
             options = __assign({}, flagwind.EDIT_LAYER_OPTIONS, options);
             _this = _super.call(this, "edit_" + businessLayer.id, "编辑图层") || this;
-            _this.flagwindMap = flagwindMap;
             _this.businessLayer = businessLayer;
+            _this.flagwindMap = businessLayer.flagwindMap;
             _this.options = options;
             _this.editObj = new esri.toolbars.Edit(_this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
             _this.flagwindMap.addFeatureLayer(_this);
@@ -3222,6 +3222,103 @@ var flagwind;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
+    /**
+     * 编辑要素图层
+     */
+    var MinemapEditLayer = /** @class */ (function () {
+        function MinemapEditLayer(businessLayer) {
+            this.businessLayer = businessLayer;
+            this.draggingFlag = false;
+            this.cursorOverPointFlag = false;
+        }
+        Object.defineProperty(MinemapEditLayer.prototype, "map", {
+            get: function () {
+                return this.businessLayer.flagwindMap.map;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapEditLayer.prototype.registerEvent = function (graphic) {
+            var me = this;
+            graphic.on("onMouseOver", function (args) {
+                console.log("test--->onMouseOver");
+                me.cursorOverPointFlag = true;
+                me.map.dragPan.disable();
+            });
+            graphic.on("onMouseOut", function (args) {
+                console.log("test--->onMouseOut");
+                me.cursorOverPointFlag = false;
+                me.map.dragPan.enable();
+            });
+            graphic.on("onMouseDown", function (args) {
+                if (!me.cursorOverPointFlag)
+                    return;
+                me.draggingFlag = true;
+                console.log("test--->onMouseDown");
+                window._editLayer = me;
+                console.log("test--->map.on.mousemove");
+                me.map.on("mousemove", me.mouseMovePoint);
+            });
+            graphic.on("onMouseUp", function (args) {
+                console.log("test--->onMouseUp");
+                if (!me.draggingFlag)
+                    return;
+                me.draggingFlag = false;
+                console.log("test--->map.off.mousemove");
+                me.map.off("mousemove", me.mouseMovePoint);
+                window._editLayer = null;
+                me.updatePoint(me);
+            });
+        };
+        MinemapEditLayer.prototype.updatePoint = function (editLayer) {
+            var isOK = confirm("确定要更新坐标为x:" + editLayer.graphic.geometry.x + ",y:" + editLayer.graphic.geometry.x);
+            if (!isOK) {
+                this.cancelEdit(this.graphic.attributes.id);
+                return;
+            }
+            editLayer.onChanged({
+                key: editLayer.graphic.attributes.id,
+                longitude: editLayer.graphic.geometry.x,
+                latitude: editLayer.graphic.geometry.y
+            }, isOK);
+        };
+        MinemapEditLayer.prototype.mouseMovePoint = function (e) {
+            var editLayer = window._editLayer;
+            console.log("test-->status  over:" + editLayer.cursorOverPointFlag + ".drag:" + editLayer.draggingFlag);
+            if (!editLayer.draggingFlag)
+                return;
+            console.log("test-->update  x:" + e.lngLat.lng + ".y:" + e.lngLat.lat);
+            var point = new flagwind.MinemapPoint(e.lngLat.lng, e.lngLat.lat);
+            editLayer.graphic.geometry = point;
+        };
+        MinemapEditLayer.prototype.activateEdit = function (key) {
+            var g = this.businessLayer.getGraphicById(key);
+            if (g) {
+                this.graphic = g.clone(g.id + "_copy");
+            }
+            this.businessLayer.hide();
+            this.graphic.addTo(this.map);
+            this.registerEvent(this.graphic);
+        };
+        MinemapEditLayer.prototype.cancelEdit = function (key) {
+            var graphic = this.graphic;
+            graphic.remove();
+            this.map.off("mousemove", this.mouseMovePoint);
+            this.businessLayer.show();
+            this.cursorOverPointFlag = false;
+            this.draggingFlag = false;
+        };
+        MinemapEditLayer.prototype.onChanged = function (options, isSave) {
+            return new Promise(function (resolve, reject) {
+                resolve(true);
+            });
+        };
+        return MinemapEditLayer;
+    }());
+    flagwind.MinemapEditLayer = MinemapEditLayer;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
     var MinemapGroupLayer = /** @class */ (function (_super) {
         __extends(MinemapGroupLayer, _super);
         function MinemapGroupLayer() {
@@ -3998,7 +4095,6 @@ var flagwind;
     }());
     flagwind.MinemapSpatial = MinemapSpatial;
     var MinemapMarker = /** @class */ (function () {
-        // public EVENT_MAP: Map<string, string> = new Map<string, string>();
         function MinemapMarker(options) {
             this._kind = "marker";
             /**
@@ -4006,6 +4102,7 @@ var flagwind;
              */
             this._isInsided = false;
             this.isShow = true;
+            this.EVENTS_MAP = new flagwind.Map();
             this.id = options.id;
             this.element = document.createElement("div");
             this.element.id = this.id;
@@ -4061,6 +4158,19 @@ var flagwind;
                 });
             };
         }
+        /**
+         * 复制节点
+         * @param id 元素ID
+         */
+        MinemapMarker.prototype.clone = function (id) {
+            var m = new MinemapMarker({
+                id: id,
+                symbol: this.symbol,
+                attributes: this.attributes,
+                point: this.geometry
+            });
+            return m;
+        };
         Object.defineProperty(MinemapMarker.prototype, "kind", {
             get: function () {
                 return this._kind;
@@ -4075,13 +4185,39 @@ var flagwind;
             enumerable: true,
             configurable: true
         });
+        /**
+         * 注册事件
+         * @param eventName 事件名称
+         * @param callback 回调
+         */
+        MinemapMarker.prototype.on = function (eventName, callback) {
+            this.EVENTS_MAP.set(eventName, callback);
+        };
+        /**
+         * 取消註冊的事件
+         * @param eventName
+         * @param callback
+         */
+        MinemapMarker.prototype.off = function (eventName, callback) {
+            this.EVENTS_MAP.delete(eventName);
+        };
         MinemapMarker.prototype.onCallBack = function (eventName, arg) {
+            var call = this.EVENTS_MAP.get(eventName);
+            if (call) {
+                call(arg);
+            }
+            if (!this.layer) {
+                return;
+            }
             var callback = this.layer.getCallBack(eventName);
             if (callback) {
                 callback(arg);
             }
         };
         MinemapMarker.prototype.show = function () {
+            if (!this.layer) {
+                throw new flagwind.Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
+            }
             this.marker.addTo(this.layer.map);
             this.isShow = false;
         };
@@ -4100,7 +4236,9 @@ var flagwind;
                 this.marker.remove();
                 this._isInsided = false;
             }
-            this.layer.remove(this);
+            if (this.layer) {
+                this.layer.remove(this);
+            }
         };
         MinemapMarker.prototype.setAngle = function (angle) {
             this.element.style.transform = "rotate(" + angle + "deg)";

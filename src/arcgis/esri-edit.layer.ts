@@ -14,13 +14,12 @@ namespace flagwind {
         public flagwindMap: FlagwindMap;
 
         public constructor(
-            flagwindMap: FlagwindMap,
             businessLayer: FlagwindBusinessLayer,
             options: any) {
             options = { ...EDIT_LAYER_OPTIONS, ...options };
             super("edit_" + businessLayer.id, "编辑图层");
-            this.flagwindMap = flagwindMap;
             this.businessLayer = businessLayer;
+            this.flagwindMap = businessLayer.flagwindMap;
             this.options = options;
 
             this.editObj = new esri.toolbars.Edit(this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
@@ -193,6 +192,6 @@ namespace flagwind {
                 editLayer.businessLayer.onShowInfoWindow(evt);
             }
         }
-        
+
     }
 }

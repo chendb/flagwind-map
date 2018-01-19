@@ -196,7 +196,7 @@ namespace flagwind {
 
         public layer: MinemapMarkerLayer;
 
-        // public EVENT_MAP: Map<string, string> = new Map<string, string>();
+        public EVENTS_MAP: Map<string, Function> = new Map<string, Function>();
 
         public constructor(options: any) {
             this.id = options.id;
@@ -255,6 +255,20 @@ namespace flagwind {
             };
         }
 
+        /**
+         * 复制节点
+         * @param id 元素ID
+         */
+        public clone(id: string) {
+            let m = new MinemapMarker({
+                id: id,
+                symbol: this.symbol,
+                attributes: this.attributes,
+                point: this.geometry
+            });
+            return m;
+        }
+
         public get kind() {
             return this._kind;
         }
@@ -263,7 +277,30 @@ namespace flagwind {
             return this._isInsided;
         }
 
+        /**
+         * 注册事件
+         * @param eventName 事件名称
+         * @param callback 回调
+         */
+        public on(eventName: string, callback: Function) {
+            this.EVENTS_MAP.set(eventName, callback);
+        }
+
+        /**
+         * 取消註冊的事件
+         * @param eventName 
+         * @param callback 
+         */
+        public off(eventName: string, callback: Function) {
+            this.EVENTS_MAP.delete(eventName);
+        }
+
         public onCallBack(eventName: string, arg: any) {
+            let call = this.EVENTS_MAP.get(eventName);
+            if (call) {
+                call(arg);
+            }
+            if (!this.layer) { return; }
             let callback = this.layer.getCallBack(eventName);
             if (callback) {
                 callback(arg);
@@ -271,6 +308,9 @@ namespace flagwind {
         }
 
         public show(): void {
+            if (!this.layer) {
+                throw new Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
+            }
             this.marker.addTo(this.layer.map);
             this.isShow = false;
         }
@@ -292,7 +332,9 @@ namespace flagwind {
                 this.marker.remove();
                 this._isInsided = false;
             }
-            this.layer.remove(this);
+            if (this.layer) {
+                this.layer.remove(this);
+            }
         }
 
         public setAngle(angle: number) {

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>四维图新-图层Tooltip</title>
+    <title>四维图新-修改坐标</title>
     <link rel="stylesheet" href="http://minedata.cn/minemapapi/v1.3/minemap.css">
     <script src="http://minedata.cn/minemapapi/v1.3/minemap.js"></script>
     <style>
@@ -20,7 +20,7 @@
             padding: 0;
         }
 
-        .flagwind-map-title.hide {
+        .flagwind-map-title.hide{
             display: none
         }
 
@@ -41,28 +41,16 @@
         .minemap-popup {
             max-width: 200px;
         }
-
-        .flagwind-map-tooltip {
-            position: absolute;
-            background-color: whitesmoke;
-            padding: 10px;
-            border-radius: 4px;
-        }
     </style>
 </head>
 
 <body>
     <div id="map"></div>
-    <div style="position: absolute;
-    top: 0px;
-    right: 0px;
-    color: ghostwhite;
-    background-color: blueviolet;
-    width: 400px;
-    padding: 8px;">
-        当鼠标放在要素上会显示该要素的名称，在集成该功能是需要开启图层的showTooltipOnHover选择配置，以及自定义flagwind-map-tooltip的样式
+    <div style="position:absolute;top:0px;right:0px;">
+        <button id="btnActive">激活编辑</button>
+        <button id="btnCancel">取消编辑</button>
     </div>
 </body>
-<script data-main="scripts/tooltip" src="scripts/require.js"></script>
+<script data-main="scripts/editor" src="scripts/require.js"></script>
 
 </html>
