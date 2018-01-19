@@ -477,10 +477,10 @@ var flagwind;
      * @class FlagwindGroupLayer
      */
     var FlagwindGroupLayer = /** @class */ (function () {
-        function FlagwindGroupLayer(id) {
-            this.id = id;
+        function FlagwindGroupLayer(options) {
+            this.options = options;
             this.isShow = true;
-            this.layer = this.onCreateGraphicsLayer({ id: id });
+            this.layer = this.onCreateGraphicsLayer(options);
         }
         Object.defineProperty(FlagwindGroupLayer.prototype, "graphics", {
             get: function () {
@@ -526,8 +526,12 @@ var flagwind;
                 g.hide();
             });
         };
-        FlagwindGroupLayer.prototype.addGraphice = function (name, graphics) {
+        FlagwindGroupLayer.prototype.addGraphic = function (name) {
             var _this = this;
+            var graphics = [];
+            for (var _i = 1; _i < arguments.length; _i++) {
+                graphics[_i - 1] = arguments[_i];
+            }
             if (graphics === undefined)
                 return;
             graphics.forEach(function (g, index) {
@@ -1081,9 +1085,9 @@ var flagwind;
             this.trackLines = [];
             this.options = __assign({}, flagwind.ROUTE_LAYER_OPTIONS, options);
             // this.mapService = flagwindMap.mapService;
-            this.moveLineLayer = this.onCreateGroupLayer(layerName + "LineLayer");
+            this.moveLineLayer = this.onCreateLineLayer(layerName + "LineLayer");
             // 移动小车
-            this.moveMarkLayer = this.onCreateGroupLayer(layerName + "MarkerLayer");
+            this.moveMarkLayer = this.onCreateMovingLayer(layerName + "MarkerLayer");
             this.onAddLayerBefor();
             this.moveLineLayer.appendTo(this.flagwindMap.innerMap);
             this.moveMarkLayer.appendTo(this.flagwindMap.innerMap);
@@ -1099,13 +1103,6 @@ var flagwind;
                 });
             }
         }
-        FlagwindRouteLayer.prototype.onSetSegmentByLine = function (options, segment) {
-            throw new Error("Method not implemented.");
-        };
-        // public mapService: IMapService;
-        FlagwindRouteLayer.prototype.onSetSegmentByPolyLine = function (options, segment) {
-            throw new Error("Method not implemented.");
-        };
         Object.defineProperty(FlagwindRouteLayer.prototype, "spatial", {
             get: function () {
                 return this.flagwindMap.spatial;
@@ -1254,13 +1251,24 @@ var flagwind;
                 console.error("没有指定清除的线路名称");
                 return;
             }
-            var trackline = this.getTrackLine(name);
-            if (trackline == null)
-                return;
-            trackline.stop();
-            this.moveMarkLayer.removeGraphicByName(name);
-            this.moveLineLayer.removeGraphicByName(name);
-            trackline.markerGraphic = null;
+            if (name) {
+                var trackline = this.getTrackLine(name);
+                if (trackline == null)
+                    return;
+                trackline.stop();
+                this.moveMarkLayer.removeGraphicByName(name);
+                this.moveLineLayer.removeGraphicByName(name);
+                trackline.markerGraphic = null;
+                var index = this.trackLines.indexOf(trackline);
+                if (index >= 0) {
+                    this.trackLines.splice(index, 1);
+                }
+            }
+            else {
+                this.moveMarkLayer.clear();
+                this.moveLineLayer.clear();
+                this.trackLines = [];
+            }
         };
         FlagwindRouteLayer.prototype.clearLine = function (name) {
             if (!name) {
@@ -1379,7 +1387,7 @@ var flagwind;
             }
             points.push(segment.endGraphic.geometry);
             // 当路由分析出错时，两点之间的最短路径以直线代替
-            segment.setLine(points);
+            segment.setMultPoints(points);
             this.onCreateSegmentLineComplete(segment);
         };
         /**
@@ -1396,18 +1404,6 @@ var flagwind;
             // }
         };
         /**
-         * 每次位置移动线路上的要素样式变换操作
-         */
-        FlagwindRouteLayer.prototype.changeMovingGraphicSymbol = function (trackline, point, angle) {
-            if (trackline === undefined)
-                return;
-            var symbol = trackline.markerGraphic.symbol;
-            symbol.setAngle(360 - angle);
-            trackline.markerGraphic.setSymbol(symbol);
-            trackline.markerGraphic.setGeometry(point);
-            trackline.markerGraphic.draw(); // 重绘
-        };
-        /**
          *
          * 显示路段事件
          *
@@ -1416,14 +1412,12 @@ var flagwind;
          */
         FlagwindRouteLayer.prototype.onShowSegmentLineEvent = function (flagwindRoute, segment, lineOptions) {
             // 是否自动显示轨迹
-            if (lineOptions.autoShowSegmentLine) {
-                if (!segment.lineGraphic) {
-                    flagwindRoute.onShowSegmentLine(segment);
-                }
-            }
-            if (lineOptions.onShowSegmentLineEvent) {
-                lineOptions.onShowSegmentLineEvent(segment);
-            }
+            // if (lineOptions.autoShowSegmentLine) {
+            flagwindRoute.onShowSegmentLine(segment);
+            // }
+            // if (lineOptions.onShowSegmentLineEvent) {
+            //     lineOptions.onShowSegmentLineEvent(segment);
+            // }
         };
         /**
          * 线段播放开始事故
@@ -1473,9 +1467,9 @@ var flagwind;
                 y: parseFloat(xy[1]),
                 spatial: flagwindRoute.flagwindMap.spatial
             });
-            var trackline = flagwindRoute.getTrackLine(segment.na);
+            var trackline = flagwindRoute.getTrackLine(segment.name);
             if (trackline) {
-                flagwindRoute.changeMovingGraphicSymbol(trackline, point, angle);
+                flagwindRoute.onChangeMovingGraphicSymbol(trackline, point, angle);
                 flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
             }
         };
@@ -1510,6 +1504,12 @@ var flagwind;
             _this.trackLines = [];
             return _this;
         }
+        EsriRouteLayer.prototype.onSetSegmentByLine = function (options, segment) {
+            throw new Error("Method not implemented.");
+        };
+        EsriRouteLayer.prototype.onSetSegmentByPoint = function (options, segment) {
+            throw new Error("Method not implemented.");
+        };
         EsriRouteLayer.prototype.onShowSegmentLine = function (segment) {
             var playedLineSymbol = new esri.symbol.CartographicLineSymbol(esri.symbol.CartographicLineSymbol.STYLE_SOLID, new esri.Color([38, 101, 196, 0.8]), 4, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
             segment.lineGraphic = this.getStandardGraphic(new esri.Graphic(segment.polyline, playedLineSymbol, {
@@ -1517,7 +1517,7 @@ var flagwind;
                 index: segment.index,
                 line: segment.name
             }));
-            this.moveLineLayer.addGraphice(segment.name, [segment.lineGraphic]);
+            this.moveLineLayer.addGraphic(segment.name, [segment.lineGraphic]);
         };
         EsriRouteLayer.prototype.onCreateMoveMark = function (trackline, graphic, angle) {
             var markerUrl = trackline.options.markerUrl;
@@ -1527,7 +1527,10 @@ var flagwind;
             return this.getStandardGraphic(new esri.Graphic(graphic.geometry, symbol, { type: "marker", line: trackline.name }));
             // return this.mapService.getTrackLineMarkerGraphic(trackline, graphic, angle);
         };
-        EsriRouteLayer.prototype.onCreateGroupLayer = function (id) {
+        EsriRouteLayer.prototype.onCreateLineLayer = function (id) {
+            return new flagwind.EsriGroupLayer(id);
+        };
+        EsriRouteLayer.prototype.onCreateMovingLayer = function (id) {
             return new flagwind.EsriGroupLayer(id);
         };
         EsriRouteLayer.prototype.onEqualGraphic = function (originGraphic, targetGraphic) {
@@ -1591,7 +1594,7 @@ var flagwind;
             }
             points.push(segment.endGraphic.geometry);
             // 当路由分析出错时，两点之间的最短路径以直线代替
-            segment.setLine(points);
+            segment.setMultPoints(points);
         };
         EsriRouteLayer.prototype.onAddEventListener = function (groupLayer, eventName, callBack) {
             groupLayer.layer.on(eventName, callBack);
@@ -1613,6 +1616,18 @@ var flagwind;
                 type: graphic.attributes.type,
                 line: graphic.attributes.line
             }));
+        };
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        EsriRouteLayer.prototype.onChangeMovingGraphicSymbol = function (trackline, point, angle) {
+            if (trackline === undefined)
+                return;
+            var symbol = trackline.markerGraphic.symbol;
+            symbol.setAngle(360 - angle);
+            trackline.markerGraphic.setSymbol(symbol);
+            trackline.markerGraphic.setGeometry(point);
+            trackline.markerGraphic.draw(); // 重绘
         };
         return EsriRouteLayer;
     }(flagwind.FlagwindRouteLayer));
@@ -2002,7 +2017,7 @@ var flagwind;
          * 设置拆线
          */
         TrackSegment.prototype.setPolyLine = function (polyline, length) {
-            this.flagwindRouteLayer.onSetSegmentByPolyLine({
+            this.flagwindRouteLayer.onSetSegmentByLine({
                 polyline: polyline,
                 length: length
             }, this);
@@ -2013,8 +2028,8 @@ var flagwind;
         /**
          * 设置直线
          */
-        TrackSegment.prototype.setLine = function (points) {
-            this.flagwindRouteLayer.onSetSegmentByLine({
+        TrackSegment.prototype.setMultPoints = function (points) {
+            this.flagwindRouteLayer.onSetSegmentByPoint({
                 points: points,
                 spatial: this.flagwindRouteLayer.flagwindMap.spatial
             }, this);
@@ -2384,6 +2399,59 @@ var flagwind;
     var MapUtils = /** @class */ (function () {
         function MapUtils() {
         }
+        /**
+         * 增密
+         * @param start 始点
+         * @param end 终点
+         * @param n 增加的点数
+         */
+        MapUtils.density = function (start, end, n) {
+            var resList = [];
+            if (n === 0) {
+                resList.push(start);
+                resList.push(end);
+                return resList;
+            }
+            var xDiff = (end.x - start.x) / n;
+            var yDiff = (end.y - start.y) / n;
+            for (var j = 0; j < n; j++) {
+                resList.push(new flagwind.MinemapPoint(start.x + j * xDiff, start.y + j * yDiff));
+            }
+            resList.push({ x: end.x, y: end.y });
+            return resList;
+        };
+        /**
+         * 线段抽稀操作
+         * @param paths  多线段
+         * @param length 长度
+         * @param numsOfKilometer 公里点数
+         */
+        MapUtils.vacuate = function (paths, length, numsOfKilometer) {
+            if (numsOfKilometer === 0) {
+                var startPath = paths[0];
+                var endPath = paths[paths.length - 1];
+                return [startPath[0], endPath[endPath.length - 1]];
+            }
+            var points = [];
+            for (var i = 0; i < paths.length; i++) {
+                points = points.concat(paths[i]);
+            }
+            var total = length * (numsOfKilometer);
+            if (points.length > total) {
+                var s = 0;
+                var interval = Math.max(Math.floor(points.length / total), 1);
+                var sLine = [];
+                while (s < total) {
+                    sLine.push(points[s]);
+                    s += interval;
+                }
+                if (s !== points.length - 1) {
+                    sLine.push(points[points.length - 1]);
+                }
+                return sLine;
+            }
+            return points;
+        };
         /**
          * 判断原始点坐标与目标点坐标是否一样
          *
@@ -3545,29 +3613,151 @@ var flagwind;
         function MinemapRouteLayer() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
-        MinemapRouteLayer.prototype.onCreateGroupLayer = function (id) {
-            return new flagwind.MinemapGroupLayer(id);
+        MinemapRouteLayer.prototype.onSetSegmentByLine = function (options, segment) {
+            segment.polyline = options.polyline;
+            segment.length = options.length;
+            if (segment.polyline.path && segment.polyline.path.length > 0) {
+                // 每公里抽取的点数
+                var numsOfKilometer = segment.options.numsOfKilometer;
+                segment.line = flagwind.MapUtils.vacuate([segment.polyline.path], segment.length, numsOfKilometer);
+            }
+        };
+        MinemapRouteLayer.prototype.onSetSegmentByPoint = function (options, segment) {
+            var points = options.points;
+            var length = options.length || flagwind.MinemapUtils.distance(points);
+            var numsOfKilometer = segment.options.numsOfKilometer;
+            var polyline = new flagwind.MinemapPolyline();
+            var line = [];
+            for (var i = 0; i < points.length - 1; i++) {
+                var start = points[i], end = points[i + 1];
+                var tmppoints = flagwind.MapUtils.density(start, end, length * numsOfKilometer);
+                tmppoints.forEach(function (g) {
+                    line.push([g.x, g.y]);
+                });
+            }
+            polyline.path = line;
+            segment.length = length;
+            segment.polyline = polyline;
+            segment.line = flagwind.MapUtils.vacuate([segment.polyline.path], segment.length, numsOfKilometer);
+        };
+        MinemapRouteLayer.prototype.onCreateMovingLayer = function (id) {
+            return new flagwind.MinemapGroupLayer({
+                id: id,
+                kind: "marker"
+            });
+        };
+        MinemapRouteLayer.prototype.onCreateLineLayer = function (id) {
+            return new flagwind.MinemapGroupLayer({
+                id: id,
+                kind: "geojson"
+            });
         };
         MinemapRouteLayer.prototype.onEqualGraphic = function (originGraphic, targetGraphic) {
-            throw new Error("Method not implemented.");
+            if (originGraphic == null || targetGraphic == null)
+                return false;
+            return originGraphic.geometry.x !== targetGraphic.geometry.x
+                || originGraphic.geometry.y !== targetGraphic.geometry.y;
         };
         MinemapRouteLayer.prototype.onShowSegmentLine = function (segment) {
-            throw new Error("Method not implemented.");
+            var lineGraphic = new flagwind.MinemapGeoJson(this.moveLineLayer.layer, {
+                id: segment.name + "_" + segment.index,
+                type: "line",
+                geometry: segment.polyline,
+                "layout": {
+                    "line-join": "round",
+                    "line-cap": "round"
+                },
+                "paint": {
+                    "line-color": "#ff0000",
+                    "line-width": 6
+                }
+            });
+            segment.lineGraphic = lineGraphic;
+            this.moveLineLayer.addGraphic(segment.name, lineGraphic);
         };
         MinemapRouteLayer.prototype.onGetStandardStops = function (name, stops) {
-            throw new Error("Method not implemented.");
+            var list = [];
+            if (stops == null || stops.length === 0)
+                return list;
+            stops.forEach(function (g) {
+                if (g instanceof flagwind.MinemapMarker) {
+                    g.attributes.__type = "stop";
+                    g.attributes.__line = name;
+                    list.push(g);
+                }
+                else {
+                    throw new Error("未知的停靠点定义.");
+                }
+            });
+            return stops;
         };
+        /**
+         * 由路由服务来路径规划
+         * @param segment 路段
+         * @param start 开始结点
+         * @param end 结束结点
+         * @param waypoints  经过点
+         */
         MinemapRouteLayer.prototype.onSolveByService = function (segment, start, end, waypoints) {
-            throw new Error("Method not implemented.");
+            var startXY = segment.startGraphic.geometry.x + "," + segment.startGraphic.geometry.y;
+            var endXY = segment.endGraphic.geometry.x + "," + segment.endGraphic.geometry.y;
+            var wayXY = null;
+            if (waypoints) {
+                wayXY = waypoints.join(",");
+            }
+            var me = this;
+            minemap.service.queryRouteDrivingResult2(startXY, endXY, wayXY, 1, 16, 1, 0, 0, function (error, results) {
+                if (error) {
+                    me.errorHandler(error, segment);
+                }
+                else {
+                    var routeResult = new flagwind.RouteResult(results);
+                    me.solveComplete({
+                        polyline: routeResult.getLine(me.spatial),
+                        length: routeResult.data.rows[0].distance
+                    }, segment);
+                }
+            });
         };
+        /**
+         * 由点点连线进行路径规划
+         * @param segment 路段
+         */
         MinemapRouteLayer.prototype.onSolveByJoinPoint = function (segment) {
-            throw new Error("Method not implemented.");
+            var points = [];
+            points.push(segment.startGraphic.geometry);
+            if (segment.waypoints) {
+                for (var i = 0; i < segment.waypoints.length; i++) {
+                    points.push(segment.waypoints[i].geometry);
+                }
+            }
+            points.push(segment.endGraphic.geometry);
+            // 当路由分析出错时，两点之间的最短路径以直线代替
+            segment.setMultPoints(points);
         };
         MinemapRouteLayer.prototype.onAddEventListener = function (moveMarkLayer, eventName, callBack) {
-            throw new Error("Method not implemented.");
+            moveMarkLayer.layer.on(eventName, callBack);
         };
         MinemapRouteLayer.prototype.onCreateMoveMark = function (trackline, graphic, angle) {
-            throw new Error("Method not implemented.");
+            var marker = new flagwind.MinemapMarker({
+                id: trackline.name,
+                symbol: {
+                    className: "graphic-car"
+                },
+                point: graphic.geometry,
+                attributes: graphic.attributes
+            });
+            trackline.markerGraphic = marker;
+            this.moveMarkLayer.addGraphic(trackline.name, marker);
+        };
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        MinemapRouteLayer.prototype.onChangeMovingGraphicSymbol = function (trackline, point, angle) {
+            if (trackline === undefined)
+                return;
+            trackline.markerGraphic.setAngle(360 - angle);
+            trackline.markerGraphic.setGeometry(point);
         };
         return MinemapRouteLayer;
     }(flagwind.FlagwindRouteLayer));
@@ -3576,39 +3766,242 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     /**
-     * 坐标点
+     * 思维图新路由结果定义
      */
-    var MinemapPoint = /** @class */ (function () {
-        function MinemapPoint(x, y, spatial) {
-            this.x = x;
-            this.y = y;
-            this.spatial = spatial;
+    var RouteResult = /** @class */ (function () {
+        function RouteResult(result) {
+            var _this = this;
+            console.log(result);
+            this.success = (result.errcode ? false : true);
+            this.message = result.message;
+            if (result.data) {
+                this.data = { error: null, rows: null };
+                if (result.data.error) {
+                    this.data.error = result.data.error;
+                }
+                if (result.data.rows) {
+                    this.data.rows = [];
+                    result.data.rows.forEach(function (row) {
+                        _this.data.rows.push(new RouteRow(row));
+                    });
+                }
+            }
         }
-        Object.defineProperty(MinemapPoint.prototype, "geometry", {
-            get: function () {
-                return new MinemapGeometry("Point", [this.x, this.y]);
-            },
-            set: function (value) {
-                this.x = value.coordinates[0];
-                this.y = value.coordinates[1];
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return MinemapPoint;
+        RouteResult.prototype.getLine = function (spatial) {
+            var polyline = new flagwind.MinemapPolyline(spatial);
+            var line = [];
+            if (this.data && this.data.rows) {
+                this.data.rows.forEach(function (row) {
+                    var points = row.getPoints(spatial);
+                    line = line.concat(points.map(function (g) { return [g.x, g.y]; }));
+                });
+            }
+            polyline.path = line;
+            return polyline;
+        };
+        return RouteResult;
     }());
-    flagwind.MinemapPoint = MinemapPoint;
+    flagwind.RouteResult = RouteResult;
+    var RouteItem = /** @class */ (function () {
+        function RouteItem(item) {
+            if (item.strguide) {
+                this.guide = item.strguide;
+            }
+            this.streetName = item.streetName;
+            if (item.distance) {
+                this.distance = parseFloat(item.distance);
+            }
+            if (item.duration) {
+                this.duration = parseFloat(item.duration);
+            }
+        }
+        return RouteItem;
+    }());
+    flagwind.RouteItem = RouteItem;
+    var RouteRow = /** @class */ (function () {
+        function RouteRow(result) {
+            var _this = this;
+            if (result.mapinfo) {
+                if (result.mapinfo.center) {
+                    var xy = result.mapinfo.center.split(",");
+                    this.center = new flagwind.MinemapPoint(parseFloat(xy[0]), parseFloat(xy[1]), null);
+                }
+                if (result.mapinfo.scale) {
+                    this.scale = parseFloat(result.mapinfo.scale);
+                }
+            }
+            if (result.distance) {
+                this.distance = parseFloat(result.distance);
+            }
+            if (result.duration) {
+                this.duration = parseFloat(result.duration);
+            }
+            if (result.routelatlon) {
+                this.points = [];
+                var xys = result.routelatlon.split(";");
+                for (var i = 0; i < xys.length; i++) {
+                    if (xys[i]) {
+                        var xy = xys[i].split(",");
+                        this.points.push([parseFloat(xy[0]), parseFloat(xy[1])]);
+                    }
+                }
+            }
+            if (result.routes) {
+                this.items = [];
+                result.routes.item.forEach(function (item) {
+                    _this.items.push(new RouteItem(item));
+                });
+            }
+        }
+        RouteRow.prototype.getPoints = function (spatial) {
+            var mps = [];
+            this.points.forEach(function (g) {
+                mps.push(new flagwind.MinemapPoint(g[0], g[1], spatial));
+            });
+            return mps;
+        };
+        RouteRow.prototype.getLine = function (spatial) {
+            var polyline = new flagwind.MinemapPolyline(spatial);
+            var line = [];
+            this.points.forEach(function (g) {
+                line.push([g[0], g[1]]);
+            });
+            polyline.path = line;
+            return polyline;
+        };
+        return RouteRow;
+    }());
+    flagwind.RouteRow = RouteRow;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
     /**
      * 几何对象
      */
     var MinemapGeometry = /** @class */ (function () {
-        function MinemapGeometry(type, coordinates) {
+        function MinemapGeometry(type, spatial) {
             this.type = type;
-            this.coordinates = coordinates;
+            this.spatial = spatial;
         }
         return MinemapGeometry;
     }());
     flagwind.MinemapGeometry = MinemapGeometry;
+    /**
+     * 线
+     */
+    var MinemapPolyline = /** @class */ (function (_super) {
+        __extends(MinemapPolyline, _super);
+        function MinemapPolyline(spatial) {
+            if (spatial === void 0) { spatial = null; }
+            var _this = _super.call(this, "Polyline", spatial) || this;
+            _this.path = [];
+            return _this;
+        }
+        MinemapPolyline.prototype.getPoint = function (pointIndex) {
+            return this.path[pointIndex];
+        };
+        MinemapPolyline.prototype.insertPoint = function (pointIndex, point) {
+            this.path.splice(pointIndex, 0, point);
+        };
+        MinemapPolyline.prototype.removePoint = function (pointIndex) {
+            this.path.splice(pointIndex, 1);
+        };
+        MinemapPolyline.prototype.toJson = function () {
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes || {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": this.path
+                    }
+                }
+            };
+        };
+        return MinemapPolyline;
+    }(MinemapGeometry));
+    flagwind.MinemapPolyline = MinemapPolyline;
+    /**
+     * 面
+     */
+    var MinemapPolygon = /** @class */ (function (_super) {
+        __extends(MinemapPolygon, _super);
+        function MinemapPolygon(spatial) {
+            if (spatial === void 0) { spatial = null; }
+            var _this = _super.call(this, "Line", spatial) || this;
+            _this.rings = [];
+            return _this;
+        }
+        MinemapPolygon.prototype.addRing = function (path) {
+            this.rings.push(path);
+        };
+        MinemapPolygon.prototype.removeRing = function (ringIndex) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings = this.rings.splice(ringIndex, 1);
+        };
+        MinemapPolygon.prototype.getPoint = function (ringIndex, pointIndex) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            return this.rings[ringIndex][pointIndex];
+        };
+        MinemapPolygon.prototype.insertPoint = function (ringIndex, pointIndex, point) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings[ringIndex].splice(pointIndex, 0, point);
+        };
+        MinemapPolygon.prototype.removePoint = function (ringIndex, pointIndex) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings[ringIndex].splice(pointIndex, 1);
+        };
+        MinemapPolygon.prototype.toJson = function () {
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes,
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": this.rings
+                    }
+                }
+            };
+        };
+        return MinemapPolygon;
+    }(MinemapGeometry));
+    flagwind.MinemapPolygon = MinemapPolygon;
+    /**
+     * 坐标点
+     */
+    var MinemapPoint = /** @class */ (function (_super) {
+        __extends(MinemapPoint, _super);
+        function MinemapPoint(x, y, spatial) {
+            if (spatial === void 0) { spatial = null; }
+            var _this = _super.call(this, "Point", spatial) || this;
+            _this.x = x;
+            _this.y = y;
+            _this.spatial = spatial;
+            return _this;
+        }
+        MinemapPoint.prototype.toJson = function () {
+            return {
+                "type": "Feature",
+                "properties": this.attributes,
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [this.x, this.y]
+                }
+            };
+        };
+        return MinemapPoint;
+    }(MinemapGeometry));
+    flagwind.MinemapPoint = MinemapPoint;
     /**
      * 空间投影
      */
@@ -3638,7 +4031,7 @@ var flagwind;
             }
             this.marker = new minemap.Marker(this.element, { offset: [-25, -25] });
             if (options.point) {
-                this._geometry = new MinemapGeometry("Point", [options.point.x, options.point.y]);
+                this._geometry = new MinemapPoint(options.point.x, options.point.y);
                 this.marker.setLngLat([options.point.x, options.point.y]);
             }
             var me = this;
@@ -3692,10 +4085,6 @@ var flagwind;
             enumerable: true,
             configurable: true
         });
-        // public on(eventName: string, callBack: Function) {
-        //     eventName = this.EVENT_MAP.get(eventName) || eventName;
-        //     this.element[eventName] = callBack;
-        // }
         MinemapMarker.prototype.onCallBack = function (eventName, arg) {
             var callback = this.layer.getCallBack("onMouseOver");
             if (callback) {
@@ -3723,6 +4112,13 @@ var flagwind;
             }
             this.layer.remove(this);
         };
+        MinemapMarker.prototype.setAngle = function (angle) {
+            this.element.style.transform = "rotate(" + angle + "deg)";
+            this.element.style["-ms-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-moz-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-webkit-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-o-transform"] = "rotate(" + angle + "deg)";
+        };
         MinemapMarker.prototype.setSymbol = function (symbol) {
             if (this.symbol && this.symbol.className) {
                 this.element.classList.remove(this.symbol.className);
@@ -3731,20 +4127,27 @@ var flagwind;
                 this.element.classList.push(symbol.className);
             }
         };
+        MinemapMarker.prototype.draw = function () {
+            console.log("draw");
+        };
         Object.defineProperty(MinemapMarker.prototype, "geometry", {
             get: function () {
                 return this._geometry;
             },
             set: function (geometry) {
                 this._geometry = geometry;
-                this.marker.setLngLat(geometry.coordinates);
+                this.marker.setLngLat([geometry.x, geometry.y]);
             },
             enumerable: true,
             configurable: true
         });
-        MinemapMarker.prototype.setGeometry = function (geometry) {
-            this._geometry = geometry;
-            this.marker.setLngLat(geometry.coordinates);
+        MinemapMarker.prototype.setGeometry = function (value) {
+            if (value instanceof MinemapPoint) {
+                this.geometry = value;
+            }
+            else {
+                throw new Error("不匹配类型");
+            }
         };
         MinemapMarker.prototype.addTo = function (map) {
             this._isInsided = true;
@@ -3754,13 +4157,46 @@ var flagwind;
     }());
     flagwind.MinemapMarker = MinemapMarker;
     var MinemapGeoJson = /** @class */ (function () {
-        function MinemapGeoJson() {
+        function MinemapGeoJson(layer, options) {
+            this.layer = layer;
             this._kind = "geojson";
             /**
              * 是否在地图上
              */
             this._isInsided = false;
             this.isShow = true;
+            this.attributes = {};
+            if (options && options.id) {
+                this.id = options.id;
+            }
+            if (options && options.type) {
+                this.type = options.type;
+            }
+            if (options && options.paint) {
+                this.paint = options.paint;
+            }
+            if (options && options.layout) {
+                this.layout = options.layout;
+            }
+            if (options && options.attributes) {
+                this.attributes = options.attributes;
+            }
+            if (options && options.geometry) {
+                if (options.geometry instanceof MinemapGeometry) {
+                    this.geometry = options.geometry;
+                }
+                else {
+                    throw new flagwind.Exception("geometry 类型不正确");
+                }
+            }
+            if (options && options.symbol) {
+                if (options.symbol.layout) {
+                    this.layout = options.symbol.layout;
+                }
+                if (options.symbol.paint) {
+                    this.layout = options.symbol.paint;
+                }
+            }
         }
         Object.defineProperty(MinemapGeoJson.prototype, "kind", {
             get: function () {
@@ -3797,29 +4233,47 @@ var flagwind;
             }
         };
         MinemapGeoJson.prototype.setSymbol = function (symbol) {
-            throw new flagwind.Exception("尚未实现");
+            if (symbol && symbol.paint) {
+                this.paint = symbol.paint;
+            }
+            if (symbol && symbol.layout) {
+                this.layout = symbol.layout;
+            }
         };
-        MinemapGeoJson.prototype.setGeometry = function (geometry) {
-            if (this.data && this.data.geometry) {
-                this.data.geometry = geometry;
+        Object.defineProperty(MinemapGeoJson.prototype, "geometry", {
+            get: function () {
+                return this._geometry;
+            },
+            set: function (value) {
+                this._geometry = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapGeoJson.prototype.setGeometry = function (value) {
+            if (value instanceof MinemapGeoJson) {
+                this.geometry = value;
             }
         };
         MinemapGeoJson.prototype.addTo = function (map) {
             if (!map)
                 return;
-            map.addSource(this.id + "_source", {
-                type: this.kind,
-                data: this.data
-            });
+            if (!this.id) {
+                throw new flagwind.Exception("没有指定id，无法添加");
+            }
+            var json = this.geometry.toJson();
+            console.log(json);
+            map.addSource(this.id + "_source", json);
         };
         MinemapGeoJson.prototype.addLayer = function (map) {
-            map.addLayer({
+            var layerJson = {
                 id: this.id,
                 source: this.id + "_source",
                 type: this.type,
                 paint: this.paint,
                 layout: this.layout
-            });
+            };
+            map.addLayer(layerJson);
         };
         return MinemapGeoJson;
     }());
@@ -4001,6 +4455,50 @@ var flagwind;
         return MinemapSetting;
     }());
     flagwind.MinemapSetting = MinemapSetting;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
+    var MinemapUtils = /** @class */ (function () {
+        function MinemapUtils() {
+        }
+        /**
+         * 求两点之间的距离
+         * @param from 起点
+         * @param to 终点
+         */
+        MinemapUtils.getLength = function (from, to) {
+            var units = "kilometers";
+            var distance = turf.distance(from.toJson(), to.toJson(), units);
+            return distance;
+        };
+        /**
+         * 求多点之间连线的距离
+         * @param points 多点集
+         * @param count 抽点次数
+         */
+        MinemapUtils.distance = function (points, count) {
+            if (count === void 0) { count = 100; }
+            if (count == null) {
+                count = points.length;
+            }
+            var interval = 1;
+            if (points.length > count) {
+                interval = Math.max(Math.floor(points.length / count), 1);
+            }
+            var length = 0, i = 0;
+            for (i = 0; i <= points.length - interval; i = i + interval) {
+                var start = points[i];
+                var end = points[i + interval];
+                length += MinemapUtils.getLength(start, end);
+            }
+            if (i < points.length - 1) {
+                length += MinemapUtils.getLength(points[i], points[points.length - 1]);
+            }
+            return length;
+        };
+        return MinemapUtils;
+    }());
+    flagwind.MinemapUtils = MinemapUtils;
 })(flagwind || (flagwind = {}));
 
 Object.defineProperty(exports, '__esModule', { value: true });

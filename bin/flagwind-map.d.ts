@@ -137,10 +137,10 @@ declare namespace flagwind {
      * @class FlagwindGroupLayer
      */
     abstract class FlagwindGroupLayer {
-        id: string;
+        options: any;
         layer: any;
         isShow: boolean;
-        constructor(id: string);
+        constructor(options: any);
         readonly graphics: Array<any>;
         appendTo(map: any): void;
         removeLayer(map: any): void;
@@ -151,7 +151,7 @@ declare namespace flagwind {
         setSymbol(name: string, symbol: any): void;
         showGraphic(name: string): void;
         hideGraphic(name: string): void;
-        addGraphice(name: string, graphics: Array<any>): void;
+        addGraphic(name: string, ...graphics: Array<any>): void;
         getMasterGraphicByName(name: string): any;
         /**
          * 获取资源要素点
@@ -265,12 +265,13 @@ declare namespace flagwind {
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
         constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
-        abstract onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        abstract onCreateLineLayer(id: string): FlagwindGroupLayer;
+        abstract onCreateMovingLayer(id: string): FlagwindGroupLayer;
         abstract onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
         abstract onShowSegmentLine(segment: TrackSegment): void;
         abstract onGetStandardStops(name: String, stops: Array<any>): Array<any>;
-        onSetSegmentByLine(options: any, segment: TrackSegment): any;
-        onSetSegmentByPolyLine(options: any, segment: TrackSegment): any;
+        abstract onSetSegmentByLine(options: any, segment: TrackSegment): any;
+        abstract onSetSegmentByPoint(options: any, segment: TrackSegment): any;
         /**
          * 由网络分析服务来求解轨迹并播放
          *
@@ -392,10 +393,6 @@ declare namespace flagwind {
         protected onCreateSegmentLineComplete(segment: TrackSegment): void;
         protected checkMapSetting(): void;
         /**
-         * 每次位置移动线路上的要素样式变换操作
-         */
-        protected changeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
-        /**
          *
          * 显示路段事件
          *
@@ -414,10 +411,11 @@ declare namespace flagwind {
         /**
          * 移动回调事件
          */
-        protected onMoveEvent(flagwindRoute: this, segment: any, xy: any, angle: number): void;
+        protected onMoveEvent(flagwindRoute: this, segment: TrackSegment, xy: any, angle: number): void;
         protected onAddLayerBefor(): void;
         protected onAddLayerAfter(): void;
         protected onLoad(): void;
+        protected abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -429,9 +427,12 @@ declare namespace flagwind {
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
         constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
+        onSetSegmentByLine(options: any, segment: TrackSegment): void;
+        onSetSegmentByPoint(options: any, segment: TrackSegment): void;
         onShowSegmentLine(segment: TrackSegment): void;
         onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
-        onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        onCreateLineLayer(id: string): FlagwindGroupLayer;
+        onCreateMovingLayer(id: string): FlagwindGroupLayer;
         onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
         onGetStandardStops(name: String, stops: Array<any>): Array<any>;
         onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
@@ -440,6 +441,10 @@ declare namespace flagwind {
         getSpatialReferenceFormNA(): any;
         protected getStandardGraphic(graphic: any): any;
         protected cloneStopGraphic(graphic: any): any;
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -640,7 +645,7 @@ declare namespace flagwind {
         /**
          * 设置直线
          */
-        setLine(points: Array<any>): void;
+        setMultPoints(points: Array<any>): void;
         changeSpeed(speed?: number | null): void;
         move(segment: TrackSegment): void;
         start(): boolean;
@@ -767,6 +772,23 @@ declare namespace flagwind {
     class MapUtils {
         static PI: number;
         static X_PI: number;
+        /**
+         * 增密
+         * @param start 始点
+         * @param end 终点
+         * @param n 增加的点数
+         */
+        static density(start: MinemapPoint, end: MinemapPoint, n: number): {
+            x: number;
+            y: number;
+        }[];
+        /**
+         * 线段抽稀操作
+         * @param paths  多线段
+         * @param length 长度
+         * @param numsOfKilometer 公里点数
+         */
+        static vacuate(paths: Array<Array<any>>, length: number, numsOfKilometer: number): any[];
         /**
          * 判断原始点坐标与目标点坐标是否一样
          *
@@ -1507,34 +1529,138 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     class MinemapRouteLayer extends FlagwindRouteLayer {
-        onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        onSetSegmentByLine(options: any, segment: TrackSegment): void;
+        onSetSegmentByPoint(options: any, segment: TrackSegment): void;
+        onCreateMovingLayer(id: string): FlagwindGroupLayer;
+        onCreateLineLayer(id: string): FlagwindGroupLayer;
         onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
         onShowSegmentLine(segment: TrackSegment): void;
         onGetStandardStops(name: String, stops: Array<any>): Array<any>;
+        /**
+         * 由路由服务来路径规划
+         * @param segment 路段
+         * @param start 开始结点
+         * @param end 结束结点
+         * @param waypoints  经过点
+         */
         onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
+        /**
+         * 由点点连线进行路径规划
+         * @param segment 路段
+         */
         onSolveByJoinPoint(segment: TrackSegment): void;
         onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
         onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): void;
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {
     /**
-     * 坐标点
+     * 思维图新路由结果定义
      */
-    class MinemapPoint {
-        x: number;
-        y: number;
-        spatial: any;
-        constructor(x: number, y: number, spatial: any);
-        geometry: MinemapGeometry;
+    class RouteResult {
+        success: boolean;
+        message: string;
+        data: {
+            error: string;
+            rows: Array<RouteRow>;
+        };
+        constructor(result: any);
+        getLine(spatial: any): MinemapPolyline;
     }
+    class RouteItem {
+        streetName: string;
+        distance: number;
+        duration: number;
+        guide: string;
+        constructor(item: any);
+    }
+    class RouteRow {
+        center: MinemapPoint;
+        scale: number;
+        distance: number;
+        duration: number;
+        points: Array<Array<any>>;
+        items: Array<RouteItem>;
+        constructor(result: any);
+        getPoints(spatial: any): Array<MinemapPoint>;
+        getLine(spatial: any): MinemapPolyline;
+    }
+}
+declare namespace flagwind {
     /**
      * 几何对象
      */
-    class MinemapGeometry {
+    abstract class MinemapGeometry {
         type: string;
-        coordinates: Array<any>;
-        constructor(type: string, coordinates: Array<any>);
+        spatial: MinemapSpatial;
+        attributes: any;
+        constructor(type: string, spatial: MinemapSpatial);
+        abstract toJson(): any;
+    }
+    /**
+     * 线
+     */
+    class MinemapPolyline extends MinemapGeometry {
+        path: Array<Array<number>>;
+        constructor(spatial?: MinemapSpatial);
+        getPoint(pointIndex: number): number[];
+        insertPoint(pointIndex: number, point: Array<number>): void;
+        removePoint(pointIndex: number): void;
+        toJson(): {
+            "type": string;
+            "data": {
+                "type": string;
+                "properties": any;
+                "geometry": {
+                    "type": string;
+                    "coordinates": number[][];
+                };
+            };
+        };
+    }
+    /**
+     * 面
+     */
+    class MinemapPolygon extends MinemapGeometry {
+        rings: Array<Array<Array<number>>>;
+        constructor(spatial?: MinemapSpatial);
+        addRing(path: Array<Array<number>>): void;
+        removeRing(ringIndex: number): void;
+        getPoint(ringIndex: number, pointIndex: number): number[];
+        insertPoint(ringIndex: number, pointIndex: number, point: Array<number>): void;
+        removePoint(ringIndex: number, pointIndex: number): void;
+        toJson(): {
+            "type": string;
+            "data": {
+                "type": string;
+                "properties": any;
+                "geometry": {
+                    "type": string;
+                    "coordinates": number[][][];
+                };
+            };
+        };
+    }
+    /**
+     * 坐标点
+     */
+    class MinemapPoint extends MinemapGeometry {
+        x: number;
+        y: number;
+        spatial: MinemapSpatial;
+        constructor(x: number, y: number, spatial?: MinemapSpatial);
+        toJson(): {
+            "type": string;
+            "properties": any;
+            "geometry": {
+                "type": string;
+                "coordinates": number[];
+            };
+        };
     }
     /**
      * 空间投影
@@ -1554,10 +1680,7 @@ declare namespace flagwind {
         remove(): void;
         delete(): void;
         setSymbol(symbol: any): void;
-        setGeometry(geometry: {
-            type: string;
-            coordinates: Array<any>;
-        }): void;
+        setGeometry(geometry: MinemapGeometry): void;
         addTo(map: any): void;
     }
     class MinemapMarker implements IMinemapGraphic {
@@ -1582,34 +1705,28 @@ declare namespace flagwind {
         hide(): void;
         remove(): void;
         delete(): void;
+        setAngle(angle: number): void;
         setSymbol(symbol: any): void;
-        geometry: MinemapGeometry;
-        setGeometry(geometry: {
-            type: string;
-            coordinates: Array<any>;
-        }): void;
+        draw(): void;
+        geometry: MinemapPoint;
+        setGeometry(value: MinemapGeometry): void;
         addTo(map: any): void;
     }
     class MinemapGeoJson implements IMinemapGraphic {
+        layer: MinemapGeoJsonLayer;
         private _kind;
+        private _geometry;
         /**
          * 是否在地图上
          */
         _isInsided: boolean;
         id: string;
         isShow: boolean;
-        data: {
-            type: string;
-            geometry: {
-                type: string;
-                coordinates: Array<any>;
-            };
-        };
         type: string;
         layout: any;
         paint: any;
-        layer: MinemapMarkerLayer;
         attributes: any;
+        constructor(layer: MinemapGeoJsonLayer, options: any);
         readonly kind: string;
         readonly isInsided: boolean;
         show(): void;
@@ -1617,10 +1734,8 @@ declare namespace flagwind {
         remove(): void;
         delete(): void;
         setSymbol(symbol: any): void;
-        setGeometry(geometry: {
-            type: string;
-            coordinates: Array<any>;
-        }): void;
+        geometry: MinemapGeometry;
+        setGeometry(value: MinemapGeometry): void;
         addTo(map: any): void;
         addLayer(map: any): void;
     }
@@ -1679,6 +1794,7 @@ declare namespace flagwind {
     }
 }
 declare var minemap: any;
+declare var turf: any;
 declare namespace flagwind {
     class MinemapSetting implements IMapSetting {
         baseUrl: string;
@@ -1700,5 +1816,21 @@ declare namespace flagwind {
         zoom: number;
         logo: boolean;
         slider: boolean;
+    }
+}
+declare namespace flagwind {
+    class MinemapUtils {
+        /**
+         * 求两点之间的距离
+         * @param from 起点
+         * @param to 终点
+         */
+        static getLength(from: MinemapPoint, to: MinemapPoint): number;
+        /**
+         * 求多点之间连线的距离
+         * @param points 多点集
+         * @param count 抽点次数
+         */
+        static distance(points: Array<MinemapPoint>, count?: number | null): number;
     }
 }

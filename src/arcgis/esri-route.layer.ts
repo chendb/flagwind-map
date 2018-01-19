@@ -11,6 +11,13 @@ namespace flagwind {
             super(flagwindMap, layerName, options);
         }
 
+        public onSetSegmentByLine(options: any, segment: TrackSegment) {
+            throw new Error("Method not implemented.");
+        }
+        public onSetSegmentByPoint(options: any, segment: TrackSegment) {
+            throw new Error("Method not implemented.");
+        }
+
         public onShowSegmentLine(segment: TrackSegment) {
             let playedLineSymbol = new esri.symbol.CartographicLineSymbol(
                 esri.symbol.CartographicLineSymbol.STYLE_SOLID, new esri.Color([38, 101, 196, 0.8]), 4,
@@ -22,7 +29,7 @@ namespace flagwind {
                 index: segment.index,
                 line: segment.name
             }));
-            this.moveLineLayer.addGraphice(segment.name, [segment.lineGraphic]);
+            this.moveLineLayer.addGraphic(segment.name, [segment.lineGraphic]);
         }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
@@ -34,9 +41,14 @@ namespace flagwind {
             // return this.mapService.getTrackLineMarkerGraphic(trackline, graphic, angle);
         }
 
-        public onCreateGroupLayer(id: string): FlagwindGroupLayer {
+        public onCreateLineLayer(id: string): FlagwindGroupLayer {
             return new EsriGroupLayer(id);
         }
+
+        public onCreateMovingLayer(id: string): FlagwindGroupLayer {
+            return new EsriGroupLayer(id);
+        }
+
         public onEqualGraphic(originGraphic: any, targetGraphic: any): boolean {
             return MapUtils.isEqualPoint(originGraphic.geometry, targetGraphic.geometry);
         }
@@ -111,7 +123,7 @@ namespace flagwind {
 
             points.push(segment.endGraphic.geometry);
             // 当路由分析出错时，两点之间的最短路径以直线代替
-            segment.setLine(points);
+            segment.setMultPoints(points);
         }
         public onAddEventListener(groupLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void {
             groupLayer.layer.on(eventName, callBack);
@@ -140,6 +152,18 @@ namespace flagwind {
                     line: graphic.attributes.line
                 }
             ));
+        }
+
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number) {
+            if (trackline === undefined) return;
+            let symbol = trackline.markerGraphic.symbol;
+            symbol.setAngle(360 - angle);
+            trackline.markerGraphic.setSymbol(symbol);
+            trackline.markerGraphic.setGeometry(point);
+            trackline.markerGraphic.draw();// 重绘
         }
 
     }

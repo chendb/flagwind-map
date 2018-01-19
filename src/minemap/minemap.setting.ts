@@ -1,4 +1,5 @@
 declare var minemap: any;
+declare var turf: any;
 
 namespace flagwind {
 

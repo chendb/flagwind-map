@@ -1,6 +1,7 @@
 namespace flagwind {
 
     export class MinemapGroupLayer extends FlagwindGroupLayer {
+
         public onCreateGraphicsLayer(options: any) {
             if (options.kind === "marker") {
                 return new MinemapMarkerLayer(options);

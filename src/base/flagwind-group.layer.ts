@@ -10,8 +10,8 @@ namespace flagwind {
         public layer: any;
         public isShow: boolean = true;
 
-        public constructor(public id: string) {
-            this.layer = this.onCreateGraphicsLayer({ id: id });
+        public constructor(public options: any) {
+            this.layer = this.onCreateGraphicsLayer(options);
         }
 
         public get graphics(): Array<any> {
@@ -64,7 +64,7 @@ namespace flagwind {
             });
         }
 
-        public addGraphice(name: string, graphics: Array<any>) {
+        public addGraphic(name: string, ...graphics: Array<any>) {
             if (graphics === undefined) return;
             graphics.forEach((g, index) => {
                 if (g) {

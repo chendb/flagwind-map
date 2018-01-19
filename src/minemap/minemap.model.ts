@@ -1,40 +1,141 @@
 namespace flagwind {
-    /**
-     * 坐标点
-     */
-    export class MinemapPoint {
-
-        public constructor(
-            public x: number,
-            public y: number,
-            public spatial: any
-        ) { }
-
-        public get geometry(): MinemapGeometry {
-            return new MinemapGeometry(
-                "Point", [this.x, this.y]
-            );
-        }
-
-        public set geometry(value: MinemapGeometry) {
-            this.x = value.coordinates[0];
-            this.y = value.coordinates[1];
-        }
-
-    }
 
     /**
      * 几何对象
      */
-    export class MinemapGeometry {
+    export abstract class MinemapGeometry {
+
+        public attributes: any;
 
         public constructor(
             public type: string,
-            public coordinates: Array<any>
+            public spatial: MinemapSpatial
         ) {
 
         }
 
+        public abstract toJson(): any;
+
+    }
+    /**
+     * 线
+     */
+    export class MinemapPolyline extends MinemapGeometry {
+
+        public path: Array<Array<number>> = [];
+        public constructor(spatial: MinemapSpatial = null) {
+            super("Polyline", spatial);
+        }
+
+        public getPoint(pointIndex: number) {
+
+            return this.path[pointIndex];
+        }
+
+        public insertPoint(pointIndex: number, point: Array<number>) {
+            this.path.splice(pointIndex, 0, point);
+        }
+
+        public removePoint(pointIndex: number) {
+            this.path.splice(pointIndex, 1);
+        }
+
+        public toJson() {
+
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes || {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": this.path
+                    }
+                }
+            };
+        }
+    }
+    /**
+     * 面
+     */
+    export class MinemapPolygon extends MinemapGeometry {
+
+        public rings: Array<Array<Array<number>>> = [];
+        public constructor(spatial: MinemapSpatial = null) {
+            super("Line", spatial);
+        }
+
+        public addRing(path: Array<Array<number>>) {
+            this.rings.push(path);
+        }
+
+        public removeRing(ringIndex: number) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings = this.rings.splice(ringIndex, 1);
+        }
+
+        public getPoint(ringIndex: number, pointIndex: number) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            return this.rings[ringIndex][pointIndex];
+        }
+
+        public insertPoint(ringIndex: number, pointIndex: number, point: Array<number>) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings[ringIndex].splice(pointIndex, 0, point);
+        }
+
+        public removePoint(ringIndex: number, pointIndex: number) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings[ringIndex].splice(pointIndex, 1);
+        }
+
+        public toJson() {
+
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes,
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": this.rings
+                    }
+                }
+            };
+        }
+    }
+
+    /**
+     * 坐标点
+     */
+    export class MinemapPoint extends MinemapGeometry {
+
+        public constructor(
+            public x: number,
+            public y: number,
+            public spatial: MinemapSpatial = null
+        ) {
+            super("Point", spatial);
+        }
+
+        public toJson() {
+            return {
+                "type": "Feature",
+                "properties": this.attributes,
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [this.x, this.y]
+                }
+            };
+        }
     }
 
     /**
@@ -70,9 +171,10 @@ namespace flagwind {
 
         setSymbol(symbol: any): void;
 
-        setGeometry(geometry: { type: string; coordinates: Array<any> }): void;
+        setGeometry(geometry: MinemapGeometry): void;
 
         addTo(map: any): void;
+
     }
 
     export class MinemapMarker implements IMinemapGraphic {
@@ -82,7 +184,7 @@ namespace flagwind {
          * 是否在地图上
          */
         private _isInsided: boolean = false;
-        private _geometry: MinemapGeometry;
+        private _geometry: MinemapPoint;
 
         public id: string;
         public isShow: boolean = true;
@@ -107,7 +209,7 @@ namespace flagwind {
             }
             this.marker = new minemap.Marker(this.element, { offset: [-25, -25] });
             if (options.point) {
-                this._geometry = new MinemapGeometry("Point", [options.point.x, options.point.y]);
+                this._geometry = new MinemapPoint(options.point.x, options.point.y);
                 this.marker.setLngLat([options.point.x, options.point.y]);
             }
             let me = this;
@@ -156,11 +258,6 @@ namespace flagwind {
             return this._isInsided;
         }
 
-        // public on(eventName: string, callBack: Function) {
-        //     eventName = this.EVENT_MAP.get(eventName) || eventName;
-        //     this.element[eventName] = callBack;
-        // }
-
         public onCallBack(eventName: string, arg: any) {
             let callback = this.layer.getCallBack("onMouseOver");
             if (callback) {
@@ -193,6 +290,14 @@ namespace flagwind {
             this.layer.remove(this);
         }
 
+        public setAngle(angle: number) {
+            this.element.style.transform = "rotate(" + angle + "deg)";
+            this.element.style["-ms-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-moz-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-webkit-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-o-transform"] = "rotate(" + angle + "deg)";
+        }
+
         public setSymbol(symbol: any): void {
             if (this.symbol && this.symbol.className) {
                 this.element.classList.remove(this.symbol.className);
@@ -202,18 +307,25 @@ namespace flagwind {
             }
         }
 
-        public get geometry(): MinemapGeometry {
+        public draw(): void {
+            console.log("draw");
+        }
+
+        public get geometry(): MinemapPoint {
             return this._geometry;
         }
 
-        public set geometry(geometry: MinemapGeometry) {
+        public set geometry(geometry: MinemapPoint) {
             this._geometry = geometry;
-            this.marker.setLngLat(geometry.coordinates);
+            this.marker.setLngLat([geometry.x, geometry.y]);
         }
 
-        public setGeometry(geometry: { type: string; coordinates: Array<any> }): void {
-            this._geometry = geometry;
-            this.marker.setLngLat(geometry.coordinates);
+        public setGeometry(value: MinemapGeometry): void {
+            if (value instanceof MinemapPoint) {
+                this.geometry = <MinemapPoint>value;
+            } else {
+                throw new Error("不匹配类型");
+            }
         }
 
         public addTo(map: any) {
@@ -225,7 +337,7 @@ namespace flagwind {
     export class MinemapGeoJson implements IMinemapGraphic {
 
         private _kind: string = "geojson";
-
+        private _geometry: MinemapGeometry;
         /**
          * 是否在地图上
          */
@@ -233,12 +345,43 @@ namespace flagwind {
 
         public id: string;
         public isShow: boolean = true;
-        public data: { type: string; geometry: { type: string; coordinates: Array<any> } };
         public type: string;
         public layout: any;
         public paint: any;
-        public layer: MinemapMarkerLayer;
-        public attributes: any;
+        public attributes: any = {};
+
+        public constructor(public layer: MinemapGeoJsonLayer, options: any) {
+            if (options && options.id) {
+                this.id = options.id;
+            }
+            if (options && options.type) {
+                this.type = options.type;
+            }
+            if (options && options.paint) {
+                this.paint = options.paint;
+            }
+            if (options && options.layout) {
+                this.layout = options.layout;
+            }
+            if (options && options.attributes) {
+                this.attributes = options.attributes;
+            }
+            if (options && options.geometry) {
+                if (options.geometry instanceof MinemapGeometry) {
+                    this.geometry = options.geometry;
+                } else {
+                    throw new Exception("geometry 类型不正确");
+                }
+            }
+            if (options && options.symbol) {
+                if (options.symbol.layout) {
+                    this.layout = options.symbol.layout;
+                }
+                if (options.symbol.paint) {
+                    this.layout = options.symbol.paint;
+                }
+            }
+        }
 
         public get kind() {
             return this._kind;
@@ -272,32 +415,47 @@ namespace flagwind {
         }
 
         public setSymbol(symbol: any): void {
-            throw new Exception("尚未实现");
+            if (symbol && symbol.paint) {
+                this.paint = symbol.paint;
+            }
+            if (symbol && symbol.layout) {
+                this.layout = symbol.layout;
+            }
         }
 
-        public setGeometry(geometry: { type: string; coordinates: Array<any> }): void {
-            if (this.data && this.data.geometry) {
-                this.data.geometry = geometry;
+        public get geometry(): MinemapGeometry {
+            return this._geometry;
+        }
+
+        public set geometry(value: MinemapGeometry) {
+            this._geometry = value;
+        }
+
+        public setGeometry(value: MinemapGeometry): void {
+            if (value instanceof MinemapGeoJson) {
+                this.geometry = value;
             }
         }
 
         public addTo(map: any) {
             if (!map) return;
-            map.addSource(this.id + "_source", {
-                type: this.kind,
-                data: this.data
-            });
-
+            if (!this.id) {
+                throw new Exception("没有指定id，无法添加");
+            }
+            let json = this.geometry.toJson();
+            console.log(json);
+            map.addSource(this.id + "_source", json);
         }
 
         public addLayer(map: any) {
-            map.addLayer({
+            let layerJson = {
                 id: this.id,
                 source: this.id + "_source",
                 type: this.type,
                 paint: this.paint,
                 layout: this.layout
-            });
+            };
+            map.addLayer(layerJson);
         }
     }
 

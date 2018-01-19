@@ -5,6 +5,67 @@ namespace flagwind {
         public static X_PI = 3.14159265358979324 * 3000.0 / 180.0;
 
         /**
+         * 增密
+         * @param start 始点
+         * @param end 终点
+         * @param n 增加的点数
+         */
+        public static density(start: MinemapPoint, end: MinemapPoint, n: number) {
+            const resList = [];
+            if (n === 0) {
+                resList.push(start);
+                resList.push(end);
+                return resList;
+            }
+            const xDiff = (end.x - start.x) / n;
+            const yDiff = (end.y - start.y) / n;
+            for (let j = 0; j < n; j++) {
+                resList.push(new MinemapPoint(start.x + j * xDiff, start.y + j * yDiff));
+            }
+            resList.push({ x: end.x, y: end.y });
+            return resList;
+        }
+        /**
+         * 线段抽稀操作
+         * @param paths  多线段
+         * @param length 长度
+         * @param numsOfKilometer 公里点数
+         */
+        public static vacuate(paths: Array<Array<any>>, length: number, numsOfKilometer: number) {
+
+            if (numsOfKilometer === 0) {
+                let startPath = paths[0];
+                let endPath = paths[paths.length - 1];
+                return [startPath[0], endPath[endPath.length - 1]];
+            }
+
+            let points: Array<any> = [];
+
+            for (let i = 0; i < paths.length; i++) {
+                points = points.concat(paths[i]);
+            }
+
+            const total = length * (numsOfKilometer);
+
+            if (points.length > total) {
+                let s = 0;
+                let interval = Math.max(Math.floor(points.length / total), 1);
+                let sLine = [];
+                while (s < total) {
+                    sLine.push(points[s]);
+                    s += interval;
+                }
+
+                if (s !== points.length - 1) {
+                    sLine.push(points[points.length - 1]);
+                }
+                return sLine;
+            }
+
+            return points;
+        }
+
+        /**
          * 判断原始点坐标与目标点坐标是否一样
          *
          * @static
