@@ -58,8 +58,8 @@ namespace flagwind {
             const map = new esri.Map(this.mapEl, mapArguments);
             map.infoWindow.anchor = "top";
 
-            let div = (<any>this).titleDiv = document.createElement("div");
-            div.classList.add("eg-map-title");
+            let div = (<any>this).tooltipElement = document.createElement("div");
+            div.classList.add("flagwind-map-tooltip");
             (<any>this).innerMap.root.parentElement.appendChild(div);
         }
 
@@ -87,18 +87,18 @@ namespace flagwind {
             this.baseLayers.forEach(g => g.appendTo(this.innerMap));
             return baseLayers;
         }
-        public onShowTitle(graphic: any): void {
+        public onShowTooltip(graphic: any): void {
             let info = graphic.attributes;
             let pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             let screenpt = this.innerMap.toScreen(pt);
             let title = info.name;
-            (<any>this).titleDiv.innerHTML = "<div>" + title + "</div>";
-            (<any>this).titleDiv.style.left = (screenpt.x + 8) + "px";
-            (<any>this).titleDiv.style.top = (screenpt.y + 8) + "px";
-            (<any>this).titleDiv.style.display = "block";
+            (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
+            (<any>this).tooltipElement.style.left = (screenpt.x + 8) + "px";
+            (<any>this).tooltipElement.style.top = (screenpt.y + 8) + "px";
+            (<any>this).tooltipElement.style.display = "block";
         }
-        public onHideTitle(graphic: any): void {
-            (<any>this).titleDiv.style.display = "none";
+        public onHideTooltip(graphic: any): void {
+            (<any>this).tooltipElement.style.display = "none";
         }
         public onCreateContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {
             const menus = options.contextMenu;

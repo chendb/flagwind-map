@@ -126,9 +126,9 @@ namespace flagwind {
 
         public abstract onCreateBaseLayers(): any;
 
-        public abstract onShowTitle(graphic: any): void;
+        public abstract onShowTooltip(graphic: any): void;
 
-        public abstract onHideTitle(graphic: any): void;
+        public abstract onHideTooltip(graphic: any): void;
 
         public abstract onCreateContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }): void;
 

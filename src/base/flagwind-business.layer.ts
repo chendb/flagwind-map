@@ -220,10 +220,10 @@ namespace flagwind {
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
                 this.onAddEventListener("onMouseOver", function (evt: any) {
-                    _deviceLayer.flagwindMap.onShowTitle(evt.graphic);
+                    _deviceLayer.flagwindMap.onShowTooltip(evt.graphic);
                 });
                 this.onAddEventListener("onMouseOut", function (evt: any) {
-                    _deviceLayer.flagwindMap.onHideTitle(evt.graphic);
+                    _deviceLayer.flagwindMap.onHideTooltip(evt.graphic);
                 });
             }
         }

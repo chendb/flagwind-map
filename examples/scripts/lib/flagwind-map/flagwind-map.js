@@ -864,8 +864,8 @@ var flagwind;
             // 地图对象
             var map = new esri.Map(this.mapEl, mapArguments);
             map.infoWindow.anchor = "top";
-            var div = this.titleDiv = document.createElement("div");
-            div.classList.add("eg-map-title");
+            var div = this.tooltipElement = document.createElement("div");
+            div.classList.add("flagwind-map-tooltip");
             this.innerMap.root.parentElement.appendChild(div);
         };
         EsriMap.prototype.onShowInfoWindow = function (options) {
@@ -891,18 +891,18 @@ var flagwind;
             this.baseLayers.forEach(function (g) { return g.appendTo(_this.innerMap); });
             return baseLayers;
         };
-        EsriMap.prototype.onShowTitle = function (graphic) {
+        EsriMap.prototype.onShowTooltip = function (graphic) {
             var info = graphic.attributes;
             var pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             var screenpt = this.innerMap.toScreen(pt);
             var title = info.name;
-            this.titleDiv.innerHTML = "<div>" + title + "</div>";
-            this.titleDiv.style.left = (screenpt.x + 8) + "px";
-            this.titleDiv.style.top = (screenpt.y + 8) + "px";
-            this.titleDiv.style.display = "block";
+            this.tooltipElement.innerHTML = "<div>" + title + "</div>";
+            this.tooltipElement.style.left = (screenpt.x + 8) + "px";
+            this.tooltipElement.style.top = (screenpt.y + 8) + "px";
+            this.tooltipElement.style.display = "block";
         };
-        EsriMap.prototype.onHideTitle = function (graphic) {
-            this.titleDiv.style.display = "none";
+        EsriMap.prototype.onHideTooltip = function (graphic) {
+            this.tooltipElement.style.display = "none";
         };
         EsriMap.prototype.onCreateContextMenu = function (options) {
             var menus = options.contextMenu;
@@ -1895,10 +1895,10 @@ var flagwind;
             });
             if (this.options.showTooltipOnHover) {
                 this.onAddEventListener("onMouseOver", function (evt) {
-                    _deviceLayer.flagwindMap.onShowTitle(evt.graphic);
+                    _deviceLayer.flagwindMap.onShowTooltip(evt.graphic);
                 });
                 this.onAddEventListener("onMouseOut", function (evt) {
-                    _deviceLayer.flagwindMap.onHideTitle(evt.graphic);
+                    _deviceLayer.flagwindMap.onHideTooltip(evt.graphic);
                 });
             }
         };
@@ -3403,14 +3403,10 @@ var flagwind;
             this.spatial = new flagwind.MinemapSpatial(minemap.solution);
             var popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
-            var el = document.createElement("div");
-            el.id = "flagwind-map-title";
-            var titleDiv = this.titleDiv = document.createElement("div");
-            titleDiv.id = "flagwind-map-title";
-            titleDiv.classList.add("flagwind-map-title");
-            this.titleMarker = new minemap.Marker(titleDiv, { offset: [-25, -25] })
-                .setLngLat([116.46, 39.92])
-                .addTo(map);
+            var div = this.tooltipElement = document.createElement("div");
+            div.id = "flagwind-map-tooltip";
+            div.classList.add("flagwind-map-tooltip");
+            map._container.appendChild(div);
             this.innerMap = map;
             return map;
         };
@@ -3451,14 +3447,18 @@ var flagwind;
             this.baseLayers = baseLayers;
             return baseLayers;
         };
-        MinemapMap.prototype.onShowTitle = function (graphic) {
+        MinemapMap.prototype.onShowTooltip = function (graphic) {
             var info = graphic.attributes;
-            var pt = new flagwind.MinemapPoint(info.longitude, info.latitude, this.spatial);
-            this.titleMarker.setLngLat([pt.x, pt.y]);
-            this.titleMarker.getElement().style.display = "block";
+            var pt = graphic.geometry;
+            var screenpt = this.innerMap.project([pt.x, pt.y]);
+            var title = info.name;
+            this.tooltipElement.innerHTML = "<div>" + title + "</div>";
+            this.tooltipElement.style.left = (screenpt.x + 8) + "px";
+            this.tooltipElement.style.top = (screenpt.y + 8) + "px";
+            this.tooltipElement.style.display = "block";
         };
-        MinemapMap.prototype.onHideTitle = function (graphic) {
-            this.titleMarker.getElement().style.display = "none";
+        MinemapMap.prototype.onHideTooltip = function (graphic) {
+            this.tooltipElement.style.display = "none";
         };
         MinemapMap.prototype.onCreateContextMenu = function (args) {
             if (this.options.onCreateContextMenu) {
@@ -4036,6 +4036,7 @@ var flagwind;
             }
             var me = this;
             this.element.onmouseover = function (args) {
+                console.log("fire marker onMouseOver");
                 me.onCallBack("onMouseOver", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -4043,6 +4044,7 @@ var flagwind;
                 });
             };
             this.element.onmouseout = function (args) {
+                console.log("fire marker onMouseOut");
                 me.onCallBack("onMouseOut", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -4050,6 +4052,7 @@ var flagwind;
                 });
             };
             this.element.onmousedown = function (args) {
+                console.log("fire marker onMouseDown");
                 me.onCallBack("onMouseDown", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -4057,6 +4060,7 @@ var flagwind;
                 });
             };
             this.element.onmouseup = function (args) {
+                console.log("fire marker onMouseUp");
                 me.onCallBack("onMouseUp", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -4064,6 +4068,7 @@ var flagwind;
                 });
             };
             this.element.onclick = function (args) {
+                console.log("fire marker onClick");
                 me.onCallBack("onClick", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -4086,7 +4091,7 @@ var flagwind;
             configurable: true
         });
         MinemapMarker.prototype.onCallBack = function (eventName, arg) {
-            var callback = this.layer.getCallBack("onMouseOver");
+            var callback = this.layer.getCallBack(eventName);
             if (callback) {
                 callback(arg);
             }

@@ -201,8 +201,8 @@ declare namespace flagwind {
         abstract onCreateMap(): any;
         abstract onShowInfoWindow(options: any): void;
         abstract onCreateBaseLayers(): any;
-        abstract onShowTitle(graphic: any): void;
-        abstract onHideTitle(graphic: any): void;
+        abstract onShowTooltip(graphic: any): void;
+        abstract onHideTooltip(graphic: any): void;
         abstract onCreateContextMenu(options: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;
@@ -239,8 +239,8 @@ declare namespace flagwind {
         onCreateMap(): void;
         onShowInfoWindow(options: any): void;
         onCreateBaseLayers(): FlagwindTiledLayer[];
-        onShowTitle(graphic: any): void;
-        onHideTitle(graphic: any): void;
+        onShowTooltip(graphic: any): void;
+        onHideTooltip(graphic: any): void;
         onCreateContextMenu(options: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;
@@ -1467,8 +1467,8 @@ declare namespace flagwind {
          * 创建底图
          */
         onCreateBaseLayers(): FlagwindTiledLayer[];
-        onShowTitle(graphic: any): void;
-        onHideTitle(graphic: any): void;
+        onShowTooltip(graphic: any): void;
+        onHideTooltip(graphic: any): void;
         onCreateContextMenu(args: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;

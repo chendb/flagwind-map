@@ -214,6 +214,7 @@ namespace flagwind {
             }
             let me = this;
             this.element.onmouseover = function (args: any) {
+                console.log("fire marker onMouseOver");
                 me.onCallBack("onMouseOver", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -221,6 +222,7 @@ namespace flagwind {
                 });
             };
             this.element.onmouseout = function (args: any) {
+                console.log("fire marker onMouseOut");
                 me.onCallBack("onMouseOut", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -228,6 +230,7 @@ namespace flagwind {
                 });
             };
             this.element.onmousedown = function (args: any) {
+                console.log("fire marker onMouseDown");
                 me.onCallBack("onMouseDown", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -235,6 +238,7 @@ namespace flagwind {
                 });
             };
             this.element.onmouseup = function (args: any) {
+                console.log("fire marker onMouseUp");
                 me.onCallBack("onMouseUp", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -242,6 +246,7 @@ namespace flagwind {
                 });
             };
             this.element.onclick = function (args: any) {
+                console.log("fire marker onClick");
                 me.onCallBack("onClick", {
                     graphic: me,
                     mapPoint: me.geometry,
@@ -259,7 +264,7 @@ namespace flagwind {
         }
 
         public onCallBack(eventName: string, arg: any) {
-            let callback = this.layer.getCallBack("onMouseOver");
+            let callback = this.layer.getCallBack(eventName);
             if (callback) {
                 callback(arg);
             }

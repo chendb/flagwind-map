@@ -63,17 +63,10 @@ namespace flagwind {
             let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
 
-            let el = document.createElement("div");
-            el.id = "flagwind-map-title";
-
-            let titleDiv = (<any>this).titleDiv = document.createElement("div");
-            titleDiv.id = "flagwind-map-title";
-            titleDiv.classList.add("flagwind-map-title");
-
-            (<any>this).titleMarker = new minemap.Marker(titleDiv, { offset: [-25, -25] })
-                .setLngLat([116.46, 39.92])
-                .addTo(map);
-
+            let div = (<any>this).tooltipElement = document.createElement("div");
+            div.id = "flagwind-map-tooltip";
+            div.classList.add("flagwind-map-tooltip");
+            map._container.appendChild(div);
             this.innerMap = map;
 
             return map;
@@ -89,10 +82,10 @@ namespace flagwind {
                 this.innerMap.infoWindow = new minemap.Popup(params);
             }
             switch (options.type) {
-                case "dom": this.innerMap.infoWindow.setDOMContent(options.content || "");break;
-                case "html": this.innerMap.infoWindow.setHTML(options.content || "");break;
-                case "text": this.innerMap.infoWindow.setText(options.content || "");break;
-                default: this.innerMap.infoWindow.setHTML(options.content || "");break;
+                case "dom": this.innerMap.infoWindow.setDOMContent(options.content || ""); break;
+                case "html": this.innerMap.infoWindow.setHTML(options.content || ""); break;
+                case "text": this.innerMap.infoWindow.setText(options.content || ""); break;
+                default: this.innerMap.infoWindow.setHTML(options.content || ""); break;
             }
             this.innerMap.infoWindow.setLngLat([options.point.x, options.point.y]).addTo(this.innerMap);
         }
@@ -104,14 +97,19 @@ namespace flagwind {
             this.baseLayers = baseLayers;
             return baseLayers;
         }
-        public onShowTitle(graphic: any): void {
+        public onShowTooltip(graphic: any): void {
             let info = graphic.attributes;
-            let pt = new MinemapPoint(info.longitude, info.latitude, this.spatial);
-            (<any>this).titleMarker.setLngLat([pt.x, pt.y]);
-            (<any>this).titleMarker.getElement().style.display = "block";
+            let pt = graphic.geometry;
+            let screenpt = this.innerMap.project([pt.x, pt.y]);
+            let title = info.name;
+            (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
+            (<any>this).tooltipElement.style.left = (screenpt.x + 8) + "px";
+            (<any>this).tooltipElement.style.top = (screenpt.y + 8) + "px";
+            (<any>this).tooltipElement.style.display = "block";
+
         }
-        public onHideTitle(graphic: any): void {
-            (<any>this).titleMarker.getElement().style.display = "none";
+        public onHideTooltip(graphic: any): void {
+            (<any>this).tooltipElement.style.display = "none";
         }
         public onCreateContextMenu(args: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {
             if (this.options.onCreateContextMenu) {
