@@ -194,18 +194,183 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     /**
+     * 表示一个事件项。
+     * @internal
+     * @class
+     * @version 1.0.0
+     */
+    var EventEntry = /** @class */ (function () {
+        /**
+         * 初始化事件项的新实例。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 侦听函数。
+         * @param  {any} scope 侦听函数中的 this 对象。
+         * @param  {boolean} scope 是否为仅回掉一次。
+         */
+        function EventEntry(type, listener, scope, once) {
+            this.type = type;
+            this.listener = listener;
+            this.scope = scope;
+            this.once = once;
+        }
+        return EventEntry;
+    }());
+    /**
+     * 事件提供程序类。
+     * @description 用于添加或删除事件侦听器的方法，检查是否已注册特定类型的事件侦听器，并调度事件。
+     * @class
+     * @version 1.0.0
+     */
+    var EventProvider = /** @class */ (function () {
+        /**
+         * 初始化事件提供程序的新实例。
+         * @param  {any} source? 事件源实例。
+         */
+        function EventProvider(source) {
+            // 保存事件源对象
+            this._source = source || this;
+            // 初始化事件字典
+            this._events = new flagwind.Map();
+        }
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        EventProvider.prototype.addListener = function (type, listener, scope, once) {
+            if (scope === void 0) { scope = this; }
+            if (once === void 0) { once = false; }
+            if (!type || !listener) {
+                throw new flagwind.ArgumentException();
+            }
+            var entries = this._events.get(type);
+            if (!entries) {
+                entries = new Array();
+                this._events.set(type, entries);
+            }
+            for (var _i = 0, entries_1 = entries; _i < entries_1.length; _i++) {
+                var entry = entries_1[_i];
+                // 防止添加重复的侦听函数
+                if (entry.listener === listener && entry.scope === scope) {
+                    return;
+                }
+            }
+            entries.push(new EventEntry(type, listener, scope, once));
+        };
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        EventProvider.prototype.removeListener = function (type, listener, scope) {
+            if (scope === void 0) { scope = this; }
+            if (!type || !listener) {
+                throw new flagwind.ArgumentException();
+            }
+            var entries = this._events.get(type);
+            if (!entries) {
+                return;
+            }
+            for (var i = 0, len = entries.length; i < len; i++) {
+                var entry = entries[i];
+                if (entry.listener === listener && entry.scope === scope) {
+                    entries.splice(i, 1);
+                    break;
+                }
+            }
+            // 如果事件项为空，则需要释放资源
+            if (entries.length === 0) {
+                this._events.delete(type);
+            }
+        };
+        /**
+         * 检查是否为特定事件类型注册了侦听器。
+         * @param  {string} type 事件类型。
+         * @returns boolean 如果指定类型的侦听器已注册，则值为 true；否则，值为 false。
+         */
+        EventProvider.prototype.hasListener = function (type) {
+            var entries = this._events.get(type);
+            return !!entries && entries.length > 0;
+        };
+        EventProvider.prototype.dispatchEvent = function () {
+            var params = arguments, args;
+            switch (params.length) {
+                // 重载匹配: 
+                // dispatchEvent(args: EventArgs): void;
+                // dispatchEvent(type: string): void;
+                case 1:
+                    {
+                        if (params[0] instanceof flagwind.EventArgs) {
+                            // 参数匹配: args: EventArgs
+                            args = params[0];
+                        }
+                        else if (flagwind.Type.isString(params[0])) {
+                            // 参数匹配: type: string
+                            args = new flagwind.EventArgs(params[0]);
+                        }
+                        break;
+                    }
+                // 重载匹配:
+                // dispatchEvent(type: string, data: any): void;
+                case 2:
+                    {
+                        // 参数匹配: type: string, data: any
+                        args = new flagwind.EventArgs(params[0], params[1]);
+                        break;
+                    }
+            }
+            // 设置事件源
+            args.source = this._source;
+            // 根据事件类型获取所有事件项
+            var entries = this._events.get(args.type);
+            if (!entries || entries.length === 0) {
+                return;
+            }
+            // 临时数组用于保存只回掉一次的事件项
+            var onces = new Array();
+            for (var _i = 0, entries_2 = entries; _i < entries_2.length; _i++) {
+                var entry = entries_2[_i];
+                entry.listener.call(entry.scope, args);
+                if (entry.once) {
+                    onces.push(entry);
+                }
+            }
+            // 清除所有只回调一次的事件项
+            while (onces.length) {
+                var entry = onces.pop();
+                this.removeListener(entry.type, entry.listener, entry.scope);
+            }
+        };
+        return EventProvider;
+    }());
+    flagwind.EventProvider = EventProvider;
+})(flagwind || (flagwind = {}));
+/// <reference path="../events/EventProvider" />
+var flagwind;
+(function (flagwind) {
+    /**
      * 功能图层包装类
      *
      * @export
      * @class FlagwindFeatureLayer
      */
-    var FlagwindFeatureLayer = /** @class */ (function () {
+    var FlagwindFeatureLayer = /** @class */ (function (_super) {
+        __extends(FlagwindFeatureLayer, _super);
         function FlagwindFeatureLayer(id, title) {
-            this.id = id;
-            this.title = title;
-            this.isShow = true;
-            this.id = id;
-            this.layer = this.onCreateGraphicsLayer({ id: id });
+            var _this = _super.call(this) || this;
+            _this.id = id;
+            _this.title = title;
+            _this.isShow = true;
+            _this.id = id;
+            _this.layer = _this.onCreateGraphicsLayer({ id: id });
+            return _this;
         }
         Object.defineProperty(FlagwindFeatureLayer.prototype, "graphics", {
             get: function () {
@@ -270,8 +435,34 @@ var flagwind;
                 this.layer.remove(graphic);
             }
         };
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        FlagwindFeatureLayer.prototype.on = function (type, listener, scope, once) {
+            if (scope === void 0) { scope = this; }
+            if (once === void 0) { once = false; }
+            this.addListener(type, listener, scope, once);
+        };
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        FlagwindFeatureLayer.prototype.off = function (type, listener, scope) {
+            if (scope === void 0) { scope = this; }
+            this.removeListener(type, listener, scope);
+        };
         return FlagwindFeatureLayer;
-    }());
+    }(flagwind.EventProvider));
     flagwind.FlagwindFeatureLayer = FlagwindFeatureLayer;
 })(flagwind || (flagwind = {}));
 /// <reference path="../base/flagwind-feature.layer.ts" />
@@ -461,11 +652,14 @@ var flagwind;
      * @export
      * @class FlagwindGroupLayer
      */
-    var FlagwindGroupLayer = /** @class */ (function () {
+    var FlagwindGroupLayer = /** @class */ (function (_super) {
+        __extends(FlagwindGroupLayer, _super);
         function FlagwindGroupLayer(options) {
-            this.options = options;
-            this.isShow = true;
-            this.layer = this.onCreateGraphicsLayer(options);
+            var _this = _super.call(this) || this;
+            _this.options = options;
+            _this.isShow = true;
+            _this.layer = _this.onCreateGraphicsLayer(options);
+            return _this;
         }
         Object.defineProperty(FlagwindGroupLayer.prototype, "graphics", {
             get: function () {
@@ -562,8 +756,34 @@ var flagwind;
                 });
             }
         };
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        FlagwindGroupLayer.prototype.on = function (type, listener, scope, once) {
+            if (scope === void 0) { scope = this; }
+            if (once === void 0) { once = false; }
+            this.addListener(type, listener, scope, once);
+        };
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        FlagwindGroupLayer.prototype.off = function (type, listener, scope) {
+            if (scope === void 0) { scope = this; }
+            this.removeListener(type, listener, scope);
+        };
         return FlagwindGroupLayer;
-    }());
+    }(flagwind.EventProvider));
     flagwind.FlagwindGroupLayer = FlagwindGroupLayer;
 })(flagwind || (flagwind = {}));
 /// <reference path="../base/flagwind-group.layer.ts" />
@@ -588,6 +808,7 @@ var flagwind;
     }(flagwind.FlagwindGroupLayer));
     flagwind.EsriGroupLayer = EsriGroupLayer;
 })(flagwind || (flagwind = {}));
+/// <reference path="../events/EventProvider" />
 var flagwind;
 (function (flagwind) {
     // tslint:disable-next-line:variable-name
@@ -605,31 +826,34 @@ var flagwind;
             console.log("onCreateContextMenu");
         }
     };
-    var FlagwindMap = /** @class */ (function () {
+    var FlagwindMap = /** @class */ (function (_super) {
+        __extends(FlagwindMap, _super);
         function FlagwindMap(mapSetting, mapEl, options) {
-            this.mapSetting = mapSetting;
-            this.mapEl = mapEl;
-            this.featureLayers = [];
-            this.baseLayers = [];
-            this.loaded = false;
-            this.options = __assign({}, flagwind.MAP_OPTIONS, options);
+            var _this = _super.call(this) || this;
+            _this.mapSetting = mapSetting;
+            _this.mapEl = mapEl;
+            _this.featureLayers = [];
+            _this.baseLayers = [];
+            _this.loaded = false;
+            _this.options = __assign({}, flagwind.MAP_OPTIONS, options);
+            return _this;
         }
         FlagwindMap.prototype.onInit = function () {
             this.onCreateMap();
             this.onCreateBaseLayers();
-            var _this = this;
-            _this.onAddEventListener("onLoad", function () {
+            var me = this;
+            me.on("onLoad", function () {
                 try {
-                    _this.loaded = true;
-                    _this.goToCenter();
-                    _this.onMapLoad();
+                    me.loaded = true;
+                    me.goToCenter();
+                    me.onMapLoad();
                 }
                 catch (ex) {
                     console.error(ex);
                 }
             });
-            _this.onAddEventListener("zoom-end", function (evt) {
-                _this.onMapZoomEnd(evt);
+            me.on("onZoomEnd", function (evt) {
+                me.onMapZoomEnd(evt.data);
             });
         };
         FlagwindMap.prototype.onFormPoint = function (point) {
@@ -697,6 +921,32 @@ var flagwind;
                 x: lnglat.lon, y: lnglat.lat, spatial: this.spatial
             });
         };
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        FlagwindMap.prototype.on = function (type, listener, scope, once) {
+            if (scope === void 0) { scope = this; }
+            if (once === void 0) { once = false; }
+            this.addListener(type, listener, scope, once);
+        };
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        FlagwindMap.prototype.off = function (type, listener, scope) {
+            if (scope === void 0) { scope = this; }
+            this.removeListener(type, listener, scope);
+        };
         FlagwindMap.prototype.goToCenter = function () {
             if (this.mapSetting.center && this.mapSetting.center.length === 2) {
                 var pt = this.getPoint({
@@ -745,8 +995,8 @@ var flagwind;
                 this.options.onMapLoad();
             }
             var me = this;
-            this.onAddEventListener("click", function (evt) {
-                me.options.onMapClick(evt);
+            this.on("click", function (evt) {
+                me.options.onMapClick(evt.data);
             });
         };
         FlagwindMap.prototype.showBaseLayer = function (id) {
@@ -790,7 +1040,7 @@ var flagwind;
             this.options.onMapZoomEnd(evt.level);
         };
         return FlagwindMap;
-    }());
+    }(flagwind.EventProvider));
     flagwind.FlagwindMap = FlagwindMap;
 })(flagwind || (flagwind = {}));
 /// <reference path="../base/flagwind.map.ts" />
@@ -852,6 +1102,65 @@ var flagwind;
             var div = this.tooltipElement = document.createElement("div");
             div.classList.add("flagwind-map-tooltip");
             this.innerMap.root.parentElement.appendChild(div);
+            var me = this;
+            // #region click event
+            map.on("click", function (args) {
+                me.dispatchEvent("onClick", args);
+            });
+            map.on("dbl-click", function (args) {
+                me.dispatchEvent("onDbClick", args);
+            });
+            // #endregion
+            // #region mouse event
+            map.on("mouse-out", function (args) {
+                me.dispatchEvent("onMouseOut", args);
+            });
+            map.on("mouse-over", function (args) {
+                me.dispatchEvent("onMouseOver", args);
+            });
+            map.on("mouse-move", function (args) {
+                me.dispatchEvent("onMouseMove", args);
+            });
+            map.on("mouse-wheel", function (args) {
+                me.dispatchEvent("onMouseWheel", args);
+            });
+            // #endregion
+            // #region zoom event
+            map.on("zoom", function (args) {
+                me.dispatchEvent("onZoom", args);
+            });
+            map.on("zoom-start", function (args) {
+                me.dispatchEvent("onZoomStart", args);
+            });
+            map.on("zoom-end", function (args) {
+                me.dispatchEvent("onZoomEnd", args);
+            });
+            // #endregion
+            // #region pan event
+            map.on("pan", function (args) {
+                me.dispatchEvent("onPan", args);
+            });
+            map.on("pan-start", function (args) {
+                me.dispatchEvent("onPanStart", args);
+            });
+            map.on("pan-end", function (args) {
+                me.dispatchEvent("onPanEnd", args);
+            });
+            // #endregion
+            // #region update event
+            map.on("update-start", function (args) {
+                me.dispatchEvent("onUpdateStart", args);
+            });
+            map.on("update-end", function (args) {
+                me.dispatchEvent("onUpdateEnd", args);
+            });
+            // #endregion 
+            map.on("extent-change", function (args) {
+                me.dispatchEvent("onExtentChange", args);
+            });
+            map.on("resize", function (args) {
+                me.dispatchEvent("onResize", args);
+            });
         };
         EsriMap.prototype.onShowInfoWindow = function (options) {
             throw new Error("Method not implemented.");
@@ -1083,9 +1392,9 @@ var flagwind;
                 me.onLoad();
             }
             else {
-                this.flagwindMap.onAddEventListener("load", function () {
+                this.flagwindMap.on("load", function () {
                     me.onLoad();
-                });
+                }, this);
             }
         }
         Object.defineProperty(FlagwindRouteLayer.prototype, "spatial", {
@@ -1466,11 +1775,11 @@ var flagwind;
         };
         FlagwindRouteLayer.prototype.onLoad = function () {
             var me = this;
-            this.onAddEventListener(this.moveMarkLayer, "onClick", function (evt) {
+            this.moveMarkLayer.on("onClick", function (evt) {
                 if (me.options.onMovingClick) {
                     me.options.onMovingClick(evt);
                 }
-            });
+            }, this);
         };
         return FlagwindRouteLayer;
     }());
@@ -1731,11 +2040,12 @@ var flagwind;
             }
             else {
                 var me_2 = this;
-                this.flagwindMap.onAddEventListener("load", function () {
+                this.flagwindMap.on("load", function () {
                     me_2.onLoad();
                 });
             }
         };
+        // public abstract onAddEventListener(eventName: string, callback: Function): void;
         FlagwindBusinessLayer.prototype.onAddLayerBefor = function () {
             console.log("onAddLayerBefor");
         };
@@ -1875,15 +2185,15 @@ var flagwind;
         };
         FlagwindBusinessLayer.prototype.registerEvent = function () {
             var _deviceLayer = this;
-            this.onAddEventListener("onCliick", function (evt) {
-                _deviceLayer.onLayerClick(_deviceLayer, evt);
+            this.on("onCliick", function (evt) {
+                _deviceLayer.onLayerClick(_deviceLayer, evt.data);
             });
             if (this.options.showTooltipOnHover) {
-                this.onAddEventListener("onMouseOver", function (evt) {
-                    _deviceLayer.flagwindMap.onShowTooltip(evt.graphic);
+                this.on("onMouseOver", function (evt) {
+                    _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
                 });
-                this.onAddEventListener("onMouseOut", function (evt) {
-                    _deviceLayer.flagwindMap.onHideTooltip(evt.graphic);
+                this.on("onMouseOut", function (evt) {
+                    _deviceLayer.flagwindMap.onHideTooltip(evt.data.graphic);
                 });
             }
         };
@@ -1941,7 +2251,7 @@ var flagwind;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
-    flagwind.locationLayerOptions = {
+    flagwind.LOCATION_LAYER_OPTIONS = {
         onMapClick: function (evt) {
             console.log("onMapClick");
         }
@@ -3174,6 +3484,182 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     /**
+     * EventArgs 类作为创建事件参数的基类，当发生事件时，EventArgs 实例将作为参数传递给事件侦听器。
+     * @class
+     * @version 1.0.0
+     */
+    var EventArgs = /** @class */ (function () {
+        /**
+         * 初始化 EventArgs 类的新实例。
+         * @constructor
+         * @param  {string} type 事件类型。
+         * @param  {any?} data 可选数据。
+         */
+        function EventArgs(type, data) {
+            if (!type) {
+                throw new flagwind.ArgumentException();
+            }
+            this._type = type;
+            this._data = data;
+        }
+        Object.defineProperty(EventArgs.prototype, "type", {
+            /**
+             * 获取一个字符串值，表示事件的类型。
+             * @property
+             * @returns string
+             */
+            get: function () {
+                return this._type;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(EventArgs.prototype, "source", {
+            /**
+             * 获取或设置事件源对象。
+             * @property
+             * @returns any
+             */
+            get: function () {
+                return this._source;
+            },
+            set: function (value) {
+                if (!value) {
+                    throw new flagwind.ArgumentException();
+                }
+                this._source = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(EventArgs.prototype, "data", {
+            /**
+             * 获取或设置与事件关联的可选数据。
+             * @property
+             * @returns any
+             */
+            get: function () {
+                return this._data;
+            },
+            set: function (value) {
+                this._data = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return EventArgs;
+    }());
+    flagwind.EventArgs = EventArgs;
+})(flagwind || (flagwind = {}));
+/// <reference path="./EventArgs" />
+var flagwind;
+(function (flagwind) {
+    /**
+     * 为可取消的事件提供数据。
+     * @class
+     * @version 1.0.0
+     */
+    var CancelEventArgs = /** @class */ (function (_super) {
+        __extends(CancelEventArgs, _super);
+        function CancelEventArgs() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this._cancel = false;
+            return _this;
+        }
+        Object.defineProperty(CancelEventArgs.prototype, "cancel", {
+            /**
+             * 获取或设置指示是否应取消事件。
+             * @property
+             * @returns boolean
+             */
+            get: function () {
+                return this._cancel;
+            },
+            set: function (value) {
+                this._cancel = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return CancelEventArgs;
+    }(flagwind.EventArgs));
+    flagwind.CancelEventArgs = CancelEventArgs;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
+    /**
+     * 提供关于事件提供程序的功能。
+     * @class
+     * @version 1.0.0
+     */
+    var EventProviderFactory = /** @class */ (function () {
+        /**
+         * 初始化事件提供程序工厂的新实例。
+         * @constructor
+         */
+        function EventProviderFactory() {
+            this._providers = new flagwind.Map();
+        }
+        Object.defineProperty(EventProviderFactory.prototype, "providers", {
+            /**
+             * 获取所有事件提供程序。
+             * @property
+             * @returns IMap<any, IEventProvider>
+             */
+            get: function () {
+                return this._providers;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(EventProviderFactory, "instance", {
+            /**
+             * 获取事件提供程序工厂的单实例。
+             * @static
+             * @property
+             * @returns EventProviderFactory
+             */
+            get: function () {
+                if (!this._instance) {
+                    this._instance = new EventProviderFactory();
+                }
+                return this._instance;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 获取指定事件源的事件提供程序。
+         * @param  {any} source IEventProvider 所抛出事件对象的源对象。
+         * @returns IEventProdiver 返回指定名称的事件提供程序。
+         */
+        EventProviderFactory.prototype.getProvider = function (source) {
+            if (!source) {
+                throw new flagwind.ArgumentException();
+            }
+            var provider = this._providers.get(source);
+            if (!provider) {
+                provider = this.createProvider(source);
+                this._providers.set(source, provider);
+            }
+            return provider;
+        };
+        /**
+         * 根据指定事件源创建一个事件提供程序。
+         * @virtual
+         * @param  {any} source IEventProvider 所抛出事件对象的源对象。
+         * @returns IEventProvider 事件提供程序实例。
+         */
+        EventProviderFactory.prototype.createProvider = function (source) {
+            return new flagwind.EventProvider(source);
+        };
+        return EventProviderFactory;
+    }());
+    flagwind.EventProviderFactory = EventProviderFactory;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
+    /**
      * 表示在应用程序执行期间发生的错误。
      * @class
      * @version 1.0.0
@@ -3324,6 +3810,18 @@ var flagwind;
         function MinemapGroupLayer() {
             return _super !== null && _super.apply(this, arguments) || this;
         }
+        MinemapGroupLayer.prototype.addListener = function (type, listener, scope, once) {
+            this.layer.addListener(type, listener, scope, once);
+        };
+        MinemapGroupLayer.prototype.removeListener = function (type, listener, scope) {
+            this.layer.removeListener(type, listener, scope);
+        };
+        MinemapGroupLayer.prototype.hasListener = function (type) {
+            return this.layer.hasListener(type);
+        };
+        MinemapGroupLayer.prototype.dispatchEvent = function (type, data) {
+            return this.layer.dispatchEvent(type, data);
+        };
         MinemapGroupLayer.prototype.onCreateGraphicsLayer = function (options) {
             if (options.kind === "marker") {
                 return new flagwind.MinemapMarkerLayer(options);
@@ -3423,9 +3921,734 @@ var flagwind;
     }());
     flagwind.MinemapHotmapLayer = MinemapHotmapLayer;
 })(flagwind || (flagwind = {}));
+/// <reference path="../events/EventProvider" />
 var flagwind;
 (function (flagwind) {
-    var MINEMAP_MAP_EVENTS_MAP = flagwind.Map.of(["onLoad", "load"]);
+    /**
+     * 几何对象
+     */
+    var MinemapGeometry = /** @class */ (function () {
+        function MinemapGeometry(type, spatial) {
+            this.type = type;
+            this.spatial = spatial;
+        }
+        return MinemapGeometry;
+    }());
+    flagwind.MinemapGeometry = MinemapGeometry;
+    /**
+     * 线
+     */
+    var MinemapPolyline = /** @class */ (function (_super) {
+        __extends(MinemapPolyline, _super);
+        function MinemapPolyline(spatial) {
+            if (spatial === void 0) { spatial = null; }
+            var _this = _super.call(this, "Polyline", spatial) || this;
+            _this.path = [];
+            return _this;
+        }
+        MinemapPolyline.prototype.getPoint = function (pointIndex) {
+            return this.path[pointIndex];
+        };
+        MinemapPolyline.prototype.insertPoint = function (pointIndex, point) {
+            this.path.splice(pointIndex, 0, point);
+        };
+        MinemapPolyline.prototype.removePoint = function (pointIndex) {
+            this.path.splice(pointIndex, 1);
+        };
+        MinemapPolyline.prototype.toJson = function () {
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes || {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": this.path
+                    }
+                }
+            };
+        };
+        return MinemapPolyline;
+    }(MinemapGeometry));
+    flagwind.MinemapPolyline = MinemapPolyline;
+    /**
+     * 面
+     */
+    var MinemapPolygon = /** @class */ (function (_super) {
+        __extends(MinemapPolygon, _super);
+        function MinemapPolygon(spatial) {
+            if (spatial === void 0) { spatial = null; }
+            var _this = _super.call(this, "Line", spatial) || this;
+            _this.rings = [];
+            return _this;
+        }
+        MinemapPolygon.prototype.addRing = function (path) {
+            this.rings.push(path);
+        };
+        MinemapPolygon.prototype.removeRing = function (ringIndex) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings = this.rings.splice(ringIndex, 1);
+        };
+        MinemapPolygon.prototype.getPoint = function (ringIndex, pointIndex) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            return this.rings[ringIndex][pointIndex];
+        };
+        MinemapPolygon.prototype.insertPoint = function (ringIndex, pointIndex, point) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings[ringIndex].splice(pointIndex, 0, point);
+        };
+        MinemapPolygon.prototype.removePoint = function (ringIndex, pointIndex) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings[ringIndex].splice(pointIndex, 1);
+        };
+        MinemapPolygon.prototype.toJson = function () {
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes || {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": this.rings
+                    }
+                }
+            };
+        };
+        return MinemapPolygon;
+    }(MinemapGeometry));
+    flagwind.MinemapPolygon = MinemapPolygon;
+    /**
+     * 坐标点
+     */
+    var MinemapPoint = /** @class */ (function (_super) {
+        __extends(MinemapPoint, _super);
+        function MinemapPoint(x, y, spatial) {
+            if (spatial === void 0) { spatial = null; }
+            var _this = _super.call(this, "Point", spatial) || this;
+            _this.x = x;
+            _this.y = y;
+            _this.spatial = spatial;
+            return _this;
+        }
+        MinemapPoint.prototype.toJson = function () {
+            return {
+                "type": "Feature",
+                "properties": this.attributes || {},
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [this.x, this.y]
+                }
+            };
+        };
+        return MinemapPoint;
+    }(MinemapGeometry));
+    flagwind.MinemapPoint = MinemapPoint;
+    /**
+     * 空间投影
+     */
+    var MinemapSpatial = /** @class */ (function () {
+        function MinemapSpatial(wkid) {
+            this.wkid = wkid;
+        }
+        return MinemapSpatial;
+    }());
+    flagwind.MinemapSpatial = MinemapSpatial;
+    var MinemapMarker = /** @class */ (function (_super) {
+        __extends(MinemapMarker, _super);
+        function MinemapMarker(options) {
+            var _this = _super.call(this) || this;
+            _this._kind = "marker";
+            /**
+             * 是否在地图上
+             */
+            _this._isInsided = false;
+            _this.isShow = true;
+            _this.EVENTS_MAP = new flagwind.Map();
+            _this.id = options.id;
+            _this.element = document.createElement("div");
+            _this.element.id = _this.id;
+            _this.symbol = options.symbol;
+            _this.attributes = options.attributes;
+            if (options.symbol && options.symbol.className) {
+                _this.element.classList = [options.symbol.className];
+            }
+            _this.marker = new minemap.Marker(_this.element, { offset: [-25, -25] });
+            if (options.point) {
+                _this.geometry = new MinemapPoint(options.point.x, options.point.y);
+            }
+            if (options.geometry) {
+                _this.geometry = options.geometry;
+            }
+            var me = _this;
+            _this.element.onmouseover = function (args) {
+                console.log("fire marker onMouseOver");
+                me.fireEvent("onMouseOver", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
+            };
+            _this.element.onmouseout = function (args) {
+                console.log("fire marker onMouseOut");
+                me.fireEvent("onMouseOut", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
+            };
+            _this.element.onmousedown = function (args) {
+                console.log("fire marker onMouseDown");
+                me.fireEvent("onMouseDown", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
+            };
+            _this.element.onmouseup = function (args) {
+                console.log("fire marker onMouseUp");
+                me.fireEvent("onMouseUp", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
+            };
+            _this.element.onclick = function (args) {
+                console.log("fire marker onClick");
+                me.fireEvent("onClick", {
+                    graphic: me,
+                    mapPoint: me.geometry,
+                    orgion: args
+                });
+            };
+            return _this;
+        }
+        /**
+         * 复制节点
+         * @param id 元素ID
+         */
+        MinemapMarker.prototype.clone = function (id) {
+            var m = new MinemapMarker({
+                id: id,
+                symbol: this.symbol,
+                attributes: this.attributes,
+                point: this.geometry
+            });
+            return m;
+        };
+        Object.defineProperty(MinemapMarker.prototype, "kind", {
+            get: function () {
+                return this._kind;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MinemapMarker.prototype, "isInsided", {
+            get: function () {
+                return this._isInsided;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        MinemapMarker.prototype.on = function (type, listener, scope, once) {
+            if (scope === void 0) { scope = this; }
+            if (once === void 0) { once = false; }
+            this.addListener(type, listener, scope, once);
+        };
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        MinemapMarker.prototype.off = function (type, listener, scope) {
+            if (scope === void 0) { scope = this; }
+            this.removeListener(type, listener, scope);
+        };
+        // public onCallBack(eventName: string, arg: any) {
+        //     let call = this.EVENTS_MAP.get(eventName);
+        //     if (call) {
+        //         call(arg);
+        //     }
+        //     if (!this.layer) { return; }
+        //     let callback = this.layer.getCallBack(eventName);
+        //     if (callback) {
+        //         callback(arg);
+        //     }
+        // }
+        MinemapMarker.prototype.show = function () {
+            if (!this.layer) {
+                throw new flagwind.Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
+            }
+            this.marker.addTo(this.layer.map);
+            this.isShow = false;
+        };
+        MinemapMarker.prototype.hide = function () {
+            this.marker.remove();
+            this.isShow = false;
+        };
+        MinemapMarker.prototype.remove = function () {
+            if (this._isInsided) {
+                this.marker.remove();
+                this._isInsided = false;
+            }
+        };
+        MinemapMarker.prototype.delete = function () {
+            if (this._isInsided) {
+                this.marker.remove();
+                this._isInsided = false;
+            }
+            if (this.layer) {
+                this.layer.remove(this);
+            }
+        };
+        MinemapMarker.prototype.setAngle = function (angle) {
+            this.element.style.transform = "rotate(" + angle + "deg)";
+            this.element.style["-ms-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-moz-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-webkit-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-o-transform"] = "rotate(" + angle + "deg)";
+        };
+        MinemapMarker.prototype.setSymbol = function (symbol) {
+            if (this.symbol && this.symbol.className) {
+                this.element.classList.remove(this.symbol.className);
+            }
+            if (symbol.className) {
+                this.element.classList.push(symbol.className);
+            }
+        };
+        MinemapMarker.prototype.draw = function () {
+            console.log("draw");
+        };
+        Object.defineProperty(MinemapMarker.prototype, "geometry", {
+            get: function () {
+                return this._geometry;
+            },
+            set: function (geometry) {
+                this._geometry = geometry;
+                this.marker.setLngLat([geometry.x, geometry.y]);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapMarker.prototype.setGeometry = function (value) {
+            if (value instanceof MinemapPoint) {
+                this.geometry = value;
+            }
+            else {
+                throw new Error("不匹配类型");
+            }
+        };
+        MinemapMarker.prototype.addTo = function (map) {
+            this._isInsided = true;
+            this.marker.addTo(map);
+        };
+        MinemapMarker.prototype.fireEvent = function (type, data) {
+            this.dispatchEvent(type, data);
+            if (this.layer) {
+                this.layer.dispatchEvent(type, data);
+            }
+        };
+        return MinemapMarker;
+    }(flagwind.EventProvider));
+    flagwind.MinemapMarker = MinemapMarker;
+    var MinemapGeoJson = /** @class */ (function () {
+        function MinemapGeoJson(layer, options) {
+            this.layer = layer;
+            this._kind = "geojson";
+            /**
+             * 是否在地图上
+             */
+            this._isInsided = false;
+            this.isShow = true;
+            this.attributes = {};
+            if (options && options.id) {
+                this.id = options.id;
+            }
+            if (options && options.type) {
+                this.type = options.type;
+            }
+            if (options && options.paint) {
+                this.paint = options.paint;
+            }
+            if (options && options.layout) {
+                this.layout = options.layout;
+            }
+            if (options && options.attributes) {
+                this.attributes = options.attributes;
+            }
+            if (options && options.geometry) {
+                if (options.geometry instanceof MinemapGeometry) {
+                    this.geometry = options.geometry;
+                }
+                else {
+                    throw new flagwind.Exception("geometry 类型不正确");
+                }
+            }
+            if (options && options.symbol) {
+                if (options.symbol.layout) {
+                    this.layout = options.symbol.layout;
+                }
+                if (options.symbol.paint) {
+                    this.layout = options.symbol.paint;
+                }
+            }
+        }
+        Object.defineProperty(MinemapGeoJson.prototype, "kind", {
+            get: function () {
+                return this._kind;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MinemapGeoJson.prototype, "isInsided", {
+            get: function () {
+                return this._isInsided;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapGeoJson.prototype.show = function () {
+            if (!this.isShow) {
+                this.addLayer(this.layer.map);
+                this.isShow = true;
+            }
+        };
+        MinemapGeoJson.prototype.hide = function () {
+            this.layer.map.removeLayer(this.id);
+            this.isShow = false;
+        };
+        MinemapGeoJson.prototype.remove = function () {
+            this.layer.map.removeLayer(this.id);
+        };
+        MinemapGeoJson.prototype.delete = function () {
+            if (this.isInsided) {
+                this.layer.map.removeLayer(this.id);
+                this._isInsided = false;
+                this.layer.remove(this);
+            }
+        };
+        MinemapGeoJson.prototype.setSymbol = function (symbol) {
+            if (symbol && symbol.paint) {
+                this.paint = symbol.paint;
+            }
+            if (symbol && symbol.layout) {
+                this.layout = symbol.layout;
+            }
+        };
+        Object.defineProperty(MinemapGeoJson.prototype, "geometry", {
+            get: function () {
+                return this._geometry;
+            },
+            set: function (value) {
+                this._geometry = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapGeoJson.prototype.setGeometry = function (value) {
+            if (value instanceof MinemapGeoJson) {
+                this.geometry = value;
+            }
+        };
+        MinemapGeoJson.prototype.addTo = function (map) {
+            if (!map)
+                return;
+            if (!this.id) {
+                throw new flagwind.Exception("没有指定id，无法添加");
+            }
+            if (!this.geometry) {
+                throw new flagwind.Exception("没有指定geometry，无法添加");
+            }
+            var json = this.geometry.toJson();
+            console.log(json);
+            map.addSource(this.id + "_source", json);
+        };
+        MinemapGeoJson.prototype.addLayer = function (map) {
+            var layerJson = {
+                id: this.id,
+                source: this.id + "_source",
+                type: this.type,
+                paint: this.paint,
+                layout: this.layout
+            };
+            map.addLayer(layerJson);
+        };
+        return MinemapGeoJson;
+    }());
+    flagwind.MinemapGeoJson = MinemapGeoJson;
+    var MinemapMarkerLayer = /** @class */ (function (_super) {
+        __extends(MinemapMarkerLayer, _super);
+        function MinemapMarkerLayer(options) {
+            var _this = _super.call(this) || this;
+            _this.options = options;
+            _this.GRAPHICS_MAP = new flagwind.Map();
+            // private EVENTS_MAP: Map<string, Function> = new Map<string, Function>();
+            /**
+             * 是否在地图上
+             */
+            _this._isInsided = false;
+            _this.id = options.id;
+            return _this;
+        }
+        Object.defineProperty(MinemapMarkerLayer.prototype, "isInsided", {
+            get: function () {
+                return this._isInsided;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MinemapMarkerLayer.prototype, "graphics", {
+            get: function () {
+                if (this.GRAPHICS_MAP.size === 0) {
+                    return new Array();
+                }
+                else {
+                    return this.GRAPHICS_MAP.values();
+                }
+            },
+            enumerable: true,
+            configurable: true
+        });
+        // public getCallBack(eventName: string): Function {
+        //     return this.EVENTS_MAP.get(eventName);
+        // }
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        MinemapMarkerLayer.prototype.on = function (type, listener, scope, once) {
+            if (scope === void 0) { scope = this; }
+            if (once === void 0) { once = false; }
+            this.addListener(type, listener, scope, once);
+        };
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        MinemapMarkerLayer.prototype.off = function (type, listener, scope) {
+            if (scope === void 0) { scope = this; }
+            this.removeListener(type, listener, scope);
+        };
+        // public on(eventName: string, callBack: Function) {
+        //     this.EVENTS_MAP.set(eventName, callBack);
+        // }
+        MinemapMarkerLayer.prototype.show = function () {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                if (!g.value.isShow) {
+                    g.value.show();
+                }
+            });
+        };
+        MinemapMarkerLayer.prototype.hide = function () {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                if (g.value.isShow) {
+                    g.value.hide();
+                }
+            });
+        };
+        MinemapMarkerLayer.prototype.remove = function (graphic) {
+            this.GRAPHICS_MAP.delete(graphic.id);
+            if (graphic.isInsided) {
+                graphic.delete();
+            }
+        };
+        MinemapMarkerLayer.prototype.clear = function () {
+            this.GRAPHICS_MAP.forEach(function (g) { return g.value.remove(); });
+            this.GRAPHICS_MAP.clear();
+        };
+        MinemapMarkerLayer.prototype.add = function (graphic) {
+            this.GRAPHICS_MAP.set(graphic.id, graphic);
+            graphic.layer = this;
+            if (this.map) {
+                graphic.addTo(this.map);
+            }
+        };
+        MinemapMarkerLayer.prototype.addToMap = function (map) {
+            if (!this.map) {
+                this.GRAPHICS_MAP.forEach(function (g) {
+                    g.value.addTo(map);
+                });
+            }
+            this.map = map;
+            this._isInsided = true;
+        };
+        MinemapMarkerLayer.prototype.removeFromMap = function (map) {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                g.value.remove();
+            });
+            this._isInsided = false;
+        };
+        return MinemapMarkerLayer;
+    }(flagwind.EventProvider));
+    flagwind.MinemapMarkerLayer = MinemapMarkerLayer;
+    var MinemapGeoJsonLayer = /** @class */ (function (_super) {
+        __extends(MinemapGeoJsonLayer, _super);
+        function MinemapGeoJsonLayer(options) {
+            var _this = _super.call(this) || this;
+            _this.options = options;
+            _this.GRAPHICS_MAP = new flagwind.Map();
+            /**
+             * 是否在地图上
+             */
+            _this._isInsided = false;
+            _this.id = options.id;
+            return _this;
+        }
+        Object.defineProperty(MinemapGeoJsonLayer.prototype, "isInsided", {
+            get: function () {
+                return this._isInsided;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(MinemapGeoJsonLayer.prototype, "graphics", {
+            get: function () {
+                return this.GRAPHICS_MAP.values();
+            },
+            enumerable: true,
+            configurable: true
+        });
+        MinemapGeoJsonLayer.prototype.show = function () {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                if (!g.value.isShow) {
+                    g.value.show();
+                }
+            });
+        };
+        MinemapGeoJsonLayer.prototype.hide = function () {
+            this.GRAPHICS_MAP.forEach(function (g) {
+                if (g.value.isShow) {
+                    g.value.hide();
+                }
+            });
+        };
+        MinemapGeoJsonLayer.prototype.remove = function (graphic) {
+            this.GRAPHICS_MAP.delete(graphic.id);
+            if (graphic.isInsided) {
+                graphic.delete();
+            }
+        };
+        MinemapGeoJsonLayer.prototype.clear = function () {
+            this.GRAPHICS_MAP.forEach(function (g) { return g.value.remove(); });
+            this.GRAPHICS_MAP.clear();
+        };
+        MinemapGeoJsonLayer.prototype.add = function (graphic) {
+            this.GRAPHICS_MAP.set(graphic.id, graphic);
+            if (this.map) {
+                graphic.addTo(this.map);
+                graphic.addLayer(this.map);
+            }
+        };
+        MinemapGeoJsonLayer.prototype.addToMap = function (map) {
+            if (!this.map) {
+                this.GRAPHICS_MAP.forEach(function (g) { return g.value.addLayer(map); });
+            }
+            this.map = map;
+            this._isInsided = true;
+        };
+        MinemapGeoJsonLayer.prototype.removeFromMap = function (map) {
+            this.GRAPHICS_MAP.forEach(function (g) { return g.value.delete(); });
+            this._isInsided = false;
+        };
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        MinemapGeoJsonLayer.prototype.on = function (type, listener, scope, once) {
+            if (scope === void 0) { scope = this; }
+            if (once === void 0) { once = false; }
+            this.addListener(type, listener, scope, once);
+        };
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        MinemapGeoJsonLayer.prototype.off = function (type, listener, scope) {
+            if (scope === void 0) { scope = this; }
+            this.removeListener(type, listener, scope);
+        };
+        return MinemapGeoJsonLayer;
+    }(flagwind.EventProvider));
+    flagwind.MinemapGeoJsonLayer = MinemapGeoJsonLayer;
+})(flagwind || (flagwind = {}));
+/// <reference path="./minemap.model.ts" />
+var flagwind;
+(function (flagwind) {
+    var MinemapLocationLayer = /** @class */ (function (_super) {
+        __extends(MinemapLocationLayer, _super);
+        function MinemapLocationLayer(flagwindMap, options) {
+            var _this = _super.call(this, options) || this;
+            _this.flagwindMap = flagwindMap;
+            _this.options = __assign({}, flagwind.LOCATION_LAYER_OPTIONS, _this.options);
+            _this.addToMap(flagwindMap.map);
+            _this.registerEvent();
+            return _this;
+        }
+        MinemapLocationLayer.prototype.registerEvent = function () {
+            var me = this;
+            this.flagwindMap.on("onClick", function (args) {
+                me.point = new flagwind.MinemapPoint(args.data.lngLat.lng, args.data.lngLat.lat);
+                me.locate();
+            }, this);
+        };
+        MinemapLocationLayer.prototype.locate = function () {
+            this.clear();
+            var marker = new flagwind.MinemapMarker({
+                id: "flagwind_map_location",
+                type: "Point",
+                geometry: this.point,
+                symbol: {
+                    className: "flagwind-map-location"
+                }
+            });
+            marker.element.innerHTML = "<div class='breathing'><div class='pulse'></div></div>";
+            this.add(marker);
+            this.options.onMapClick({ point: this.point });
+        };
+        return MinemapLocationLayer;
+    }(flagwind.MinemapMarkerLayer));
+    flagwind.MinemapLocationLayer = MinemapLocationLayer;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
+    // const MINEMAP_MAP_EVENTS_MAP: Map<string, string> = Map.of(["onLoad", "load"]);
     // MINEMAP_MAP_EVENTS_MAP.set("onLoad", "load");
     var MinemapMap = /** @class */ (function (_super) {
         __extends(MinemapMap, _super);
@@ -3436,15 +4659,15 @@ var flagwind;
             _this.onInit();
             return _this;
         }
-        /**
-         * 事件监听
-         * @param eventName 事件名称
-         * @param callBack 回调
-         */
-        MinemapMap.prototype.onAddEventListener = function (eventName, callBack) {
-            var en = MINEMAP_MAP_EVENTS_MAP.get(eventName) || eventName;
-            this.innerMap.on(en, callBack);
-        };
+        // /**
+        //  * 事件监听
+        //  * @param eventName 事件名称
+        //  * @param callBack 回调
+        //  */
+        // public onAddEventListener(eventName: string, callBack: Function): void {
+        //     let en = MINEMAP_MAP_EVENTS_MAP.get(eventName) || eventName;
+        //     this.innerMap.on(en, callBack);
+        // }
         /**
          * 中心定位
          * @param point 坐标点
@@ -3490,6 +4713,43 @@ var flagwind;
             div.classList.add("flagwind-map-tooltip");
             map._container.appendChild(div);
             this.innerMap = map;
+            var me = this;
+            map.on("load", function (args) {
+                me.dispatchEvent("onLoad", args);
+            });
+            // #region click event
+            map.on("click", function (args) {
+                me.dispatchEvent("onClick", args);
+            });
+            map.on("dbclick", function (args) {
+                me.dispatchEvent("onDbClick", args);
+            });
+            // #endregion
+            // #region mouse event
+            map.on("mouseout", function (args) {
+                me.dispatchEvent("onMouseOut", args);
+            });
+            map.on("mousedown", function (args) {
+                me.dispatchEvent("onMouseDown", args);
+            });
+            map.on("mousemove", function (args) {
+                me.dispatchEvent("onMouseMove", args);
+            });
+            map.on("mouseup", function (args) {
+                me.dispatchEvent("onMouseUp", args);
+            });
+            // #endregion
+            // #region move event
+            map.on("movestart", function (args) {
+                me.dispatchEvent("onMoveStart", args);
+            });
+            map.on("move", function (args) {
+                me.dispatchEvent("onMove", args);
+            });
+            map.on("moveend", function (args) {
+                me.dispatchEvent("onMoveEnd", args);
+            });
+            // #endregion
             return map;
         };
         MinemapMap.prototype.onShowInfoWindow = function (options) {
@@ -3582,14 +4842,14 @@ var flagwind;
             infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
             infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
         };
-        /**
-         * 图层事件处理
-         * @param eventName 事件名称
-         * @param callback 回调
-         */
-        MinemapPointLayer.prototype.onAddEventListener = function (eventName, callback) {
-            this.layer.on(eventName, callback);
-        };
+        // /**
+        //  * 图层事件处理
+        //  * @param eventName 事件名称
+        //  * @param callback 回调
+        //  */
+        // public onAddEventListener(eventName: string, callback: Function): void {
+        //     this.layer.on(eventName, callback);
+        // }
         /**
          * 把实体转换成标准的要素属性信息
          * @param item 实体信息
@@ -3817,9 +5077,9 @@ var flagwind;
             // 当路由分析出错时，两点之间的最短路径以直线代替
             segment.setMultPoints(points);
         };
-        MinemapRouteLayer.prototype.onAddEventListener = function (moveMarkLayer, eventName, callBack) {
-            moveMarkLayer.layer.on(eventName, callBack);
-        };
+        // public onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void {
+        //     moveMarkLayer.layer.on(eventName, callBack);
+        // }
         MinemapRouteLayer.prototype.onCreateMoveMark = function (trackline, graphic, angle) {
             var marker = new flagwind.MinemapMarker({
                 id: trackline.name,
@@ -3957,614 +5217,6 @@ var flagwind;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
-    /**
-     * 几何对象
-     */
-    var MinemapGeometry = /** @class */ (function () {
-        function MinemapGeometry(type, spatial) {
-            this.type = type;
-            this.spatial = spatial;
-        }
-        return MinemapGeometry;
-    }());
-    flagwind.MinemapGeometry = MinemapGeometry;
-    /**
-     * 线
-     */
-    var MinemapPolyline = /** @class */ (function (_super) {
-        __extends(MinemapPolyline, _super);
-        function MinemapPolyline(spatial) {
-            if (spatial === void 0) { spatial = null; }
-            var _this = _super.call(this, "Polyline", spatial) || this;
-            _this.path = [];
-            return _this;
-        }
-        MinemapPolyline.prototype.getPoint = function (pointIndex) {
-            return this.path[pointIndex];
-        };
-        MinemapPolyline.prototype.insertPoint = function (pointIndex, point) {
-            this.path.splice(pointIndex, 0, point);
-        };
-        MinemapPolyline.prototype.removePoint = function (pointIndex) {
-            this.path.splice(pointIndex, 1);
-        };
-        MinemapPolyline.prototype.toJson = function () {
-            return {
-                "type": "geojson",
-                "data": {
-                    "type": "Feature",
-                    "properties": this.attributes || {},
-                    "geometry": {
-                        "type": "LineString",
-                        "coordinates": this.path
-                    }
-                }
-            };
-        };
-        return MinemapPolyline;
-    }(MinemapGeometry));
-    flagwind.MinemapPolyline = MinemapPolyline;
-    /**
-     * 面
-     */
-    var MinemapPolygon = /** @class */ (function (_super) {
-        __extends(MinemapPolygon, _super);
-        function MinemapPolygon(spatial) {
-            if (spatial === void 0) { spatial = null; }
-            var _this = _super.call(this, "Line", spatial) || this;
-            _this.rings = [];
-            return _this;
-        }
-        MinemapPolygon.prototype.addRing = function (path) {
-            this.rings.push(path);
-        };
-        MinemapPolygon.prototype.removeRing = function (ringIndex) {
-            if (ringIndex > this.rings.length) {
-                throw new Error("数组越界");
-            }
-            this.rings = this.rings.splice(ringIndex, 1);
-        };
-        MinemapPolygon.prototype.getPoint = function (ringIndex, pointIndex) {
-            if (ringIndex > this.rings.length) {
-                throw new Error("数组越界");
-            }
-            return this.rings[ringIndex][pointIndex];
-        };
-        MinemapPolygon.prototype.insertPoint = function (ringIndex, pointIndex, point) {
-            if (ringIndex > this.rings.length) {
-                throw new Error("数组越界");
-            }
-            this.rings[ringIndex].splice(pointIndex, 0, point);
-        };
-        MinemapPolygon.prototype.removePoint = function (ringIndex, pointIndex) {
-            if (ringIndex > this.rings.length) {
-                throw new Error("数组越界");
-            }
-            this.rings[ringIndex].splice(pointIndex, 1);
-        };
-        MinemapPolygon.prototype.toJson = function () {
-            return {
-                "type": "geojson",
-                "data": {
-                    "type": "Feature",
-                    "properties": this.attributes,
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": this.rings
-                    }
-                }
-            };
-        };
-        return MinemapPolygon;
-    }(MinemapGeometry));
-    flagwind.MinemapPolygon = MinemapPolygon;
-    /**
-     * 坐标点
-     */
-    var MinemapPoint = /** @class */ (function (_super) {
-        __extends(MinemapPoint, _super);
-        function MinemapPoint(x, y, spatial) {
-            if (spatial === void 0) { spatial = null; }
-            var _this = _super.call(this, "Point", spatial) || this;
-            _this.x = x;
-            _this.y = y;
-            _this.spatial = spatial;
-            return _this;
-        }
-        MinemapPoint.prototype.toJson = function () {
-            return {
-                "type": "Feature",
-                "properties": this.attributes,
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [this.x, this.y]
-                }
-            };
-        };
-        return MinemapPoint;
-    }(MinemapGeometry));
-    flagwind.MinemapPoint = MinemapPoint;
-    /**
-     * 空间投影
-     */
-    var MinemapSpatial = /** @class */ (function () {
-        function MinemapSpatial(wkid) {
-            this.wkid = wkid;
-        }
-        return MinemapSpatial;
-    }());
-    flagwind.MinemapSpatial = MinemapSpatial;
-    var MinemapMarker = /** @class */ (function () {
-        function MinemapMarker(options) {
-            this._kind = "marker";
-            /**
-             * 是否在地图上
-             */
-            this._isInsided = false;
-            this.isShow = true;
-            this.EVENTS_MAP = new flagwind.Map();
-            this.id = options.id;
-            this.element = document.createElement("div");
-            this.element.id = this.id;
-            this.symbol = options.symbol;
-            this.attributes = options.attributes;
-            if (options.symbol && options.symbol.className) {
-                this.element.classList = [options.symbol.className];
-            }
-            this.marker = new minemap.Marker(this.element, { offset: [-25, -25] });
-            if (options.point) {
-                this._geometry = new MinemapPoint(options.point.x, options.point.y);
-                this.marker.setLngLat([options.point.x, options.point.y]);
-            }
-            var me = this;
-            this.element.onmouseover = function (args) {
-                console.log("fire marker onMouseOver");
-                me.onCallBack("onMouseOver", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            };
-            this.element.onmouseout = function (args) {
-                console.log("fire marker onMouseOut");
-                me.onCallBack("onMouseOut", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            };
-            this.element.onmousedown = function (args) {
-                console.log("fire marker onMouseDown");
-                me.onCallBack("onMouseDown", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            };
-            this.element.onmouseup = function (args) {
-                console.log("fire marker onMouseUp");
-                me.onCallBack("onMouseUp", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            };
-            this.element.onclick = function (args) {
-                console.log("fire marker onClick");
-                me.onCallBack("onClick", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            };
-        }
-        /**
-         * 复制节点
-         * @param id 元素ID
-         */
-        MinemapMarker.prototype.clone = function (id) {
-            var m = new MinemapMarker({
-                id: id,
-                symbol: this.symbol,
-                attributes: this.attributes,
-                point: this.geometry
-            });
-            return m;
-        };
-        Object.defineProperty(MinemapMarker.prototype, "kind", {
-            get: function () {
-                return this._kind;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(MinemapMarker.prototype, "isInsided", {
-            get: function () {
-                return this._isInsided;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        /**
-         * 注册事件
-         * @param eventName 事件名称
-         * @param callback 回调
-         */
-        MinemapMarker.prototype.on = function (eventName, callback) {
-            this.EVENTS_MAP.set(eventName, callback);
-        };
-        /**
-         * 取消註冊的事件
-         * @param eventName
-         * @param callback
-         */
-        MinemapMarker.prototype.off = function (eventName, callback) {
-            this.EVENTS_MAP.delete(eventName);
-        };
-        MinemapMarker.prototype.onCallBack = function (eventName, arg) {
-            var call = this.EVENTS_MAP.get(eventName);
-            if (call) {
-                call(arg);
-            }
-            if (!this.layer) {
-                return;
-            }
-            var callback = this.layer.getCallBack(eventName);
-            if (callback) {
-                callback(arg);
-            }
-        };
-        MinemapMarker.prototype.show = function () {
-            if (!this.layer) {
-                throw new flagwind.Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
-            }
-            this.marker.addTo(this.layer.map);
-            this.isShow = false;
-        };
-        MinemapMarker.prototype.hide = function () {
-            this.marker.remove();
-            this.isShow = false;
-        };
-        MinemapMarker.prototype.remove = function () {
-            if (this._isInsided) {
-                this.marker.remove();
-                this._isInsided = false;
-            }
-        };
-        MinemapMarker.prototype.delete = function () {
-            if (this._isInsided) {
-                this.marker.remove();
-                this._isInsided = false;
-            }
-            if (this.layer) {
-                this.layer.remove(this);
-            }
-        };
-        MinemapMarker.prototype.setAngle = function (angle) {
-            this.element.style.transform = "rotate(" + angle + "deg)";
-            this.element.style["-ms-transform"] = "rotate(" + angle + "deg)";
-            this.element.style["-moz-transform"] = "rotate(" + angle + "deg)";
-            this.element.style["-webkit-transform"] = "rotate(" + angle + "deg)";
-            this.element.style["-o-transform"] = "rotate(" + angle + "deg)";
-        };
-        MinemapMarker.prototype.setSymbol = function (symbol) {
-            if (this.symbol && this.symbol.className) {
-                this.element.classList.remove(this.symbol.className);
-            }
-            if (symbol.className) {
-                this.element.classList.push(symbol.className);
-            }
-        };
-        MinemapMarker.prototype.draw = function () {
-            console.log("draw");
-        };
-        Object.defineProperty(MinemapMarker.prototype, "geometry", {
-            get: function () {
-                return this._geometry;
-            },
-            set: function (geometry) {
-                this._geometry = geometry;
-                this.marker.setLngLat([geometry.x, geometry.y]);
-            },
-            enumerable: true,
-            configurable: true
-        });
-        MinemapMarker.prototype.setGeometry = function (value) {
-            if (value instanceof MinemapPoint) {
-                this.geometry = value;
-            }
-            else {
-                throw new Error("不匹配类型");
-            }
-        };
-        MinemapMarker.prototype.addTo = function (map) {
-            this._isInsided = true;
-            this.marker.addTo(map);
-        };
-        return MinemapMarker;
-    }());
-    flagwind.MinemapMarker = MinemapMarker;
-    var MinemapGeoJson = /** @class */ (function () {
-        function MinemapGeoJson(layer, options) {
-            this.layer = layer;
-            this._kind = "geojson";
-            /**
-             * 是否在地图上
-             */
-            this._isInsided = false;
-            this.isShow = true;
-            this.attributes = {};
-            if (options && options.id) {
-                this.id = options.id;
-            }
-            if (options && options.type) {
-                this.type = options.type;
-            }
-            if (options && options.paint) {
-                this.paint = options.paint;
-            }
-            if (options && options.layout) {
-                this.layout = options.layout;
-            }
-            if (options && options.attributes) {
-                this.attributes = options.attributes;
-            }
-            if (options && options.geometry) {
-                if (options.geometry instanceof MinemapGeometry) {
-                    this.geometry = options.geometry;
-                }
-                else {
-                    throw new flagwind.Exception("geometry 类型不正确");
-                }
-            }
-            if (options && options.symbol) {
-                if (options.symbol.layout) {
-                    this.layout = options.symbol.layout;
-                }
-                if (options.symbol.paint) {
-                    this.layout = options.symbol.paint;
-                }
-            }
-        }
-        Object.defineProperty(MinemapGeoJson.prototype, "kind", {
-            get: function () {
-                return this._kind;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(MinemapGeoJson.prototype, "isInsided", {
-            get: function () {
-                return this._isInsided;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        MinemapGeoJson.prototype.show = function () {
-            if (!this.isShow) {
-                this.addLayer(this.layer.map);
-                this.isShow = true;
-            }
-        };
-        MinemapGeoJson.prototype.hide = function () {
-            this.layer.map.removeLayer(this.id);
-            this.isShow = false;
-        };
-        MinemapGeoJson.prototype.remove = function () {
-            this.layer.map.removeLayer(this.id);
-        };
-        MinemapGeoJson.prototype.delete = function () {
-            if (this.isInsided) {
-                this.layer.map.removeLayer(this.id);
-                this._isInsided = false;
-                this.layer.remove(this);
-            }
-        };
-        MinemapGeoJson.prototype.setSymbol = function (symbol) {
-            if (symbol && symbol.paint) {
-                this.paint = symbol.paint;
-            }
-            if (symbol && symbol.layout) {
-                this.layout = symbol.layout;
-            }
-        };
-        Object.defineProperty(MinemapGeoJson.prototype, "geometry", {
-            get: function () {
-                return this._geometry;
-            },
-            set: function (value) {
-                this._geometry = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        MinemapGeoJson.prototype.setGeometry = function (value) {
-            if (value instanceof MinemapGeoJson) {
-                this.geometry = value;
-            }
-        };
-        MinemapGeoJson.prototype.addTo = function (map) {
-            if (!map)
-                return;
-            if (!this.id) {
-                throw new flagwind.Exception("没有指定id，无法添加");
-            }
-            var json = this.geometry.toJson();
-            console.log(json);
-            map.addSource(this.id + "_source", json);
-        };
-        MinemapGeoJson.prototype.addLayer = function (map) {
-            var layerJson = {
-                id: this.id,
-                source: this.id + "_source",
-                type: this.type,
-                paint: this.paint,
-                layout: this.layout
-            };
-            map.addLayer(layerJson);
-        };
-        return MinemapGeoJson;
-    }());
-    flagwind.MinemapGeoJson = MinemapGeoJson;
-    var MinemapMarkerLayer = /** @class */ (function () {
-        function MinemapMarkerLayer(options) {
-            this.options = options;
-            this.GRAPHICS_MAP = new flagwind.Map();
-            this.EVENTS_MAP = new flagwind.Map();
-            /**
-             * 是否在地图上
-             */
-            this._isInsided = false;
-            this.id = options.id;
-        }
-        Object.defineProperty(MinemapMarkerLayer.prototype, "isInsided", {
-            get: function () {
-                return this._isInsided;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(MinemapMarkerLayer.prototype, "graphics", {
-            get: function () {
-                if (this.GRAPHICS_MAP.size === 0) {
-                    return new Array();
-                }
-                else {
-                    return this.GRAPHICS_MAP.values();
-                }
-            },
-            enumerable: true,
-            configurable: true
-        });
-        MinemapMarkerLayer.prototype.getCallBack = function (eventName) {
-            return this.EVENTS_MAP.get(eventName);
-        };
-        MinemapMarkerLayer.prototype.on = function (eventName, callBack) {
-            this.EVENTS_MAP.set(eventName, callBack);
-        };
-        MinemapMarkerLayer.prototype.show = function () {
-            this.GRAPHICS_MAP.forEach(function (g) {
-                if (!g.value.isShow) {
-                    g.value.show();
-                }
-            });
-        };
-        MinemapMarkerLayer.prototype.hide = function () {
-            this.GRAPHICS_MAP.forEach(function (g) {
-                if (g.value.isShow) {
-                    g.value.hide();
-                }
-            });
-        };
-        MinemapMarkerLayer.prototype.remove = function (graphic) {
-            this.GRAPHICS_MAP.delete(graphic.id);
-            if (graphic.isInsided) {
-                graphic.delete();
-            }
-        };
-        MinemapMarkerLayer.prototype.clear = function () {
-            this.GRAPHICS_MAP.forEach(function (g) { return g.value.remove(); });
-            this.GRAPHICS_MAP.clear();
-        };
-        MinemapMarkerLayer.prototype.add = function (graphic) {
-            this.GRAPHICS_MAP.set(graphic.id, graphic);
-            graphic.layer = this;
-            if (this.map) {
-                graphic.addTo(this.map);
-            }
-        };
-        MinemapMarkerLayer.prototype.addToMap = function (map) {
-            if (!this.map) {
-                this.GRAPHICS_MAP.forEach(function (g) {
-                    g.value.addTo(map);
-                });
-            }
-            this.map = map;
-            this._isInsided = true;
-        };
-        MinemapMarkerLayer.prototype.removeFromMap = function (map) {
-            this.GRAPHICS_MAP.forEach(function (g) {
-                g.value.remove();
-            });
-            this._isInsided = false;
-        };
-        return MinemapMarkerLayer;
-    }());
-    flagwind.MinemapMarkerLayer = MinemapMarkerLayer;
-    var MinemapGeoJsonLayer = /** @class */ (function () {
-        function MinemapGeoJsonLayer(options) {
-            this.GRAPHICS_MAP = new flagwind.Map();
-            /**
-             * 是否在地图上
-             */
-            this._isInsided = false;
-            this.id = options.id;
-        }
-        Object.defineProperty(MinemapGeoJsonLayer.prototype, "isInsided", {
-            get: function () {
-                return this._isInsided;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(MinemapGeoJsonLayer.prototype, "graphics", {
-            get: function () {
-                return this.GRAPHICS_MAP.values();
-            },
-            enumerable: true,
-            configurable: true
-        });
-        MinemapGeoJsonLayer.prototype.show = function () {
-            this.GRAPHICS_MAP.forEach(function (g) {
-                if (!g.value.isShow) {
-                    g.value.show();
-                }
-            });
-        };
-        MinemapGeoJsonLayer.prototype.hide = function () {
-            this.GRAPHICS_MAP.forEach(function (g) {
-                if (g.value.isShow) {
-                    g.value.hide();
-                }
-            });
-        };
-        MinemapGeoJsonLayer.prototype.remove = function (graphic) {
-            this.GRAPHICS_MAP.delete(graphic.id);
-            if (graphic.isInsided) {
-                graphic.delete();
-            }
-        };
-        MinemapGeoJsonLayer.prototype.clear = function () {
-            this.GRAPHICS_MAP.forEach(function (g) { return g.value.remove(); });
-            this.GRAPHICS_MAP.clear();
-        };
-        MinemapGeoJsonLayer.prototype.add = function (graphic) {
-            this.GRAPHICS_MAP.set(graphic.id, graphic);
-            if (this.map) {
-                graphic.addTo(this.map);
-                graphic.addLayer(this.map);
-            }
-        };
-        MinemapGeoJsonLayer.prototype.addToMap = function (map) {
-            if (!this.map) {
-                this.GRAPHICS_MAP.forEach(function (g) { return g.value.addLayer(map); });
-            }
-            this.map = map;
-            this._isInsided = true;
-        };
-        MinemapGeoJsonLayer.prototype.removeFromMap = function (map) {
-            this.GRAPHICS_MAP.forEach(function (g) { return g.value.delete(); });
-            this._isInsided = false;
-        };
-        MinemapGeoJsonLayer.prototype.on = function (eventName, callBack) {
-            throw new Error("Method not implemented.");
-        };
-        return MinemapGeoJsonLayer;
-    }());
-    flagwind.MinemapGeoJsonLayer = MinemapGeoJsonLayer;
-})(flagwind || (flagwind = {}));
-var flagwind;
-(function (flagwind) {
     var MinemapSetting = /** @class */ (function () {
         function MinemapSetting() {
             this.mapDomain = "minedata.cn";
@@ -4627,4 +5279,311 @@ var flagwind;
         return MinemapUtils;
     }());
     flagwind.MinemapUtils = MinemapUtils;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
+    /**
+     * 提供一些常用类型检测与反射相关的方法。
+     * @static
+     * @class
+     * @version 1.0.0
+     */
+    var Type = /** @class */ (function () {
+        /**
+         * 私有构造方法，使类型成为静态类。
+         * @private
+         */
+        function Type() {
+        }
+        /**
+         * 检测一个值是否为数组。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isArray = function (value) {
+            return this.getTypeString(value) === "array";
+        };
+        /**
+         * 检测一个值是否为对象。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isObject = function (value) {
+            return this.getTypeString(value) === "object";
+        };
+        /**
+         * 检测一个值是否为字符串。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isString = function (value) {
+            return typeof value === "string";
+        };
+        /**
+         * 检测一个值是否为日期。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isDate = function (value) {
+            return this.getTypeString(value) === "date";
+        };
+        /**
+         * 检测一个值是否为正则表达式。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isRegExp = function (value) {
+            return this.getTypeString(value) === "regexp";
+        };
+        /**
+         * 检测一个值是否为函数。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isFunction = function (value) {
+            return typeof value === "function";
+        };
+        /**
+         * 检测一个值是否为布尔值。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isBoolean = function (value) {
+            return typeof value === "boolean";
+        };
+        /**
+         * 检测一个值是否为数值。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isNumber = function (value) {
+            return typeof value === "number";
+        };
+        /**
+         * 检测一个值是否为 null。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isNull = function (value) {
+            return value === null;
+        };
+        /**
+         * 检测一个值是否为 undefined。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isUndefined = function (value) {
+            return typeof value === "undefined";
+        };
+        /**
+         * 检测一个值是否为 null 或 undefined。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        Type.isEmptyObject = function (value) {
+            return Type.isNull(value) || Type.isUndefined(value);
+        };
+        /**
+         * 表示一个字符串值是否为 null 或 undefined 或 空值。
+         * @static
+         * @param  {string} value 要检测的字符串实例。
+         * @returns boolean
+         */
+        Type.isEmptyString = function (value) {
+            return Type.isEmptyObject(value) || value.trim() === "";
+        };
+        /**
+         * 设置指定类型的元数据。
+         * @param  {any} type 目标类型。
+         * @param  {any} metadata 元数据。
+         * @returns void
+         */
+        Type.setMetadata = function (type, metadata) {
+            if (!type || !metadata) {
+                throw new Error();
+            }
+            this._metadatas.set(type, metadata);
+        };
+        /**
+         * 获取指定类型的元数据。
+         * @param  {any} type 目标类型。
+         * @returns any 元数据。
+         */
+        Type.getMetadata = function (type) {
+            return this._metadatas.get(type) || null;
+        };
+        /**
+         * 返回对象的类型(即构造函数)。
+         * @param  {string|any} value 实例或类型路径。
+         * @returns Function 如果成功解析则返回类型的构造函数，否则为 undefined。
+         */
+        Type.getClassType = function (value) {
+            if (Type.isNull(value)) {
+                return null;
+            }
+            else if (Type.isUndefined(value)) {
+                return undefined;
+            }
+            else if (Type.isBoolean(value)) {
+                return Boolean;
+            }
+            else if (Type.isNumber(value)) {
+                return Number;
+            }
+            else if (Type.isString(value)) {
+                try {
+                    // 通过 eval 解析字符串所指向的实际类型
+                    // tslint:disable-next-line:no-eval
+                    var ctor = eval(value);
+                    return Type.isFunction(ctor) ? ctor : String;
+                }
+                catch (e) {
+                    return String;
+                }
+            }
+            else {
+                var prototype = value.prototype ? value.prototype : Object.getPrototypeOf(value);
+                return prototype.constructor;
+            }
+        };
+        /**
+         * 返回 value 参数指定的对象的类名。
+         * @param  {any} value 需要取得类名称的对象，可以将任何 JavaScript 值传递给此方法，包括所有可用的 JavaScript 类型、对象实例、原始类型（如number)和类对象。
+         * @returns string 类名称的字符串。
+         */
+        Type.getClassName = function (value) {
+            var className = this.getQualifiedClassName(value).split(".");
+            return className[className.length - 1];
+        };
+        /**
+         * 返回 value 参数指定的对象的完全限定类名。
+         * @static
+         * @param  {any} value 需要取得完全限定类名称的对象，可以将任何 JavaScript 值传递给此方法，包括所有可用的 JavaScript 类型、对象实例、原始类型（如number)和类对象。
+         * @returns string 包含完全限定类名称的字符串。
+         */
+        Type.getQualifiedClassName = function (value) {
+            var type = typeof value;
+            if (!value || (type !== "object" && !value.prototype)) {
+                return type;
+            }
+            var prototype = value.prototype ? value.prototype : Object.getPrototypeOf(value);
+            if (prototype.hasOwnProperty("__class__")) {
+                return prototype["__class__"];
+            }
+            var constructorString = prototype.constructor.toString().trim();
+            var index = constructorString.indexOf("(");
+            // tslint:disable-next-line:no-magic-numbers
+            var className = constructorString.substring(9, index);
+            Object.defineProperty(prototype, "__class__", {
+                value: className,
+                enumerable: false,
+                writable: true
+            });
+            return className;
+        };
+        /**
+         * 返回 value 参数指定的对象的基类的类名。
+         * @param  {any} value 需要取得父类类名称的对象，可以将任何 JavaScript 值传递给此方法，包括所有可用的 JavaScript 类型、对象实例、原始类型（如number）和类对象。
+         * @returns string 基类名称，或 null（如果不存在基类名称）。
+         */
+        Type.getSuperclassName = function (value) {
+            var className = this.getQualifiedSuperclassName(value).split(".");
+            return className[className.length - 1];
+        };
+        /**
+         * 返回 value 参数指定的对象的基类的完全限定类名。
+         * @param  {any} value 需要取得父类完全限定类名称的对象，可以将任何 JavaScript 值传递给此方法，包括所有可用的 JavaScript 类型、对象实例、原始类型（如number）和类对象。
+         * @returns string 完全限定的基类名称，或 null（如果不存在基类名称）。
+         */
+        Type.getQualifiedSuperclassName = function (value) {
+            if (!value || (typeof value !== "object" && !value.prototype)) {
+                return null;
+            }
+            var prototype = value.prototype ? value.prototype : Object.getPrototypeOf(value);
+            var superProto = Object.getPrototypeOf(prototype);
+            if (!superProto) {
+                return null;
+            }
+            var superClass = this.getQualifiedClassName(superProto.constructor);
+            if (!superClass) {
+                return null;
+            }
+            return superClass;
+        };
+        /**
+         * 确定指定类型的实例是否可以分配给当前类型的实例。
+         * @param  {Function} parentType 指定基类的类型。
+         * @param  {Function} subType 指定的实例类型。
+         * @returns boolean
+         */
+        Type.isAssignableFrom = function (parentType, subType) {
+            // 两个参数任意却少一个都不会进行比较
+            if (!parentType || !subType) {
+                return false;
+            }
+            // 如果基类等于子类，则直接返回 true
+            if (parentType === subType) {
+                return true;
+            }
+            // 如果基类是 Object 则直接返回 true
+            if (parentType === Object || parentType === "Object") {
+                return true;
+            }
+            // 获取子类的原型实例
+            var subPrototype = subType.prototype;
+            // 1.首先，如果原型中有定义"__types__"则直接根据类型名称查找
+            // 注意: "__types__" 这个属性是由 TypeScript 引擎在生成代码时加入的
+            if (subPrototype.hasOwnProperty("__types__")) {
+                // 如果参数 parentType 不是字符串则获取基类的完全限定名称(包含命名空间)
+                var parentName = Type.isString(parentType) ? parentType : Type.getQualifiedClassName(parentType);
+                // 通过"__types__"去匹配基类名称
+                return subPrototype["__types__"].indexOf(parentName) !== -1;
+            }
+            // 2.其次，如果类型没有定义"__types__"，则根据原型链进行查找
+            // 获取子类的直属父类型(即上一级父类)
+            var superType = Object.getPrototypeOf(subPrototype).constructor;
+            // 如果已经查到顶层还没匹配到，则直接返回 false
+            if (superType === Object) {
+                return false;
+            }
+            if (Type.isString(parentType)) {
+                // 如果传进来的基类是字符串，则根据上级父类的名称进行匹配
+                if (Type.getQualifiedClassName(superType) === parentType) {
+                    return true;
+                }
+            }
+            else {
+                // 否则根据传递进来的基类与直属父类进行匹配
+                if (superType === parentType) {
+                    return true;
+                }
+            }
+            // 3.最后，如果当前层没匹配到，则通过递归原型向上一级一级查找
+            return Type.isAssignableFrom(parentType, superType);
+        };
+        /**
+         * 获取指定值的类型字符串(小写)。
+         * @private
+         * @static
+         * @param  {any} value
+         * @returns string
+         */
+        Type.getTypeString = function (value) {
+            return Object.prototype.toString.call(value).slice(8, -1).toLowerCase();
+        };
+        Type._metadatas = new flagwind.Map();
+        return Type;
+    }());
+    flagwind.Type = Type;
 })(flagwind || (flagwind = {}));

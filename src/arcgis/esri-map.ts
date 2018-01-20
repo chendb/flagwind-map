@@ -61,6 +61,80 @@ namespace flagwind {
             let div = (<any>this).tooltipElement = document.createElement("div");
             div.classList.add("flagwind-map-tooltip");
             (<any>this).innerMap.root.parentElement.appendChild(div);
+            const me = this;
+
+            // #region click event
+
+            map.on("click", function (args: any) {
+                me.dispatchEvent("onClick", args);
+            });
+
+            map.on("dbl-click", function (args: any) {
+                me.dispatchEvent("onDbClick", args);
+            });
+
+            // #endregion
+
+            // #region mouse event
+            map.on("mouse-out", function (args: any) {
+                me.dispatchEvent("onMouseOut", args);
+            });
+            map.on("mouse-over", function (args: any) {
+                me.dispatchEvent("onMouseOver", args);
+            });
+            map.on("mouse-move", function (args: any) {
+                me.dispatchEvent("onMouseMove", args);
+            });
+            map.on("mouse-wheel", function (args: any) {
+                me.dispatchEvent("onMouseWheel", args);
+            });
+            // #endregion
+
+            // #region zoom event
+            map.on("zoom", function (args: any) {
+                me.dispatchEvent("onZoom", args);
+            });
+            map.on("zoom-start", function (args: any) {
+                me.dispatchEvent("onZoomStart", args);
+            });
+            map.on("zoom-end", function (args: any) {
+                me.dispatchEvent("onZoomEnd", args);
+            });
+
+            // #endregion
+
+            // #region pan event
+
+            map.on("pan", function (args: any) {
+                me.dispatchEvent("onPan", args);
+            });
+            map.on("pan-start", function (args: any) {
+                me.dispatchEvent("onPanStart", args);
+            });
+            map.on("pan-end", function (args: any) {
+                me.dispatchEvent("onPanEnd", args);
+            });
+
+            // #endregion
+
+            // #region update event
+
+            map.on("update-start", function (args: any) {
+                me.dispatchEvent("onUpdateStart", args);
+            });
+            map.on("update-end", function (args: any) {
+                me.dispatchEvent("onUpdateEnd", args);
+            });
+
+            // #endregion 
+
+            map.on("extent-change", function (args: any) {
+                me.dispatchEvent("onExtentChange", args);
+            });
+            map.on("resize", function (args: any) {
+                me.dispatchEvent("onResize", args);
+            });
+            
         }
 
         public onShowInfoWindow(options: any): void {

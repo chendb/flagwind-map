@@ -57,9 +57,9 @@ namespace flagwind {
             if (this.flagwindMap.loaded) {
                 me.onLoad();
             } else {
-                this.flagwindMap.onAddEventListener("load", function () {
+                this.flagwindMap.on("load", function () {
                     me.onLoad();
-                });
+                }, this);
             }
         }
 
@@ -95,7 +95,7 @@ namespace flagwind {
          */
         public abstract onSolveByJoinPoint(segment: TrackSegment): void;
 
-        public abstract onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
+        // public abstract onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
 
         /**
          * 创建移动要素
@@ -323,7 +323,7 @@ namespace flagwind {
             if (stops.length < 1) {
                 throw Error("站点不能少于2");
             }
-            
+
             const stopGraphics = this.onGetStandardStops(name, stops);
 
             const segment = this.getLastSegment(name);
@@ -520,11 +520,11 @@ namespace flagwind {
 
         protected onLoad(): void {
             const me = this;
-            this.onAddEventListener(this.moveMarkLayer, "onClick", function (evt: any) {
+            this.moveMarkLayer.on("onClick", function (evt: any) {
                 if (me.options.onMovingClick) {
                     me.options.onMovingClick(evt);
                 }
-            });
+            }, this);
         }
 
         protected abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;

@@ -1,3 +1,4 @@
+/// <reference path="../events/EventProvider" />
 namespace flagwind {
     // tslint:disable-next-line:variable-name
     export const MAP_OPTIONS = {
@@ -16,7 +17,7 @@ namespace flagwind {
         }
     };
 
-    export abstract class FlagwindMap {
+    export abstract class FlagwindMap extends EventProvider {
 
         private featureLayers: Array<FlagwindFeatureLayer> = [];
         protected baseLayers: Array<FlagwindTiledLayer> = [];
@@ -29,29 +30,30 @@ namespace flagwind {
             public mapSetting: IMapSetting,
             public mapEl: any,
             options: any) {
+            super();
             this.options = { ...MAP_OPTIONS, ...options };
         }
 
         public onInit(): void {
             this.onCreateMap();
             this.onCreateBaseLayers();
-            const _this = this;
-            _this.onAddEventListener("onLoad", function () {
+            const me = this;
+            me.on("onLoad", function () {
                 try {
-                    _this.loaded = true;
-                    _this.goToCenter();
-                    _this.onMapLoad();
+                    me.loaded = true;
+                    me.goToCenter();
+                    me.onMapLoad();
                 } catch (ex) {
                     console.error(ex);
                 }
             });
 
-            _this.onAddEventListener("zoom-end", function (evt: any) {
-                _this.onMapZoomEnd(evt);
+            me.on("onZoomEnd", function (evt: EventArgs) {
+                me.onMapZoomEnd(evt.data);
             });
         }
 
-        public abstract onAddEventListener(eventName: string, callBack: Function): void;
+        // public abstract onAddEventListener(eventName: string, callBack: Function): void;
 
         public abstract onCenterAt(point: any): void;
 
@@ -132,6 +134,31 @@ namespace flagwind {
 
         public abstract onCreateContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }): void;
 
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        public on(type: string, listener: Function, scope: any = this, once: boolean = false): void {
+            this.addListener(type, listener, scope, once);
+        }
+
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        public off(type: string, listener: Function, scope: any = this): void {
+            this.removeListener(type, listener, scope);
+        }
+
         public goToCenter() {
 
             if (this.mapSetting.center && this.mapSetting.center.length === 2) {
@@ -188,8 +215,8 @@ namespace flagwind {
             }
 
             const me: FlagwindMap = this;
-            this.onAddEventListener("click", function (evt: any) {
-                me.options.onMapClick(evt);
+            this.on("click", function (evt: EventArgs) {
+                me.options.onMapClick(evt.data);
             });
         }
 

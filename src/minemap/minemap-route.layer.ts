@@ -131,9 +131,9 @@ namespace flagwind {
             // 当路由分析出错时，两点之间的最短路径以直线代替
             segment.setMultPoints(points);
         }
-        public onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void {
-            moveMarkLayer.layer.on(eventName, callBack);
-        }
+        // public onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void {
+        //     moveMarkLayer.layer.on(eventName, callBack);
+        // }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
             let marker = new MinemapMarker({

@@ -1,5 +1,5 @@
 namespace flagwind {
-    export const locationLayerOptions = {
+    export const LOCATION_LAYER_OPTIONS = {
 
         onMapClick: function (evt: any) {
             console.log("onMapClick");
@@ -7,6 +7,7 @@ namespace flagwind {
     };
 
     export interface IFlagwindLocationLayer {
+        point: any;
         clear(): void;
     }
 }

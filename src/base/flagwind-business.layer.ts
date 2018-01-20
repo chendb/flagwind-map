@@ -49,7 +49,7 @@ namespace flagwind {
                 this.onLoad();
             } else {
                 const me = this;
-                this.flagwindMap.onAddEventListener("load", function () {
+                this.flagwindMap.on("load", function () {
                     me.onLoad();
                 });
             }
@@ -61,7 +61,7 @@ namespace flagwind {
 
         public abstract onUpdateGraphicByModel(item: any): void;
 
-        public abstract onAddEventListener(eventName: string, callback: Function): void;
+        // public abstract onAddEventListener(eventName: string, callback: Function): void;
 
         public onAddLayerBefor(): void {
             console.log("onAddLayerBefor");
@@ -214,16 +214,16 @@ namespace flagwind {
 
         protected registerEvent(): void {
             let _deviceLayer = this;
-            this.onAddEventListener("onCliick", function (evt: any) {
-                _deviceLayer.onLayerClick(_deviceLayer, evt);
+            this.on("onCliick", function (evt: EventArgs) {
+                _deviceLayer.onLayerClick(_deviceLayer, evt.data);
             });
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
-                this.onAddEventListener("onMouseOver", function (evt: any) {
-                    _deviceLayer.flagwindMap.onShowTooltip(evt.graphic);
+                this.on("onMouseOver", function (evt: EventArgs) {
+                    _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
                 });
-                this.onAddEventListener("onMouseOut", function (evt: any) {
-                    _deviceLayer.flagwindMap.onHideTooltip(evt.graphic);
+                this.on("onMouseOut", function (evt: EventArgs) {
+                    _deviceLayer.flagwindMap.onHideTooltip(evt.data.graphic);
                 });
             }
         }
