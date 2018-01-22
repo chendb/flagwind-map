@@ -42,10 +42,10 @@ namespace flagwind {
             this.options = { ...ROUTE_LAYER_OPTIONS, ...options };
             // this.mapService = flagwindMap.mapService;
 
-            this.moveLineLayer = this.onCreateGroupLayer(layerName + "LineLayer");
+            this.moveLineLayer = this.onCreateLineLayer(layerName + "LineLayer");
 
             // 移动小车
-            this.moveMarkLayer = this.onCreateGroupLayer(layerName + "MarkerLayer");
+            this.moveMarkLayer = this.onCreateMovingLayer(layerName + "MarkerLayer");
 
             this.onAddLayerBefor();
             this.moveLineLayer.appendTo(this.flagwindMap.innerMap);
@@ -57,13 +57,15 @@ namespace flagwind {
             if (this.flagwindMap.loaded) {
                 me.onLoad();
             } else {
-                this.flagwindMap.onAddEventListener("load", function () {
+                this.flagwindMap.on("load", function () {
                     me.onLoad();
-                });
+                }, this);
             }
         }
 
-        public abstract onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        public abstract onCreateLineLayer(id: string): FlagwindGroupLayer;
+
+        public abstract onCreateMovingLayer(id: string): FlagwindGroupLayer;
 
         public abstract onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
 
@@ -71,14 +73,10 @@ namespace flagwind {
 
         public abstract onGetStandardStops(name: String, stops: Array<any>): Array<any>;
 
-        public onSetSegmentByLine(options: any, segment: TrackSegment): any {
-            throw new Error("Method not implemented.");
-        }
+        public abstract onSetSegmentByLine(options: any, segment: TrackSegment): any;
 
         // public mapService: IMapService;
-        public onSetSegmentByPolyLine(options: any, segment: TrackSegment): any {
-            throw new Error("Method not implemented.");
-        }
+        public abstract onSetSegmentByPoint(options: any, segment: TrackSegment): any;
 
         /**
          * 由网络分析服务来求解轨迹并播放
@@ -97,7 +95,7 @@ namespace flagwind {
          */
         public abstract onSolveByJoinPoint(segment: TrackSegment): void;
 
-        public abstract onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
+        // public abstract onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
 
         /**
          * 创建移动要素
@@ -261,12 +259,22 @@ namespace flagwind {
                 console.error("没有指定清除的线路名称");
                 return;
             }
-            let trackline = this.getTrackLine(name);
-            if (trackline == null) return;
-            trackline.stop();
-            this.moveMarkLayer.removeGraphicByName(name);
-            this.moveLineLayer.removeGraphicByName(name);
-            trackline.markerGraphic = null;
+            if (name) {
+                let trackline = this.getTrackLine(name);
+                if (trackline == null) return;
+                trackline.stop();
+                this.moveMarkLayer.removeGraphicByName(name);
+                this.moveLineLayer.removeGraphicByName(name);
+                trackline.markerGraphic = null;
+                let index = this.trackLines.indexOf(trackline);
+                if (index >= 0) {
+                    this.trackLines.splice(index, 1);
+                }
+            } else {
+                this.moveMarkLayer.clear();
+                this.moveLineLayer.clear();
+                this.trackLines = [];
+            }
 
         }
 
@@ -406,7 +414,7 @@ namespace flagwind {
             }
             points.push(segment.endGraphic.geometry);
             // 当路由分析出错时，两点之间的最短路径以直线代替
-            segment.setLine(points);
+            segment.setMultPoints(points);
             this.onCreateSegmentLineComplete(segment);
         }
 
@@ -426,18 +434,6 @@ namespace flagwind {
         }
 
         /**
-         * 每次位置移动线路上的要素样式变换操作
-         */
-        protected changeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number) {
-            if (trackline === undefined) return;
-            let symbol = trackline.markerGraphic.symbol;
-            symbol.setAngle(360 - angle);
-            trackline.markerGraphic.setSymbol(symbol);
-            trackline.markerGraphic.setGeometry(point);
-            trackline.markerGraphic.draw();// 重绘
-        }
-
-        /**
          * 
          * 显示路段事件
          * 
@@ -446,14 +442,12 @@ namespace flagwind {
          */
         protected onShowSegmentLineEvent(flagwindRoute: this, segment: TrackSegment, lineOptions: any) {
             // 是否自动显示轨迹
-            if (lineOptions.autoShowSegmentLine) {
-                if (!segment.lineGraphic) {
-                    flagwindRoute.onShowSegmentLine(segment);
-                }
-            }
-            if (lineOptions.onShowSegmentLineEvent) {
-                lineOptions.onShowSegmentLineEvent(segment);
-            }
+            // if (lineOptions.autoShowSegmentLine) {
+            flagwindRoute.onShowSegmentLine(segment);
+            // }
+            // if (lineOptions.onShowSegmentLineEvent) {
+            //     lineOptions.onShowSegmentLineEvent(segment);
+            // }
         }
 
         /**
@@ -503,15 +497,15 @@ namespace flagwind {
         /**
          * 移动回调事件
          */
-        protected onMoveEvent(flagwindRoute: this, segment: any, xy: any, angle: number) {
+        protected onMoveEvent(flagwindRoute: this, segment: TrackSegment, xy: any, angle: number) {
             let point = this.flagwindMap.onCreatePoint({
                 x: parseFloat(xy[0]),
                 y: parseFloat(xy[1]),
                 spatial: flagwindRoute.flagwindMap.spatial
             });
-            let trackline = flagwindRoute.getTrackLine(segment.na);
+            let trackline = flagwindRoute.getTrackLine(segment.name);
             if (trackline) {
-                flagwindRoute.changeMovingGraphicSymbol(trackline, point, angle);
+                flagwindRoute.onChangeMovingGraphicSymbol(trackline, point, angle);
                 flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
             }
         }
@@ -526,11 +520,13 @@ namespace flagwind {
 
         protected onLoad(): void {
             const me = this;
-            this.onAddEventListener(this.moveMarkLayer, "onClick", function (evt: any) {
+            this.moveMarkLayer.on("onClick", function (evt: any) {
                 if (me.options.onMovingClick) {
                     me.options.onMovingClick(evt);
                 }
-            });
+            }, this);
         }
+
+        protected abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }

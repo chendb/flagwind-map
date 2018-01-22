@@ -69,12 +69,67 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     /**
+     * 事件提供程序类。
+     * @description 用于添加或删除事件侦听器的方法，检查是否已注册特定类型的事件侦听器，并调度事件。
+     * @class
+     * @version 1.0.0
+     */
+    class EventProvider implements IEventProvider {
+        private _source;
+        private _events;
+        /**
+         * 初始化事件提供程序的新实例。
+         * @param  {any} source? 事件源实例。
+         */
+        constructor(source?: any);
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        addListener(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        removeListener(type: string, listener: Function, scope?: any): void;
+        /**
+         * 检查是否为特定事件类型注册了侦听器。
+         * @param  {string} type 事件类型。
+         * @returns boolean 如果指定类型的侦听器已注册，则值为 true；否则，值为 false。
+         */
+        hasListener(type: string): boolean;
+        /**
+         * 派发一个指定类型的事件。
+         * @param  {string} type 事件类型。
+         * @param  {any} data? 事件数据。
+         * @returns void
+         */
+        dispatchEvent(type: string, data?: any): void;
+        /**
+         * 派发一个指定参数的事件。
+         * @param  {EventArgs} eventArgs 事件参数实例。
+         * @returns void
+         */
+        dispatchEvent(args: EventArgs): void;
+    }
+}
+declare namespace flagwind {
+    /**
      * 功能图层包装类
      *
      * @export
      * @class FlagwindFeatureLayer
      */
-    abstract class FlagwindFeatureLayer {
+    abstract class FlagwindFeatureLayer extends EventProvider {
         id: string;
         title: string | null;
         protected layer: any;
@@ -96,6 +151,25 @@ declare namespace flagwind {
          * 删除资源要素点
          */
         removeGraphicById(key: string): void;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
         abstract onCreateGraphicsLayer(args: any): any;
     }
 }
@@ -108,7 +182,7 @@ declare namespace flagwind {
         options: any;
         businessLayer: FlagwindBusinessLayer;
         flagwindMap: FlagwindMap;
-        constructor(flagwindMap: FlagwindMap, businessLayer: FlagwindBusinessLayer, options: any);
+        constructor(businessLayer: FlagwindBusinessLayer, options: any);
         /**
          * 激活编辑事件
          * @param key 要编辑要素的id
@@ -136,11 +210,11 @@ declare namespace flagwind {
      * @export
      * @class FlagwindGroupLayer
      */
-    abstract class FlagwindGroupLayer {
-        id: string;
+    abstract class FlagwindGroupLayer extends EventProvider {
+        options: any;
         layer: any;
         isShow: boolean;
-        constructor(id: string);
+        constructor(options: any);
         readonly graphics: Array<any>;
         appendTo(map: any): void;
         removeLayer(map: any): void;
@@ -151,7 +225,7 @@ declare namespace flagwind {
         setSymbol(name: string, symbol: any): void;
         showGraphic(name: string): void;
         hideGraphic(name: string): void;
-        addGraphice(name: string, graphics: Array<any>): void;
+        addGraphic(name: string, ...graphics: Array<any>): void;
         getMasterGraphicByName(name: string): any;
         /**
          * 获取资源要素点
@@ -161,6 +235,25 @@ declare namespace flagwind {
          * 删除资源要素点
          */
         removeGraphicByName(name: string): void;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
         abstract onCreateGraphicsLayer(args: any): any;
     }
 }
@@ -179,7 +272,7 @@ declare namespace flagwind {
             contextMenuClickEvent: any;
         }): void;
     };
-    abstract class FlagwindMap {
+    abstract class FlagwindMap extends EventProvider {
         mapSetting: IMapSetting;
         mapEl: any;
         private featureLayers;
@@ -190,7 +283,6 @@ declare namespace flagwind {
         loaded: boolean;
         constructor(mapSetting: IMapSetting, mapEl: any, options: any);
         onInit(): void;
-        abstract onAddEventListener(eventName: string, callBack: Function): void;
         abstract onCenterAt(point: any): void;
         abstract onCreatePoint(point: any): any;
         onFormPoint(point: any): {
@@ -201,12 +293,31 @@ declare namespace flagwind {
         abstract onCreateMap(): any;
         abstract onShowInfoWindow(options: any): void;
         abstract onCreateBaseLayers(): any;
-        abstract onShowTitle(graphic: any): void;
-        abstract onHideTitle(graphic: any): void;
+        abstract onShowTooltip(graphic: any): void;
+        abstract onHideTooltip(graphic: any): void;
         abstract onCreateContextMenu(options: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;
         }): void;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
         goToCenter(): void;
         getBaseLayerById(id: string): FlagwindTiledLayer | null;
         /**
@@ -239,8 +350,8 @@ declare namespace flagwind {
         onCreateMap(): void;
         onShowInfoWindow(options: any): void;
         onCreateBaseLayers(): FlagwindTiledLayer[];
-        onShowTitle(graphic: any): void;
-        onHideTitle(graphic: any): void;
+        onShowTooltip(graphic: any): void;
+        onHideTooltip(graphic: any): void;
         onCreateContextMenu(options: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;
@@ -265,12 +376,13 @@ declare namespace flagwind {
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
         constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
-        abstract onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        abstract onCreateLineLayer(id: string): FlagwindGroupLayer;
+        abstract onCreateMovingLayer(id: string): FlagwindGroupLayer;
         abstract onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
         abstract onShowSegmentLine(segment: TrackSegment): void;
         abstract onGetStandardStops(name: String, stops: Array<any>): Array<any>;
-        onSetSegmentByLine(options: any, segment: TrackSegment): any;
-        onSetSegmentByPolyLine(options: any, segment: TrackSegment): any;
+        abstract onSetSegmentByLine(options: any, segment: TrackSegment): any;
+        abstract onSetSegmentByPoint(options: any, segment: TrackSegment): any;
         /**
          * 由网络分析服务来求解轨迹并播放
          *
@@ -286,7 +398,6 @@ declare namespace flagwind {
          * @param segment
          */
         abstract onSolveByJoinPoint(segment: TrackSegment): void;
-        abstract onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
         /**
          * 创建移动要素
          * @param {*} trackline 线路
@@ -392,10 +503,6 @@ declare namespace flagwind {
         protected onCreateSegmentLineComplete(segment: TrackSegment): void;
         protected checkMapSetting(): void;
         /**
-         * 每次位置移动线路上的要素样式变换操作
-         */
-        protected changeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
-        /**
          *
          * 显示路段事件
          *
@@ -414,10 +521,11 @@ declare namespace flagwind {
         /**
          * 移动回调事件
          */
-        protected onMoveEvent(flagwindRoute: this, segment: any, xy: any, angle: number): void;
+        protected onMoveEvent(flagwindRoute: this, segment: TrackSegment, xy: any, angle: number): void;
         protected onAddLayerBefor(): void;
         protected onAddLayerAfter(): void;
         protected onLoad(): void;
+        protected abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -429,9 +537,12 @@ declare namespace flagwind {
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
         constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
+        onSetSegmentByLine(options: any, segment: TrackSegment): void;
+        onSetSegmentByPoint(options: any, segment: TrackSegment): void;
         onShowSegmentLine(segment: TrackSegment): void;
         onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
-        onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        onCreateLineLayer(id: string): FlagwindGroupLayer;
+        onCreateMovingLayer(id: string): FlagwindGroupLayer;
         onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
         onGetStandardStops(name: String, stops: Array<any>): Array<any>;
         onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
@@ -440,6 +551,10 @@ declare namespace flagwind {
         getSpatialReferenceFormNA(): any;
         protected getStandardGraphic(graphic: any): any;
         protected cloneStopGraphic(graphic: any): any;
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -482,7 +597,6 @@ declare namespace flagwind {
         abstract onShowInfoWindow(evt: any): void;
         abstract onCreatGraphicByModel(item: any): any;
         abstract onUpdateGraphicByModel(item: any): void;
-        abstract onAddEventListener(eventName: string, callback: Function): void;
         onAddLayerBefor(): void;
         onAddLayerAfter(): void;
         readonly map: any;
@@ -578,10 +692,11 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    const locationLayerOptions: {
+    const LOCATION_LAYER_OPTIONS: {
         onMapClick: (evt: any) => void;
     };
     interface IFlagwindLocationLayer {
+        point: any;
         clear(): void;
     }
 }
@@ -640,7 +755,7 @@ declare namespace flagwind {
         /**
          * 设置直线
          */
-        setLine(points: Array<any>): void;
+        setMultPoints(points: Array<any>): void;
         changeSpeed(speed?: number | null): void;
         move(segment: TrackSegment): void;
         start(): boolean;
@@ -767,6 +882,23 @@ declare namespace flagwind {
     class MapUtils {
         static PI: number;
         static X_PI: number;
+        /**
+         * 增密
+         * @param start 始点
+         * @param end 终点
+         * @param n 增加的点数
+         */
+        static density(start: MinemapPoint, end: MinemapPoint, n: number): {
+            x: number;
+            y: number;
+        }[];
+        /**
+         * 线段抽稀操作
+         * @param paths  多线段
+         * @param length 长度
+         * @param numsOfKilometer 公里点数
+         */
+        static vacuate(paths: Array<Array<any>>, length: number, numsOfKilometer: number): any[];
         /**
          * 判断原始点坐标与目标点坐标是否一样
          *
@@ -1366,6 +1498,163 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     /**
+     * EventArgs 类作为创建事件参数的基类，当发生事件时，EventArgs 实例将作为参数传递给事件侦听器。
+     * @class
+     * @version 1.0.0
+     */
+    class EventArgs {
+        private _type;
+        private _source;
+        private _data;
+        /**
+         * 获取一个字符串值，表示事件的类型。
+         * @property
+         * @returns string
+         */
+        readonly type: string;
+        /**
+         * 获取或设置事件源对象。
+         * @property
+         * @returns any
+         */
+        source: any;
+        /**
+         * 获取或设置与事件关联的可选数据。
+         * @property
+         * @returns any
+         */
+        data: any;
+        /**
+         * 初始化 EventArgs 类的新实例。
+         * @constructor
+         * @param  {string} type 事件类型。
+         * @param  {any?} data 可选数据。
+         */
+        constructor(type: string, data?: any);
+    }
+}
+declare namespace flagwind {
+    /**
+     * 为可取消的事件提供数据。
+     * @class
+     * @version 1.0.0
+     */
+    class CancelEventArgs extends EventArgs {
+        private _cancel;
+        /**
+         * 获取或设置指示是否应取消事件。
+         * @property
+         * @returns boolean
+         */
+        cancel: boolean;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 提供关于事件提供程序的功能。
+     * @class
+     * @version 1.0.0
+     */
+    class EventProviderFactory implements IEventProviderFactory {
+        private _providers;
+        private static _instance;
+        /**
+         * 获取所有事件提供程序。
+         * @property
+         * @returns IMap<any, IEventProvider>
+         */
+        protected readonly providers: IMap<any, IEventProvider>;
+        /**
+         * 获取事件提供程序工厂的单实例。
+         * @static
+         * @property
+         * @returns EventProviderFactory
+         */
+        static readonly instance: EventProviderFactory;
+        /**
+         * 初始化事件提供程序工厂的新实例。
+         * @constructor
+         */
+        constructor();
+        /**
+         * 获取指定事件源的事件提供程序。
+         * @param  {any} source IEventProvider 所抛出事件对象的源对象。
+         * @returns IEventProdiver 返回指定名称的事件提供程序。
+         */
+        getProvider(source: any): IEventProvider;
+        /**
+         * 根据指定事件源创建一个事件提供程序。
+         * @virtual
+         * @param  {any} source IEventProvider 所抛出事件对象的源对象。
+         * @returns IEventProvider 事件提供程序实例。
+         */
+        protected createProvider(source: any): IEventProvider;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 定义用于添加或删除事件侦听器的方法，检查是否已注册特定类型的事件侦听器，并调度事件。
+     * @interface
+     * @version 1.0.0
+     */
+    interface IEventProvider {
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        addListener(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        removeListener(type: string, listener: Function, scope?: any): void;
+        /**
+         * 检查是否为特定事件类型注册了侦听器。
+         * @param  {string} type 事件类型。
+         * @returns boolean 如果指定类型的侦听器已注册，则值为 true；否则，值为 false。
+         */
+        hasListener(type: string): boolean;
+        /**
+         * 派发一个指定类型的事件。
+         * @param  {string} type 事件类型。
+         * @param  {any} data? 事件数据。
+         * @returns void
+         */
+        dispatchEvent(type: string, data?: any): void;
+        /**
+         * 派发一个指定参数的事件。
+         * @param  {EventArgs} eventArgs 事件参数实例。
+         * @returns void
+         */
+        dispatchEvent(args: EventArgs): void;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 提供关于事件提供程序的功能。
+     * @interface
+     * @version 1.0.0
+     */
+    interface IEventProviderFactory {
+        /**
+         * 获取指定事件源的事件提供程序。
+         * @param  {any} source IEventProvider 所抛出事件对象的源对象。
+         * @returns IEventProdiver 返回指定名称的事件提供程序。
+         */
+        getProvider(source: any): IEventProvider;
+    }
+}
+declare namespace flagwind {
+    /**
      * 表示在应用程序执行期间发生的错误。
      * @class
      * @version 1.0.0
@@ -1395,7 +1684,31 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    /**
+     * 编辑要素图层
+     */
+    class MinemapEditLayer implements IFlagwindEditLayer {
+        businessLayer: MinemapPointLayer;
+        private graphic;
+        private draggingFlag;
+        private cursorOverPointFlag;
+        constructor(businessLayer: MinemapPointLayer);
+        readonly map: any;
+        registerEvent(graphic: MinemapMarker): void;
+        updatePoint(editLayer: this): void;
+        mouseMovePoint(e: any): void;
+        activateEdit(key: string): void;
+        cancelEdit(key: string): void;
+        onChanged(options: any, isSave: boolean): Promise<boolean>;
+    }
+}
+declare namespace flagwind {
     class MinemapGroupLayer extends FlagwindGroupLayer {
+        addListener(type: string, listener: Function, scope?: any, once?: boolean): void;
+        removeListener(type: string, listener: Function, scope?: any): void;
+        hasListener(type: string): boolean;
+        dispatchEvent(type: string, data?: any): void;
+        dispatchEvent(args: EventArgs): void;
         onCreateGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
     }
 }
@@ -1417,16 +1730,282 @@ declare namespace flagwind {
 }
 declare var minemap: any;
 declare namespace flagwind {
+    /**
+     * 几何对象
+     */
+    abstract class MinemapGeometry {
+        type: string;
+        spatial: MinemapSpatial;
+        attributes: any;
+        constructor(type: string, spatial: MinemapSpatial);
+        abstract toJson(): any;
+    }
+    /**
+     * 线
+     */
+    class MinemapPolyline extends MinemapGeometry {
+        path: Array<Array<number>>;
+        constructor(spatial?: MinemapSpatial);
+        getPoint(pointIndex: number): number[];
+        insertPoint(pointIndex: number, point: Array<number>): void;
+        removePoint(pointIndex: number): void;
+        toJson(): {
+            "type": string;
+            "data": {
+                "type": string;
+                "properties": any;
+                "geometry": {
+                    "type": string;
+                    "coordinates": number[][];
+                };
+            };
+        };
+    }
+    /**
+     * 面
+     */
+    class MinemapPolygon extends MinemapGeometry {
+        rings: Array<Array<Array<number>>>;
+        constructor(spatial?: MinemapSpatial);
+        addRing(path: Array<Array<number>>): void;
+        removeRing(ringIndex: number): void;
+        getPoint(ringIndex: number, pointIndex: number): number[];
+        insertPoint(ringIndex: number, pointIndex: number, point: Array<number>): void;
+        removePoint(ringIndex: number, pointIndex: number): void;
+        toJson(): {
+            "type": string;
+            "data": {
+                "type": string;
+                "properties": any;
+                "geometry": {
+                    "type": string;
+                    "coordinates": number[][][];
+                };
+            };
+        };
+    }
+    /**
+     * 坐标点
+     */
+    class MinemapPoint extends MinemapGeometry {
+        x: number;
+        y: number;
+        spatial: MinemapSpatial;
+        constructor(x: number, y: number, spatial?: MinemapSpatial);
+        toJson(): {
+            "type": string;
+            "properties": any;
+            "geometry": {
+                "type": string;
+                "coordinates": number[];
+            };
+        };
+    }
+    /**
+     * 空间投影
+     */
+    class MinemapSpatial {
+        wkid: number;
+        constructor(wkid: number);
+    }
+    interface IMinemapGraphic {
+        id: string;
+        attributes: any;
+        isShow: boolean;
+        isInsided: boolean;
+        kind: string;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: MinemapGeometry): void;
+        addTo(map: any): void;
+    }
+    class MinemapMarker extends EventProvider implements IMinemapGraphic {
+        private _kind;
+        /**
+         * 是否在地图上
+         */
+        private _isInsided;
+        private _geometry;
+        id: string;
+        isShow: boolean;
+        symbol: any;
+        marker: any;
+        element: any;
+        attributes: any;
+        layer: MinemapMarkerLayer;
+        EVENTS_MAP: Map<string, Function>;
+        constructor(options: any);
+        /**
+         * 复制节点
+         * @param id 元素ID
+         */
+        clone(id: string): MinemapMarker;
+        readonly kind: string;
+        readonly isInsided: boolean;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setAngle(angle: number): void;
+        setSymbol(symbol: any): void;
+        draw(): void;
+        geometry: MinemapPoint;
+        setGeometry(value: MinemapGeometry): void;
+        addTo(map: any): void;
+        protected fireEvent(type: string, data?: any): void;
+    }
+    class MinemapGeoJson implements IMinemapGraphic {
+        layer: MinemapGeoJsonLayer;
+        private _kind;
+        private _geometry;
+        /**
+         * 是否在地图上
+         */
+        _isInsided: boolean;
+        id: string;
+        isShow: boolean;
+        type: string;
+        layout: any;
+        paint: any;
+        attributes: any;
+        constructor(layer: MinemapGeoJsonLayer, options: any);
+        readonly kind: string;
+        readonly isInsided: boolean;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        geometry: MinemapGeometry;
+        setGeometry(value: MinemapGeometry): void;
+        addTo(map: any): void;
+        addLayer(map: any): void;
+    }
+    interface IMinemapGraphicsLayer {
+        graphics: Array<IMinemapGraphic>;
+        show(): void;
+        hide(): void;
+        add(graphic: any): void;
+        remove(graphic: any): void;
+        addToMap(map: any): void;
+        removeFromMap(map: any): void;
+        on(eventName: string, callBack: Function): void;
+    }
+    class MinemapMarkerLayer extends EventProvider implements IMinemapGraphicsLayer {
+        options: any;
+        private GRAPHICS_MAP;
+        /**
+         * 是否在地图上
+         */
+        _isInsided: boolean;
+        id: string;
+        map: any;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        readonly graphics: any;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
+        show(): void;
+        hide(): void;
+        remove(graphic: IMinemapGraphic): void;
+        clear(): void;
+        add(graphic: MinemapMarker): void;
+        addToMap(map: any): void;
+        removeFromMap(map: any): void;
+    }
+    class MinemapGeoJsonLayer extends EventProvider implements IMinemapGraphicsLayer {
+        options: any;
+        private GRAPHICS_MAP;
+        /**
+         * 是否在地图上
+         */
+        _isInsided: boolean;
+        id: string;
+        map: any;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        readonly graphics: any;
+        show(): void;
+        hide(): void;
+        remove(graphic: IMinemapGraphic): void;
+        clear(): void;
+        add(graphic: MinemapGeoJson): void;
+        addToMap(map: any): void;
+        removeFromMap(map: any): void;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
+    }
+}
+declare namespace flagwind {
+    class MinemapLocationLayer extends MinemapMarkerLayer implements IFlagwindLocationLayer {
+        flagwindMap: FlagwindMap;
+        point: MinemapPoint;
+        constructor(flagwindMap: FlagwindMap, options: any);
+        registerEvent(): void;
+        locate(): void;
+    }
+}
+declare namespace flagwind {
     class MinemapMap extends FlagwindMap {
         mapSetting: IMapSetting;
         mapEl: any;
         constructor(mapSetting: IMapSetting, mapEl: any, options: any);
-        /**
-         * 事件监听
-         * @param eventName 事件名称
-         * @param callBack 回调
-         */
-        onAddEventListener(eventName: string, callBack: Function): void;
         /**
          * 中心定位
          * @param point 坐标点
@@ -1446,8 +2025,8 @@ declare namespace flagwind {
          * 创建底图
          */
         onCreateBaseLayers(): FlagwindTiledLayer[];
-        onShowTitle(graphic: any): void;
-        onHideTitle(graphic: any): void;
+        onShowTooltip(graphic: any): void;
+        onHideTooltip(graphic: any): void;
         onCreateContextMenu(args: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;
@@ -1464,12 +2043,6 @@ declare namespace flagwind {
         constructor(businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
         onCreateGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
         onShowInfoWindow(evt: any): void;
-        /**
-         * 图层事件处理
-         * @param eventName 事件名称
-         * @param callback 回调
-         */
-        onAddEventListener(eventName: string, callback: Function): void;
         /**
          * 把实体转换成标准的要素属性信息
          * @param item 实体信息
@@ -1508,178 +2081,68 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     class MinemapRouteLayer extends FlagwindRouteLayer {
-        onCreateGroupLayer(id: string): FlagwindGroupLayer;
+        onSetSegmentByLine(options: any, segment: TrackSegment): void;
+        onSetSegmentByPoint(options: any, segment: TrackSegment): void;
+        onCreateMovingLayer(id: string): FlagwindGroupLayer;
+        onCreateLineLayer(id: string): FlagwindGroupLayer;
         onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
         onShowSegmentLine(segment: TrackSegment): void;
         onGetStandardStops(name: String, stops: Array<any>): Array<any>;
+        /**
+         * 由路由服务来路径规划
+         * @param segment 路段
+         * @param start 开始结点
+         * @param end 结束结点
+         * @param waypoints  经过点
+         */
         onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void;
+        /**
+         * 由点点连线进行路径规划
+         * @param segment 路段
+         */
         onSolveByJoinPoint(segment: TrackSegment): void;
-        onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
         onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): void;
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {
     /**
-     * 坐标点
+     * 思维图新路由结果定义
      */
-    class MinemapPoint {
-        x: number;
-        y: number;
-        spatial: any;
-        constructor(x: number, y: number, spatial: any);
-        geometry: MinemapGeometry;
-    }
-    /**
-     * 几何对象
-     */
-    class MinemapGeometry {
-        type: string;
-        coordinates: Array<any>;
-        constructor(type: string, coordinates: Array<any>);
-    }
-    /**
-     * 空间投影
-     */
-    class MinemapSpatial {
-        wkid: number;
-        constructor(wkid: number);
-    }
-    interface IMinemapGraphic {
-        id: string;
-        attributes: any;
-        isShow: boolean;
-        isInsided: boolean;
-        kind: string;
-        show(): void;
-        hide(): void;
-        remove(): void;
-        delete(): void;
-        setSymbol(symbol: any): void;
-        setGeometry(geometry: {
-            type: string;
-            coordinates: Array<any>;
-        }): void;
-        addTo(map: any): void;
-    }
-    class MinemapMarker implements IMinemapGraphic {
-        private _kind;
-        /**
-         * 是否在地图上
-         */
-        private _isInsided;
-        private _geometry;
-        id: string;
-        isShow: boolean;
-        symbol: any;
-        marker: any;
-        element: any;
-        attributes: any;
-        layer: MinemapMarkerLayer;
-        constructor(options: any);
-        readonly kind: string;
-        readonly isInsided: boolean;
-        onCallBack(eventName: string, arg: any): void;
-        show(): void;
-        hide(): void;
-        remove(): void;
-        delete(): void;
-        setSymbol(symbol: any): void;
-        geometry: MinemapGeometry;
-        setGeometry(geometry: {
-            type: string;
-            coordinates: Array<any>;
-        }): void;
-        addTo(map: any): void;
-    }
-    class MinemapGeoJson implements IMinemapGraphic {
-        private _kind;
-        /**
-         * 是否在地图上
-         */
-        _isInsided: boolean;
-        id: string;
-        isShow: boolean;
+    class RouteResult {
+        success: boolean;
+        message: string;
         data: {
-            type: string;
-            geometry: {
-                type: string;
-                coordinates: Array<any>;
-            };
+            error: string;
+            rows: Array<RouteRow>;
         };
-        type: string;
-        layout: any;
-        paint: any;
-        layer: MinemapMarkerLayer;
-        attributes: any;
-        readonly kind: string;
-        readonly isInsided: boolean;
-        show(): void;
-        hide(): void;
-        remove(): void;
-        delete(): void;
-        setSymbol(symbol: any): void;
-        setGeometry(geometry: {
-            type: string;
-            coordinates: Array<any>;
-        }): void;
-        addTo(map: any): void;
-        addLayer(map: any): void;
+        constructor(result: any);
+        getLine(spatial: any): MinemapPolyline;
     }
-    interface IMinemapGraphicsLayer {
-        graphics: Array<IMinemapGraphic>;
-        show(): void;
-        hide(): void;
-        add(graphic: any): void;
-        remove(graphic: any): void;
-        addToMap(map: any): void;
-        removeFromMap(map: any): void;
-        on(eventName: string, callBack: Function): void;
+    class RouteItem {
+        streetName: string;
+        distance: number;
+        duration: number;
+        guide: string;
+        constructor(item: any);
     }
-    class MinemapMarkerLayer implements IMinemapGraphicsLayer {
-        options: any;
-        private GRAPHICS_MAP;
-        private EVENTS_MAP;
-        /**
-         * 是否在地图上
-         */
-        _isInsided: boolean;
-        id: string;
-        map: any;
-        readonly isInsided: boolean;
-        constructor(options: any);
-        readonly graphics: any;
-        getCallBack(eventName: string): Function;
-        on(eventName: string, callBack: Function): void;
-        show(): void;
-        hide(): void;
-        remove(graphic: IMinemapGraphic): void;
-        clear(): void;
-        add(graphic: MinemapMarker): void;
-        addToMap(map: any): void;
-        removeFromMap(map: any): void;
-    }
-    class MinemapGeoJsonLayer implements IMinemapGraphicsLayer {
-        private GRAPHICS_MAP;
-        /**
-         * 是否在地图上
-         */
-        _isInsided: boolean;
-        id: string;
-        map: any;
-        readonly isInsided: boolean;
-        constructor(options: any);
-        readonly graphics: any;
-        show(): void;
-        hide(): void;
-        remove(graphic: IMinemapGraphic): void;
-        clear(): void;
-        add(graphic: MinemapGeoJson): void;
-        addToMap(map: any): void;
-        removeFromMap(map: any): void;
-        on(eventName: string, callBack: Function): void;
+    class RouteRow {
+        center: MinemapPoint;
+        scale: number;
+        distance: number;
+        duration: number;
+        points: Array<Array<any>>;
+        items: Array<RouteItem>;
+        constructor(result: any);
+        getPoints(spatial: any): Array<MinemapPoint>;
+        getLine(spatial: any): MinemapPolyline;
     }
 }
 declare var minemap: any;
+declare var turf: any;
 declare namespace flagwind {
     class MinemapSetting implements IMapSetting {
         baseUrl: string;
@@ -1701,5 +2164,194 @@ declare namespace flagwind {
         zoom: number;
         logo: boolean;
         slider: boolean;
+    }
+}
+declare namespace flagwind {
+    class MinemapUtils {
+        /**
+         * 求两点之间的距离
+         * @param from 起点
+         * @param to 终点
+         */
+        static getLength(from: MinemapPoint, to: MinemapPoint): number;
+        /**
+         * 求多点之间连线的距离
+         * @param points 多点集
+         * @param count 抽点次数
+         */
+        static distance(points: Array<MinemapPoint>, count?: number | null): number;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 提供一种用于释放非托管资源的机制。
+     * @interface
+     * @version 1.0.0
+     */
+    interface IDisposable {
+        /**
+         * 执行与释放或重置非托管资源关联的应用程序定义的任务。
+         * @returns void
+         */
+        dispose(): void;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 提供一些常用类型检测与反射相关的方法。
+     * @static
+     * @class
+     * @version 1.0.0
+     */
+    class Type {
+        private static readonly _metadatas;
+        /**
+         * 私有构造方法，使类型成为静态类。
+         * @private
+         */
+        private constructor();
+        /**
+         * 检测一个值是否为数组。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isArray(value: any): boolean;
+        /**
+         * 检测一个值是否为对象。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isObject(value: any): boolean;
+        /**
+         * 检测一个值是否为字符串。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isString(value: any): boolean;
+        /**
+         * 检测一个值是否为日期。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isDate(value: any): boolean;
+        /**
+         * 检测一个值是否为正则表达式。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isRegExp(value: any): boolean;
+        /**
+         * 检测一个值是否为函数。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isFunction(value: any): boolean;
+        /**
+         * 检测一个值是否为布尔值。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isBoolean(value: any): boolean;
+        /**
+         * 检测一个值是否为数值。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isNumber(value: any): boolean;
+        /**
+         * 检测一个值是否为 null。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isNull(value: any): boolean;
+        /**
+         * 检测一个值是否为 undefined。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isUndefined(value: any): boolean;
+        /**
+         * 检测一个值是否为 null 或 undefined。
+         * @static
+         * @param  {any} value
+         * @returns boolean
+         */
+        static isEmptyObject(value: any): boolean;
+        /**
+         * 表示一个字符串值是否为 null 或 undefined 或 空值。
+         * @static
+         * @param  {string} value 要检测的字符串实例。
+         * @returns boolean
+         */
+        static isEmptyString(value: string): boolean;
+        /**
+         * 设置指定类型的元数据。
+         * @param  {any} type 目标类型。
+         * @param  {any} metadata 元数据。
+         * @returns void
+         */
+        static setMetadata(type: any, metadata: any): void;
+        /**
+         * 获取指定类型的元数据。
+         * @param  {any} type 目标类型。
+         * @returns any 元数据。
+         */
+        static getMetadata(type: any): any;
+        /**
+         * 返回对象的类型(即构造函数)。
+         * @param  {string|any} value 实例或类型路径。
+         * @returns Function 如果成功解析则返回类型的构造函数，否则为 undefined。
+         */
+        static getClassType(value: string | any): Function;
+        /**
+         * 返回 value 参数指定的对象的类名。
+         * @param  {any} value 需要取得类名称的对象，可以将任何 JavaScript 值传递给此方法，包括所有可用的 JavaScript 类型、对象实例、原始类型（如number)和类对象。
+         * @returns string 类名称的字符串。
+         */
+        static getClassName(value: any): string;
+        /**
+         * 返回 value 参数指定的对象的完全限定类名。
+         * @static
+         * @param  {any} value 需要取得完全限定类名称的对象，可以将任何 JavaScript 值传递给此方法，包括所有可用的 JavaScript 类型、对象实例、原始类型（如number)和类对象。
+         * @returns string 包含完全限定类名称的字符串。
+         */
+        static getQualifiedClassName(value: any): string;
+        /**
+         * 返回 value 参数指定的对象的基类的类名。
+         * @param  {any} value 需要取得父类类名称的对象，可以将任何 JavaScript 值传递给此方法，包括所有可用的 JavaScript 类型、对象实例、原始类型（如number）和类对象。
+         * @returns string 基类名称，或 null（如果不存在基类名称）。
+         */
+        static getSuperclassName(value: any): string;
+        /**
+         * 返回 value 参数指定的对象的基类的完全限定类名。
+         * @param  {any} value 需要取得父类完全限定类名称的对象，可以将任何 JavaScript 值传递给此方法，包括所有可用的 JavaScript 类型、对象实例、原始类型（如number）和类对象。
+         * @returns string 完全限定的基类名称，或 null（如果不存在基类名称）。
+         */
+        static getQualifiedSuperclassName(value: any): string;
+        /**
+         * 确定指定类型的实例是否可以分配给当前类型的实例。
+         * @param  {Function} parentType 指定基类的类型。
+         * @param  {Function} subType 指定的实例类型。
+         * @returns boolean
+         */
+        static isAssignableFrom(parentType: Function | String, subType: Function): boolean;
+        /**
+         * 获取指定值的类型字符串(小写)。
+         * @private
+         * @static
+         * @param  {any} value
+         * @returns string
+         */
+        private static getTypeString(value);
     }
 }

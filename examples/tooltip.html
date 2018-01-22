@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>四维图新-图层Tooltip</title>
+    <link rel="stylesheet" href="http://minedata.cn/minemapapi/v1.3/minemap.css">
+    <script src="http://minedata.cn/minemapapi/v1.3/minemap.js"></script>
+    <style>
+        html,
+        body,
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .flagwind-map-title.hide {
+            display: none
+        }
+
+        .flagwind-map-title {
+            display: block;
+
+        }
+
+        .minemap-marker.tollgate {
+            background-image: url('http://minedata.cn/minemapapi/demo/images/police.png');
+            background-size: cover;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .minemap-popup {
+            max-width: 200px;
+        }
+
+        .flagwind-map-tooltip {
+            position: absolute;
+            background-color: whitesmoke;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div style="position: absolute;
+    top: 0px;
+    right: 0px;
+    color: ghostwhite;
+    background-color: blueviolet;
+    width: 400px;
+    padding: 8px;">
+        当鼠标放在要素上会显示该要素的名称，在集成该功能是需要开启图层的showTooltipOnHover选择配置，以及自定义flagwind-map-tooltip的样式
+    </div>
+</body>
+<script data-main="scripts/tooltip" src="scripts/require.js"></script>
+
+</html>

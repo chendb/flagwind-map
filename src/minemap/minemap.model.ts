@@ -1,40 +1,142 @@
+/// <reference path="../events/EventProvider" />
 namespace flagwind {
-    /**
-     * 坐标点
-     */
-    export class MinemapPoint {
-
-        public constructor(
-            public x: number,
-            public y: number,
-            public spatial: any
-        ) { }
-
-        public get geometry(): MinemapGeometry {
-            return new MinemapGeometry(
-                "Point", [this.x, this.y]
-            );
-        }
-
-        public set geometry(value: MinemapGeometry) {
-            this.x = value.coordinates[0];
-            this.y = value.coordinates[1];
-        }
-
-    }
 
     /**
      * 几何对象
      */
-    export class MinemapGeometry {
+    export abstract class MinemapGeometry {
+
+        public attributes: any;
 
         public constructor(
             public type: string,
-            public coordinates: Array<any>
+            public spatial: MinemapSpatial
         ) {
 
         }
 
+        public abstract toJson(): any;
+
+    }
+    /**
+     * 线
+     */
+    export class MinemapPolyline extends MinemapGeometry {
+
+        public path: Array<Array<number>> = [];
+        public constructor(spatial: MinemapSpatial = null) {
+            super("Polyline", spatial);
+        }
+
+        public getPoint(pointIndex: number) {
+
+            return this.path[pointIndex];
+        }
+
+        public insertPoint(pointIndex: number, point: Array<number>) {
+            this.path.splice(pointIndex, 0, point);
+        }
+
+        public removePoint(pointIndex: number) {
+            this.path.splice(pointIndex, 1);
+        }
+
+        public toJson() {
+
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes || {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": this.path
+                    }
+                }
+            };
+        }
+    }
+    /**
+     * 面
+     */
+    export class MinemapPolygon extends MinemapGeometry {
+
+        public rings: Array<Array<Array<number>>> = [];
+        public constructor(spatial: MinemapSpatial = null) {
+            super("Line", spatial);
+        }
+
+        public addRing(path: Array<Array<number>>) {
+            this.rings.push(path);
+        }
+
+        public removeRing(ringIndex: number) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings = this.rings.splice(ringIndex, 1);
+        }
+
+        public getPoint(ringIndex: number, pointIndex: number) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            return this.rings[ringIndex][pointIndex];
+        }
+
+        public insertPoint(ringIndex: number, pointIndex: number, point: Array<number>) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings[ringIndex].splice(pointIndex, 0, point);
+        }
+
+        public removePoint(ringIndex: number, pointIndex: number) {
+            if (ringIndex > this.rings.length) {
+                throw new Error("数组越界");
+            }
+            this.rings[ringIndex].splice(pointIndex, 1);
+        }
+
+        public toJson() {
+
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes || {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": this.rings
+                    }
+                }
+            };
+        }
+    }
+
+    /**
+     * 坐标点
+     */
+    export class MinemapPoint extends MinemapGeometry {
+
+        public constructor(
+            public x: number,
+            public y: number,
+            public spatial: MinemapSpatial = null
+        ) {
+            super("Point", spatial);
+        }
+
+        public toJson() {
+            return {
+                "type": "Feature",
+                "properties": this.attributes || {},
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [this.x, this.y]
+                }
+            };
+        }
     }
 
     /**
@@ -70,19 +172,20 @@ namespace flagwind {
 
         setSymbol(symbol: any): void;
 
-        setGeometry(geometry: { type: string; coordinates: Array<any> }): void;
+        setGeometry(geometry: MinemapGeometry): void;
 
         addTo(map: any): void;
+
     }
 
-    export class MinemapMarker implements IMinemapGraphic {
+    export class MinemapMarker extends EventProvider implements IMinemapGraphic {
 
         private _kind: string = "marker";
         /**
          * 是否在地图上
          */
         private _isInsided: boolean = false;
-        private _geometry: MinemapGeometry;
+        private _geometry: MinemapPoint;
 
         public id: string;
         public isShow: boolean = true;
@@ -94,9 +197,10 @@ namespace flagwind {
 
         public layer: MinemapMarkerLayer;
 
-        // public EVENT_MAP: Map<string, string> = new Map<string, string>();
+        public EVENTS_MAP: Map<string, Function> = new Map<string, Function>();
 
         public constructor(options: any) {
+            super();
             this.id = options.id;
             this.element = document.createElement("div");
             this.element.id = this.id;
@@ -107,45 +211,66 @@ namespace flagwind {
             }
             this.marker = new minemap.Marker(this.element, { offset: [-25, -25] });
             if (options.point) {
-                this._geometry = new MinemapGeometry("Point", [options.point.x, options.point.y]);
-                this.marker.setLngLat([options.point.x, options.point.y]);
+                this.geometry = new MinemapPoint(options.point.x, options.point.y);
+            }
+            if (options.geometry) {
+                this.geometry = options.geometry;
             }
             let me = this;
             this.element.onmouseover = function (args: any) {
-                me.onCallBack("onMouseOver", {
+                console.log("fire marker onMouseOver");
+                me.fireEvent("onMouseOver", {
                     graphic: me,
                     mapPoint: me.geometry,
                     orgion: args
                 });
             };
             this.element.onmouseout = function (args: any) {
-                me.onCallBack("onMouseOut", {
+                console.log("fire marker onMouseOut");
+                me.fireEvent("onMouseOut", {
                     graphic: me,
                     mapPoint: me.geometry,
                     orgion: args
                 });
             };
             this.element.onmousedown = function (args: any) {
-                me.onCallBack("onMouseDown", {
+                console.log("fire marker onMouseDown");
+                me.fireEvent("onMouseDown", {
                     graphic: me,
                     mapPoint: me.geometry,
                     orgion: args
                 });
             };
             this.element.onmouseup = function (args: any) {
-                me.onCallBack("onMouseUp", {
+                console.log("fire marker onMouseUp");
+                me.fireEvent("onMouseUp", {
                     graphic: me,
                     mapPoint: me.geometry,
                     orgion: args
                 });
             };
             this.element.onclick = function (args: any) {
-                me.onCallBack("onClick", {
+                console.log("fire marker onClick");
+                me.fireEvent("onClick", {
                     graphic: me,
                     mapPoint: me.geometry,
                     orgion: args
                 });
             };
+        }
+
+        /**
+         * 复制节点
+         * @param id 元素ID
+         */
+        public clone(id: string) {
+            let m = new MinemapMarker({
+                id: id,
+                symbol: this.symbol,
+                attributes: this.attributes,
+                point: this.geometry
+            });
+            return m;
         }
 
         public get kind() {
@@ -156,19 +281,47 @@ namespace flagwind {
             return this._isInsided;
         }
 
-        // public on(eventName: string, callBack: Function) {
-        //     eventName = this.EVENT_MAP.get(eventName) || eventName;
-        //     this.element[eventName] = callBack;
-        // }
-
-        public onCallBack(eventName: string, arg: any) {
-            let callback = this.layer.getCallBack("onMouseOver");
-            if (callback) {
-                callback(arg);
-            }
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        public on(type: string, listener: Function, scope: any = this, once: boolean = false): void {
+            this.addListener(type, listener, scope, once);
         }
 
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        public off(type: string, listener: Function, scope: any = this): void {
+            this.removeListener(type, listener, scope);
+        }
+
+        // public onCallBack(eventName: string, arg: any) {
+        //     let call = this.EVENTS_MAP.get(eventName);
+        //     if (call) {
+        //         call(arg);
+        //     }
+        //     if (!this.layer) { return; }
+        //     let callback = this.layer.getCallBack(eventName);
+        //     if (callback) {
+        //         callback(arg);
+        //     }
+        // }
+
         public show(): void {
+            if (!this.layer) {
+                throw new Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
+            }
             this.marker.addTo(this.layer.map);
             this.isShow = false;
         }
@@ -190,7 +343,17 @@ namespace flagwind {
                 this.marker.remove();
                 this._isInsided = false;
             }
-            this.layer.remove(this);
+            if (this.layer) {
+                this.layer.remove(this);
+            }
+        }
+
+        public setAngle(angle: number) {
+            this.element.style.transform = "rotate(" + angle + "deg)";
+            this.element.style["-ms-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-moz-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-webkit-transform"] = "rotate(" + angle + "deg)";
+            this.element.style["-o-transform"] = "rotate(" + angle + "deg)";
         }
 
         public setSymbol(symbol: any): void {
@@ -202,30 +365,44 @@ namespace flagwind {
             }
         }
 
-        public get geometry(): MinemapGeometry {
+        public draw(): void {
+            console.log("draw");
+        }
+
+        public get geometry(): MinemapPoint {
             return this._geometry;
         }
 
-        public set geometry(geometry: MinemapGeometry) {
+        public set geometry(geometry: MinemapPoint) {
             this._geometry = geometry;
-            this.marker.setLngLat(geometry.coordinates);
+            this.marker.setLngLat([geometry.x, geometry.y]);
         }
 
-        public setGeometry(geometry: { type: string; coordinates: Array<any> }): void {
-            this._geometry = geometry;
-            this.marker.setLngLat(geometry.coordinates);
+        public setGeometry(value: MinemapGeometry): void {
+            if (value instanceof MinemapPoint) {
+                this.geometry = <MinemapPoint>value;
+            } else {
+                throw new Error("不匹配类型");
+            }
         }
 
         public addTo(map: any) {
             this._isInsided = true;
             this.marker.addTo(map);
         }
+
+        protected fireEvent(type: string, data?: any): void {
+            this.dispatchEvent(type, data);
+            if (this.layer) {
+                this.layer.dispatchEvent(type, data);
+            }
+        }
     }
 
     export class MinemapGeoJson implements IMinemapGraphic {
 
         private _kind: string = "geojson";
-
+        private _geometry: MinemapGeometry;
         /**
          * 是否在地图上
          */
@@ -233,12 +410,43 @@ namespace flagwind {
 
         public id: string;
         public isShow: boolean = true;
-        public data: { type: string; geometry: { type: string; coordinates: Array<any> } };
         public type: string;
         public layout: any;
         public paint: any;
-        public layer: MinemapMarkerLayer;
-        public attributes: any;
+        public attributes: any = {};
+
+        public constructor(public layer: MinemapGeoJsonLayer, options: any) {
+            if (options && options.id) {
+                this.id = options.id;
+            }
+            if (options && options.type) {
+                this.type = options.type;
+            }
+            if (options && options.paint) {
+                this.paint = options.paint;
+            }
+            if (options && options.layout) {
+                this.layout = options.layout;
+            }
+            if (options && options.attributes) {
+                this.attributes = options.attributes;
+            }
+            if (options && options.geometry) {
+                if (options.geometry instanceof MinemapGeometry) {
+                    this.geometry = options.geometry;
+                } else {
+                    throw new Exception("geometry 类型不正确");
+                }
+            }
+            if (options && options.symbol) {
+                if (options.symbol.layout) {
+                    this.layout = options.symbol.layout;
+                }
+                if (options.symbol.paint) {
+                    this.layout = options.symbol.paint;
+                }
+            }
+        }
 
         public get kind() {
             return this._kind;
@@ -272,32 +480,50 @@ namespace flagwind {
         }
 
         public setSymbol(symbol: any): void {
-            throw new Exception("尚未实现");
+            if (symbol && symbol.paint) {
+                this.paint = symbol.paint;
+            }
+            if (symbol && symbol.layout) {
+                this.layout = symbol.layout;
+            }
         }
 
-        public setGeometry(geometry: { type: string; coordinates: Array<any> }): void {
-            if (this.data && this.data.geometry) {
-                this.data.geometry = geometry;
+        public get geometry(): MinemapGeometry {
+            return this._geometry;
+        }
+
+        public set geometry(value: MinemapGeometry) {
+            this._geometry = value;
+        }
+
+        public setGeometry(value: MinemapGeometry): void {
+            if (value instanceof MinemapGeoJson) {
+                this.geometry = value;
             }
         }
 
         public addTo(map: any) {
             if (!map) return;
-            map.addSource(this.id + "_source", {
-                type: this.kind,
-                data: this.data
-            });
-
+            if (!this.id) {
+                throw new Exception("没有指定id，无法添加");
+            }
+            if (!this.geometry) {
+                throw new Exception("没有指定geometry，无法添加");
+            }
+            let json = this.geometry.toJson();
+            console.log(json);
+            map.addSource(this.id + "_source", json);
         }
 
         public addLayer(map: any) {
-            map.addLayer({
+            let layerJson = {
                 id: this.id,
                 source: this.id + "_source",
                 type: this.type,
                 paint: this.paint,
                 layout: this.layout
-            });
+            };
+            map.addLayer(layerJson);
         }
     }
 
@@ -313,11 +539,11 @@ namespace flagwind {
 
     }
 
-    export class MinemapMarkerLayer implements IMinemapGraphicsLayer {
+    export class MinemapMarkerLayer extends EventProvider implements IMinemapGraphicsLayer {
 
         private GRAPHICS_MAP: Map<string, MinemapMarker> = new Map<string, MinemapMarker>();
 
-        private EVENTS_MAP: Map<string, Function> = new Map<string, Function>();
+        // private EVENTS_MAP: Map<string, Function> = new Map<string, Function>();
 
         /**
          * 是否在地图上
@@ -333,6 +559,7 @@ namespace flagwind {
 
         public constructor(
             public options: any) {
+            super();
             this.id = options.id;
         }
 
@@ -344,13 +571,38 @@ namespace flagwind {
             }
         }
 
-        public getCallBack(eventName: string): Function {
-            return this.EVENTS_MAP.get(eventName);
+        // public getCallBack(eventName: string): Function {
+        //     return this.EVENTS_MAP.get(eventName);
+        // }
+
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        public on(type: string, listener: Function, scope: any = this, once: boolean = false): void {
+            this.addListener(type, listener, scope, once);
         }
 
-        public on(eventName: string, callBack: Function) {
-            this.EVENTS_MAP.set(eventName, callBack);
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        public off(type: string, listener: Function, scope: any = this): void {
+            this.removeListener(type, listener, scope);
         }
+
+        // public on(eventName: string, callBack: Function) {
+        //     this.EVENTS_MAP.set(eventName, callBack);
+        // }
 
         public show(): void {
             this.GRAPHICS_MAP.forEach(g => {
@@ -406,7 +658,7 @@ namespace flagwind {
         }
     }
 
-    export class MinemapGeoJsonLayer implements IMinemapGraphicsLayer {
+    export class MinemapGeoJsonLayer extends EventProvider implements IMinemapGraphicsLayer {
 
         private GRAPHICS_MAP: Map<string, MinemapGeoJson> = new Map<string, MinemapGeoJson>();
         /**
@@ -421,7 +673,8 @@ namespace flagwind {
             return this._isInsided;
         }
 
-        public constructor(options: any) {
+        public constructor(public options: any) {
+            super();
             this.id = options.id;
 
         }
@@ -479,8 +732,29 @@ namespace flagwind {
             this._isInsided = false;
         }
 
-        public on(eventName: string, callBack: Function): void {
-            throw new Error("Method not implemented.");
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        public on(type: string, listener: Function, scope: any = this, once: boolean = false): void {
+            this.addListener(type, listener, scope, once);
+        }
+
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        public off(type: string, listener: Function, scope: any = this): void {
+            this.removeListener(type, listener, scope);
         }
     }
 

@@ -30,14 +30,14 @@ namespace flagwind {
             infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
         }
 
-        /**
-         * 图层事件处理
-         * @param eventName 事件名称
-         * @param callback 回调
-         */
-        public onAddEventListener(eventName: string, callback: Function): void {
-            this.layer.on(eventName, callback);
-        }
+        // /**
+        //  * 图层事件处理
+        //  * @param eventName 事件名称
+        //  * @param callback 回调
+        //  */
+        // public onAddEventListener(eventName: string, callback: Function): void {
+        //     this.layer.on(eventName, callback);
+        // }
 
         /**
          * 把实体转换成标准的要素属性信息

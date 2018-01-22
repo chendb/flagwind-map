@@ -1,5 +1,5 @@
 namespace flagwind {
-    const MINEMAP_MAP_EVENTS_MAP: Map<string, string> = Map.of(["onLoad", "load"]);
+    // const MINEMAP_MAP_EVENTS_MAP: Map<string, string> = Map.of(["onLoad", "load"]);
     // MINEMAP_MAP_EVENTS_MAP.set("onLoad", "load");
 
     export class MinemapMap extends FlagwindMap {
@@ -11,15 +11,15 @@ namespace flagwind {
             super(mapSetting, mapEl, options);
             this.onInit();
         }
-        /**
-         * 事件监听
-         * @param eventName 事件名称
-         * @param callBack 回调
-         */
-        public onAddEventListener(eventName: string, callBack: Function): void {
-            let en = MINEMAP_MAP_EVENTS_MAP.get(eventName) || eventName;
-            this.innerMap.on(en, callBack);
-        }
+        // /**
+        //  * 事件监听
+        //  * @param eventName 事件名称
+        //  * @param callBack 回调
+        //  */
+        // public onAddEventListener(eventName: string, callBack: Function): void {
+        //     let en = MINEMAP_MAP_EVENTS_MAP.get(eventName) || eventName;
+        //     this.innerMap.on(en, callBack);
+        // }
         /**
          * 中心定位
          * @param point 坐标点
@@ -63,19 +63,53 @@ namespace flagwind {
             let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
 
-            let el = document.createElement("div");
-            el.id = "flagwind-map-title";
-
-            let titleDiv = (<any>this).titleDiv = document.createElement("div");
-            titleDiv.id = "flagwind-map-title";
-            titleDiv.classList.add("flagwind-map-title");
-
-            (<any>this).titleMarker = new minemap.Marker(titleDiv, { offset: [-25, -25] })
-                .setLngLat([116.46, 39.92])
-                .addTo(map);
-
+            let div = (<any>this).tooltipElement = document.createElement("div");
+            div.id = "flagwind-map-tooltip";
+            div.classList.add("flagwind-map-tooltip");
+            map._container.appendChild(div);
             this.innerMap = map;
+            const me = this;
 
+            map.on("load", function (args: any) {
+                me.dispatchEvent("onLoad", args);
+            });
+
+            // #region click event
+            map.on("click", function (args: any) {
+                me.dispatchEvent("onClick", args);
+            });
+            map.on("dbclick", function (args: any) {
+                me.dispatchEvent("onDbClick", args);
+            });
+            // #endregion
+
+            // #region mouse event
+            map.on("mouseout", function (args: any) {
+                me.dispatchEvent("onMouseOut", args);
+            });
+            map.on("mousedown", function (args: any) {
+                me.dispatchEvent("onMouseDown", args);
+            });
+            map.on("mousemove", function (args: any) {
+                me.dispatchEvent("onMouseMove", args);
+            });
+            map.on("mouseup", function (args: any) {
+                me.dispatchEvent("onMouseUp", args);
+            });
+            // #endregion
+
+            // #region move event
+            map.on("movestart", function (args: any) {
+                me.dispatchEvent("onMoveStart", args);
+            });
+            map.on("move", function (args: any) {
+                me.dispatchEvent("onMove", args);
+            });
+            map.on("moveend", function (args: any) {
+                me.dispatchEvent("onMoveEnd", args);
+            });
+            // #endregion
+            
             return map;
         }
         public onShowInfoWindow(options: any): void {
@@ -89,10 +123,10 @@ namespace flagwind {
                 this.innerMap.infoWindow = new minemap.Popup(params);
             }
             switch (options.type) {
-                case "dom": this.innerMap.infoWindow.setDOMContent(options.content || "");break;
-                case "html": this.innerMap.infoWindow.setHTML(options.content || "");break;
-                case "text": this.innerMap.infoWindow.setText(options.content || "");break;
-                default: this.innerMap.infoWindow.setHTML(options.content || "");break;
+                case "dom": this.innerMap.infoWindow.setDOMContent(options.content || ""); break;
+                case "html": this.innerMap.infoWindow.setHTML(options.content || ""); break;
+                case "text": this.innerMap.infoWindow.setText(options.content || ""); break;
+                default: this.innerMap.infoWindow.setHTML(options.content || ""); break;
             }
             this.innerMap.infoWindow.setLngLat([options.point.x, options.point.y]).addTo(this.innerMap);
         }
@@ -104,14 +138,19 @@ namespace flagwind {
             this.baseLayers = baseLayers;
             return baseLayers;
         }
-        public onShowTitle(graphic: any): void {
+        public onShowTooltip(graphic: any): void {
             let info = graphic.attributes;
-            let pt = new MinemapPoint(info.longitude, info.latitude, this.spatial);
-            (<any>this).titleMarker.setLngLat([pt.x, pt.y]);
-            (<any>this).titleMarker.getElement().style.display = "block";
+            let pt = graphic.geometry;
+            let screenpt = this.innerMap.project([pt.x, pt.y]);
+            let title = info.name;
+            (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
+            (<any>this).tooltipElement.style.left = (screenpt.x + 8) + "px";
+            (<any>this).tooltipElement.style.top = (screenpt.y + 8) + "px";
+            (<any>this).tooltipElement.style.display = "block";
+
         }
-        public onHideTitle(graphic: any): void {
-            (<any>this).titleMarker.getElement().style.display = "none";
+        public onHideTooltip(graphic: any): void {
+            (<any>this).tooltipElement.style.display = "none";
         }
         public onCreateContextMenu(args: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {
             if (this.options.onCreateContextMenu) {

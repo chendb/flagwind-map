@@ -68,7 +68,7 @@ namespace flagwind {
          * 设置拆线
          */
         public setPolyLine(polyline: any, length: number) {
-            this.flagwindRouteLayer.onSetSegmentByPolyLine({
+            this.flagwindRouteLayer.onSetSegmentByLine({
                 polyline: polyline,
                 length: length
             }, this);
@@ -79,9 +79,9 @@ namespace flagwind {
         /**
          * 设置直线
          */
-        public setLine(points: Array<any>) {
+        public setMultPoints(points: Array<any>) {
 
-            this.flagwindRouteLayer.onSetSegmentByLine({
+            this.flagwindRouteLayer.onSetSegmentByPoint({
                 points: points,
                 spatial: this.flagwindRouteLayer.flagwindMap.spatial
             }, this);
