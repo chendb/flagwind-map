@@ -1415,6 +1415,7 @@ declare namespace flagwind {
         showDataList(data: Array<any>): void;
     }
 }
+declare var minemap: any;
 declare namespace flagwind {
     class MinemapMap extends FlagwindMap {
         mapSetting: IMapSetting;

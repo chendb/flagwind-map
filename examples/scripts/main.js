@@ -38,14 +38,8 @@ requirejs(['flagwindMap'],
         mapSetting.center = [116.46, 39.92];
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
             onLoad: function () {
-
             }
         });
-        // var el = document.getElementById("infoWindow");
-        // var html = "<h4>HTML信息窗口</h4>";
-        // // var infoWindowOption = {type: "dom", content:el, point:{x:116.46, y: 39.92}, closeOnClick: false};
-        // var infoWindowOption = {type: "html", content:html, point:{x:116.46, y: 39.92}, closeButton: false, offset: [0, -35]};
-        // myMap.openInfoWindow(infoWindowOption);
 
         var businessService = {
             getDataList: function () {
@@ -53,12 +47,12 @@ requirejs(['flagwindMap'],
                     resolve([{
                         tollCode: "1",
                         tollName: "1234567",
-                        lon: 116.46,
+                        lon: 116.462,
                         lat: 39.92
                     }, {
                         tollCode: "2",
                         tollName: "2234567",
-                        lon: 116.76,
+                        lon: 116.464,
                         lat: 39.92
                     }]);
                 });
