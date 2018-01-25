@@ -1728,7 +1728,6 @@ declare namespace flagwind {
         showDataList(data: Array<any>): void;
     }
 }
-declare var minemap: any;
 declare namespace flagwind {
     /**
      * 几何对象

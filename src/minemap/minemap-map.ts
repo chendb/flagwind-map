@@ -62,6 +62,7 @@ namespace flagwind {
 
             let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
+            popup.addTo(map);
 
             let div = (<any>this).tooltipElement = document.createElement("div");
             div.id = "flagwind-map-tooltip";

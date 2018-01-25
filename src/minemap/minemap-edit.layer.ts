@@ -5,7 +5,6 @@ namespace flagwind {
      * 编辑要素图层
      */
     export class MinemapEditLayer implements IFlagwindEditLayer {
-
         private graphic: MinemapMarker;
         private draggingFlag: boolean = false;
         private cursorOverPointFlag: boolean = false;

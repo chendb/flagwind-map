@@ -4902,9 +4902,16 @@ var flagwind;
         };
         MinemapPointLayer.prototype.openInfoWindow = function (id, context) {
             var graphic = this.getGraphicById(id);
-            var infoWindow = this.flagwindMap.innerMap.infoWindow;
-            infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
-            infoWindow.setLngLat([graphic.geometry.x, graphic.geometry.y]);
+            if (context) {
+                var infoWindow = this.flagwindMap.innerMap.infoWindow;
+                infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
+                infoWindow.setLngLat([graphic.geometry.x, graphic.geometry.y]);
+            }
+            else {
+                this.onShowInfoWindow({
+                    graphic: graphic
+                });
+            }
         };
         /**
          * 加载并显示设备点位
