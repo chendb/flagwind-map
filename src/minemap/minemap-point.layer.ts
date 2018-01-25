@@ -81,7 +81,7 @@ namespace flagwind {
             let graphic = this.getGraphicById(id);
             if (context) {
                 let infoWindow = this.flagwindMap.innerMap.infoWindow;
-                infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
+                infoWindow.setHTML("<h4 class='info-window-title'>" + context.title + "</h4>" + "<div class='info-window-content'>" + context.content + "</div>");
                 infoWindow.setLngLat([graphic.geometry.x, graphic.geometry.y]);
             } else {
                 this.onShowInfoWindow({
