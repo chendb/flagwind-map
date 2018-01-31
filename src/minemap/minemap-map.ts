@@ -110,27 +110,65 @@ namespace flagwind {
                 me.dispatchEvent("onMoveEnd", args);
             });
             // #endregion
-            
+
             return map;
         }
-        public onShowInfoWindow(options: any): void {
-            // 存在原始参数则创建新信息窗口
-            if (typeof options.closeButton === "boolean" || typeof options.closeOnClick === "boolean" || options.offset) {
+        public onShowInfoWindow(evt: any): void {
+            if (!this.innerMap.infoWindow) {
+                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] });
+            }
+            if (evt.options) {
+                let options = evt.options;
+                // 存在原始设置参数则创建新信息窗口
                 let params = {};
-                if (typeof options.closeButton === "boolean") params["closeButton"] = options.closeButton;
-                if (typeof options.closeOnClick === "boolean") params["closeOnClick"] = options.closeOnClick;
-                if (options.offset) params["offset"] = options.offset;
+                if (typeof options.closeButton === "boolean") {
+                    params["closeButton"] = options.closeButton;
+                }
+                if (typeof options.closeOnClick === "boolean") {
+                    params["closeOnClick"] = options.closeOnClick;
+                }
+                if (options.offset) {
+                    params["offset"] = options.offset;
+                }
+                params = { closeOnClick: true, closeButton: true, offset: [0, -35], ...params };
                 this.innerMap.infoWindow.remove();
                 this.innerMap.infoWindow = new minemap.Popup(params);
+                this.innerMap.infoWindow.addTo(this.innerMap);
             }
-            switch (options.type) {
-                case "dom": this.innerMap.infoWindow.setDOMContent(options.content || ""); break;
-                case "html": this.innerMap.infoWindow.setHTML(options.content || ""); break;
-                case "text": this.innerMap.infoWindow.setText(options.content || ""); break;
-                default: this.innerMap.infoWindow.setHTML(options.content || ""); break;
+            if (evt.context) {
+                switch (evt.context.type) {
+                    case "dom":
+                        this.innerMap.infoWindow.setDOMContent(document.getElementById(evt.context.content) || "");
+                        break; // 不推荐使用该方法，每次调用会删掉以前dom节点
+                    case "html":
+                        this.innerMap.infoWindow.setHTML(
+                            "<h4 class='info-window-title'>"
+                            + evt.context.title + "</h4>"
+                            + "<div class='info-window-content'>"
+                            + evt.context.content + "</div>");
+                        break;
+                    case "text":
+                        this.innerMap.infoWindow.setText(evt.context.content || "");
+                        break;
+                    default:
+                        this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
+                            + evt.context.title + "</h4>"
+                            + "<div class='info-window-content'>"
+                            + evt.context.content + "</div>"
+                        );
+                        break;
+                }
             }
-            this.innerMap.infoWindow.setLngLat([options.point.x, options.point.y]).addTo(this.innerMap);
+
+            this.innerMap.infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
         }
+
+        public onCloseInfoWindow(): void {
+            if (this.innerMap.infoWindow) {
+                this.innerMap.infoWindow.remove();
+            }
+        }
+
         /**
          * 创建底图
          */

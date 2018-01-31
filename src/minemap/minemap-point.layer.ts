@@ -25,9 +25,16 @@ namespace flagwind {
 
         public onShowInfoWindow(evt: any): void {
             let context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
-            let infoWindow = this.flagwindMap.innerMap.infoWindow;
-            infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
-            infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
+            this.flagwindMap.onShowInfoWindow({
+                graphic: evt.graphic,
+                context: {
+                    type: "html",
+                    content: {
+                        title: context.title,
+                        content: context.content
+                    }
+                }
+            });
         }
 
         // /**
@@ -52,10 +59,14 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onCreatGraphicByModel(item: any): any {
+            let className = this.options.dataType || "graphic-tollgate";
+            if (item.selected) {
+                className += " checked";
+            }
             return new MinemapMarker({
                 id: item.id,
                 symbol: {
-                    className: this.options.dataType || "graphic-tollgate"
+                    className: className
                 },
                 point: {
                     y: item.latitude,
@@ -77,12 +88,14 @@ namespace flagwind {
             // throw new Error("Method not implemented.");
         }
 
-        public openInfoWindow(id: string, context: any) {
+        public openInfoWindow(id: string, context: any, options: any) {
             let graphic = this.getGraphicById(id);
             if (context) {
-                let infoWindow = this.flagwindMap.innerMap.infoWindow;
-                infoWindow.setHTML("<h4 class='info-window-title'>" + context.title + "</h4>" + "<div class='info-window-content'>" + context.content + "</div>");
-                infoWindow.setLngLat([graphic.geometry.x, graphic.geometry.y]);
+                this.flagwindMap.onShowInfoWindow({
+                    graphic: graphic,
+                    context: context,
+                    options: options
+                });
             } else {
                 this.onShowInfoWindow({
                     graphic: graphic

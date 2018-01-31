@@ -134,10 +134,14 @@ namespace flagwind {
             map.on("resize", function (args: any) {
                 me.dispatchEvent("onResize", args);
             });
-            
+
         }
 
         public onShowInfoWindow(options: any): void {
+            throw new Error("Method not implemented.");
+        }
+
+        public onCloseInfoWindow(): void {
             throw new Error("Method not implemented.");
         }
 

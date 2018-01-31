@@ -209,7 +209,7 @@ namespace flagwind {
             if (options.symbol && options.symbol.className) {
                 this.element.classList = [options.symbol.className];
             }
-            this.marker = new minemap.Marker(this.element, { offset: [-25, -25] });
+            this.marker = new minemap.Marker(this.element, { offset: [-10, -14] });
             if (options.point) {
                 this.geometry = new MinemapPoint(options.point.x, options.point.y);
             }

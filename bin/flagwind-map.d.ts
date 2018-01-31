@@ -291,7 +291,8 @@ declare namespace flagwind {
         };
         onToPoint(item: any): any;
         abstract onCreateMap(): any;
-        abstract onShowInfoWindow(options: any): void;
+        abstract onShowInfoWindow(evt: any): void;
+        abstract onCloseInfoWindow(): void;
         abstract onCreateBaseLayers(): any;
         abstract onShowTooltip(graphic: any): void;
         abstract onHideTooltip(graphic: any): void;
@@ -318,6 +319,7 @@ declare namespace flagwind {
          * @returns void
          */
         off(type: string, listener: Function, scope?: any): void;
+        closeInfoWindow(): void;
         goToCenter(): void;
         getBaseLayerById(id: string): FlagwindTiledLayer | null;
         /**
@@ -329,7 +331,6 @@ declare namespace flagwind {
          */
         getPoint(item: any): any;
         addFeatureLayer(deviceLayer: FlagwindFeatureLayer): void;
-        openInfoWindow(option: any): void;
         protected onMapLoad(): void;
         protected showBaseLayer(id: string): boolean;
         protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null;
@@ -349,6 +350,7 @@ declare namespace flagwind {
         onCreatePoint(options: any): any;
         onCreateMap(): void;
         onShowInfoWindow(options: any): void;
+        onCloseInfoWindow(): void;
         onCreateBaseLayers(): FlagwindTiledLayer[];
         onShowTooltip(graphic: any): void;
         onHideTooltip(graphic: any): void;
@@ -601,10 +603,11 @@ declare namespace flagwind {
         onAddLayerAfter(): void;
         readonly map: any;
         readonly spatial: any;
+        closeInfoWindow(): void;
         gotoCenterById(key: string): void;
         saveGraphicList(dataList: Array<any>): void;
         updateGraphicList(dataList: Array<any>): void;
-        setSelectStatusByModels(dataList: Array<any>): void;
+        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
         /**
          * 保存要素（如果存在，则修改，否则添加）
          */
@@ -2019,7 +2022,8 @@ declare namespace flagwind {
          * 创建地图对象
          */
         onCreateMap(): any;
-        onShowInfoWindow(options: any): void;
+        onShowInfoWindow(evt: any): void;
+        onCloseInfoWindow(): void;
         /**
          * 创建底图
          */
@@ -2057,7 +2061,7 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onUpdateGraphicByModel(item: any): void;
-        openInfoWindow(id: string, context: any): void;
+        openInfoWindow(id: string, context: any, options: any): void;
         /**
          * 加载并显示设备点位
          *

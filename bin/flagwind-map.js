@@ -947,6 +947,9 @@ var flagwind;
             if (scope === void 0) { scope = this; }
             this.removeListener(type, listener, scope);
         };
+        FlagwindMap.prototype.closeInfoWindow = function () {
+            this.onCloseInfoWindow();
+        };
         FlagwindMap.prototype.goToCenter = function () {
             if (this.mapSetting.center && this.mapSetting.center.length === 2) {
                 var pt = this.getPoint({
@@ -986,9 +989,6 @@ var flagwind;
             }
             this.featureLayers.push(deviceLayer);
             deviceLayer.appendTo(this.innerMap);
-        };
-        FlagwindMap.prototype.openInfoWindow = function (option) {
-            this.onShowInfoWindow(option);
         };
         FlagwindMap.prototype.onMapLoad = function () {
             if (this.options.onMapLoad) {
@@ -1163,6 +1163,9 @@ var flagwind;
             });
         };
         EsriMap.prototype.onShowInfoWindow = function (options) {
+            throw new Error("Method not implemented.");
+        };
+        EsriMap.prototype.onCloseInfoWindow = function () {
             throw new Error("Method not implemented.");
         };
         EsriMap.prototype.onCreateBaseLayers = function () {
@@ -2066,12 +2069,13 @@ var flagwind;
             enumerable: true,
             configurable: true
         });
+        FlagwindBusinessLayer.prototype.closeInfoWindow = function () {
+            this.flagwindMap.closeInfoWindow();
+        };
         FlagwindBusinessLayer.prototype.gotoCenterById = function (key) {
             var graphic = this.getGraphicById(key);
             var pt = this.getPoint(graphic.attributes);
-            this.map.centerAt(pt).then(function () {
-                console.log(pt);
-            });
+            this.flagwindMap.centerAt(pt.x, pt.y);
         };
         FlagwindBusinessLayer.prototype.saveGraphicList = function (dataList) {
             for (var i = 0; i < dataList.length; i++) {
@@ -2084,8 +2088,10 @@ var flagwind;
             }
         };
         // 设置选择状态
-        FlagwindBusinessLayer.prototype.setSelectStatusByModels = function (dataList) {
-            this.clearSelectStatus();
+        FlagwindBusinessLayer.prototype.setSelectStatusByModels = function (dataList, refresh) {
+            if (refresh) {
+                this.clearSelectStatus();
+            }
             for (var i = 0; i < dataList.length; i++) {
                 var model = this.onChangeStandardModel(dataList[i]);
                 var graphic = this.getGraphicById(model.id);
@@ -2118,7 +2124,10 @@ var flagwind;
             if (!this.onValidModel(item)) {
                 return null;
             }
-            item.select = false; // select属性为true表示当前选中，false表示未选中
+            // select属性为true表示当前选中，false表示未选中
+            if (item.selected === undefined) {
+                item.selected = false;
+            }
             var graphic = this.onCreatGraphicByModel(item);
             return graphic;
         };
@@ -4080,7 +4089,7 @@ var flagwind;
             if (options.symbol && options.symbol.className) {
                 _this.element.classList = [options.symbol.className];
             }
-            _this.marker = new minemap.Marker(_this.element, { offset: [-25, -25] });
+            _this.marker = new minemap.Marker(_this.element, { offset: [-10, -14] });
             if (options.point) {
                 _this.geometry = new MinemapPoint(options.point.x, options.point.y);
             }
@@ -4753,34 +4762,56 @@ var flagwind;
             // #endregion
             return map;
         };
-        MinemapMap.prototype.onShowInfoWindow = function (options) {
-            // 存在原始参数则创建新信息窗口
-            if (typeof options.closeButton === "boolean" || typeof options.closeOnClick === "boolean" || options.offset) {
+        MinemapMap.prototype.onShowInfoWindow = function (evt) {
+            if (!this.innerMap.infoWindow) {
+                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] });
+            }
+            if (evt.options) {
+                var options = evt.options;
+                // 存在原始设置参数则创建新信息窗口
                 var params = {};
-                if (typeof options.closeButton === "boolean")
+                if (typeof options.closeButton === "boolean") {
                     params["closeButton"] = options.closeButton;
-                if (typeof options.closeOnClick === "boolean")
+                }
+                if (typeof options.closeOnClick === "boolean") {
                     params["closeOnClick"] = options.closeOnClick;
-                if (options.offset)
+                }
+                if (options.offset) {
                     params["offset"] = options.offset;
+                }
+                params = __assign({ closeOnClick: true, closeButton: true, offset: [0, -35] }, params);
                 this.innerMap.infoWindow.remove();
                 this.innerMap.infoWindow = new minemap.Popup(params);
+                this.innerMap.infoWindow.addTo(this.innerMap);
             }
-            switch (options.type) {
-                case "dom":
-                    this.innerMap.infoWindow.setDOMContent(options.content || "");
-                    break;
-                case "html":
-                    this.innerMap.infoWindow.setHTML(options.content || "");
-                    break;
-                case "text":
-                    this.innerMap.infoWindow.setText(options.content || "");
-                    break;
-                default:
-                    this.innerMap.infoWindow.setHTML(options.content || "");
-                    break;
+            if (evt.context) {
+                switch (evt.context.type) {
+                    case "dom":
+                        this.innerMap.infoWindow.setDOMContent(document.getElementById(evt.context.content) || "");
+                        break; // 不推荐使用该方法，每次调用会删掉以前dom节点
+                    case "html":
+                        this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
+                            + evt.context.title + "</h4>"
+                            + "<div class='info-window-content'>"
+                            + evt.context.content + "</div>");
+                        break;
+                    case "text":
+                        this.innerMap.infoWindow.setText(evt.context.content || "");
+                        break;
+                    default:
+                        this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
+                            + evt.context.title + "</h4>"
+                            + "<div class='info-window-content'>"
+                            + evt.context.content + "</div>");
+                        break;
+                }
             }
-            this.innerMap.infoWindow.setLngLat([options.point.x, options.point.y]).addTo(this.innerMap);
+            this.innerMap.infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
+        };
+        MinemapMap.prototype.onCloseInfoWindow = function () {
+            if (this.innerMap.infoWindow) {
+                this.innerMap.infoWindow.remove();
+            }
         };
         /**
          * 创建底图
@@ -4839,9 +4870,16 @@ var flagwind;
         };
         MinemapPointLayer.prototype.onShowInfoWindow = function (evt) {
             var context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
-            var infoWindow = this.flagwindMap.innerMap.infoWindow;
-            infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
-            infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
+            this.flagwindMap.onShowInfoWindow({
+                graphic: evt.graphic,
+                context: {
+                    type: "html",
+                    content: {
+                        title: context.title,
+                        content: context.content
+                    }
+                }
+            });
         };
         // /**
         //  * 图层事件处理
@@ -4863,10 +4901,14 @@ var flagwind;
          * @param item 实体信息
          */
         MinemapPointLayer.prototype.onCreatGraphicByModel = function (item) {
+            var className = this.options.dataType || "graphic-tollgate";
+            if (item.selected) {
+                className += " checked";
+            }
             return new flagwind.MinemapMarker({
                 id: item.id,
                 symbol: {
-                    className: this.options.dataType || "graphic-tollgate"
+                    className: className
                 },
                 point: {
                     y: item.latitude,
@@ -4886,12 +4928,14 @@ var flagwind;
             // (<MinemapMarkerLayer>this.layer).add(minemapMarker);
             // throw new Error("Method not implemented.");
         };
-        MinemapPointLayer.prototype.openInfoWindow = function (id, context) {
+        MinemapPointLayer.prototype.openInfoWindow = function (id, context, options) {
             var graphic = this.getGraphicById(id);
             if (context) {
-                var infoWindow = this.flagwindMap.innerMap.infoWindow;
-                infoWindow.setHTML("<h4 class='info-window-title'>" + context.title + "</h4>" + "<div class='info-window-content'>" + context.content + "</div>");
-                infoWindow.setLngLat([graphic.geometry.x, graphic.geometry.y]);
+                this.flagwindMap.onShowInfoWindow({
+                    graphic: graphic,
+                    context: context,
+                    options: options
+                });
             }
             else {
                 this.onShowInfoWindow({

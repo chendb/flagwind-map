@@ -124,7 +124,9 @@ namespace flagwind {
 
         public abstract onCreateMap(): any;
 
-        public abstract onShowInfoWindow(options: any): void;
+        public abstract onShowInfoWindow(evt: any): void;
+
+        public abstract onCloseInfoWindow(): void;
 
         public abstract onCreateBaseLayers(): any;
 
@@ -159,8 +161,11 @@ namespace flagwind {
             this.removeListener(type, listener, scope);
         }
 
-        public goToCenter() {
+        public closeInfoWindow(): void {
+            this.onCloseInfoWindow();
+        }
 
+        public goToCenter() {
             if (this.mapSetting.center && this.mapSetting.center.length === 2) {
                 let pt = this.getPoint({
                     x: this.mapSetting.center[0],
@@ -203,10 +208,6 @@ namespace flagwind {
             }
             this.featureLayers.push(deviceLayer);
             deviceLayer.appendTo(this.innerMap);
-        }
-
-        public openInfoWindow(option: any) {
-            this.onShowInfoWindow(option);
         }
 
         protected onMapLoad() {

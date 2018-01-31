@@ -79,12 +79,14 @@ namespace flagwind {
             return this.flagwindMap.spatial;
         }
 
+        public closeInfoWindow(): void {
+            this.flagwindMap.closeInfoWindow();
+        }
+
         public gotoCenterById(key: string): void {
             const graphic = this.getGraphicById(key);
             const pt = this.getPoint(graphic.attributes);
-            this.map.centerAt(pt).then(() => {
-                console.log(pt);
-            });
+            this.flagwindMap.centerAt(pt.x, pt.y);
         }
 
         public saveGraphicList(dataList: Array<any>): void {
@@ -101,8 +103,10 @@ namespace flagwind {
         }
 
         // 设置选择状态
-        public setSelectStatusByModels(dataList: Array<any>): void {
-            this.clearSelectStatus();
+        public setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void {
+            if(refresh) {
+                this.clearSelectStatus();
+            }
             for (let i = 0; i < dataList.length; i++) {
                 let model = this.onChangeStandardModel(dataList[i]);
                 let graphic = this.getGraphicById(model.id);
@@ -136,7 +140,10 @@ namespace flagwind {
             if (!this.onValidModel(item)) {
                 return null;
             }
-            item.select = false; // select属性为true表示当前选中，false表示未选中
+            // select属性为true表示当前选中，false表示未选中
+            if (item.selected === undefined) {
+                item.selected = false;
+            }
             const graphic = this.onCreatGraphicByModel(item);
             return graphic;
         }
