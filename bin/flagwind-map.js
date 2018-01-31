@@ -4708,6 +4708,7 @@ var flagwind;
             this.spatial = new flagwind.MinemapSpatial(minemap.solution);
             var popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
+            popup.addTo(map);
             var div = this.tooltipElement = document.createElement("div");
             div.id = "flagwind-map-tooltip";
             div.classList.add("flagwind-map-tooltip");
@@ -4889,7 +4890,7 @@ var flagwind;
             var graphic = this.getGraphicById(id);
             if (context) {
                 var infoWindow = this.flagwindMap.innerMap.infoWindow;
-                infoWindow.setText("<h4 class='info-window-title'>" + context.title + "</h4" + context.content);
+                infoWindow.setHTML("<h4 class='info-window-title'>" + context.title + "</h4>" + "<div class='info-window-content'>" + context.content + "</div>");
                 infoWindow.setLngLat([graphic.geometry.x, graphic.geometry.y]);
             }
             else {
