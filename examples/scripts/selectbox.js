@@ -26,6 +26,7 @@ requirejs(['flagwindMap'],
         mapSetting.mapDomain="113.106.54.47:1180";
         mapSetting.accessToken="658e22d73c60405a8a7c82f69f298c2b";
         mapSetting.center = [116.46, 39.92];
+        mapSetting.wkid = 3591
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
             onLoad: function () {
 
@@ -61,13 +62,13 @@ requirejs(['flagwindMap'],
                         tollName: "关山大道卡口",
                         lon: 116.461,
                         lat: 39.929,
-                        satus:Math.random()
+                        satus: Math.random()
                     }, {
                         tollCode: "2",
                         tollName: "北京路卡口",
                         lon: 116.465,
                         lat: 39.922,
-                        satus:Math.random()
+                        satus: Math.random()
                     }]);
                 });
             },
@@ -95,54 +96,25 @@ requirejs(['flagwindMap'],
                 imageUrl:"http://113.106.54.47:1180/minemapapi/demo/images/police.png"
             },
             onLoad: function () {
-                alert("测试");
+
             }
         });
 
+        var selectbox = new flagwind.MinemapSelectBox(myMap, {});
+       selectbox.addLayer(tollgateLayer);
 
-        tollgateLayer.showDataList();
 
-        var graphic = null;
+       tollgateLayer.showDataList();
 
-        document.getElementById("btnShow").onclick = function () {
-            tollgateLayer.show();
+
+        document.getElementById("btnCircle").onclick = function () {
+            selectbox.active("circle")
         }
-
-        document.getElementById("btnHide").onclick = function () {
-            tollgateLayer.hide();
+        document.getElementById("btnRectangle").onclick = function () {
+            selectbox.active("rectangle")
         }
-
-        document.getElementById("btnClear").onclick = function () {
-            tollgateLayer.clear();
-        }
-
-        document.getElementById("btnGetGraphic").onclick = function () {
-            graphic = tollgateLayer.getGraphicById("1");
-            if (tollgateLayer.graphics.length == 0) {
-                alert("图层无数据，请重新加载数据");
-                return;
-            }
-            if (graphic == null) {
-                alert("获取失败");
-            } else {
-                alert("获取到要素" + graphic.attributes.tollName);
-            }
-        }
-
-        document.getElementById("btnShowGraphic").onclick = function () {
-            if (graphic == null) {
-                alert("请先获取要素数据");
-                return;
-            }
-            graphic.show();
-        }
-
-        document.getElementById("btnHideGraphic").onclick = function () {
-            if (graphic == null) {
-                alert("请先获取要素数据");
-                return;
-            }
-            graphic.hide();
+        document.getElementById("btnPolygon").onclick = function () {
+            selectbox.active("polygon");
         }
 
     }

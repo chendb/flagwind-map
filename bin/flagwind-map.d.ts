@@ -1688,6 +1688,31 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     /**
+     * 线
+     */
+    class MinemapCircleGraphic extends EventProvider implements IMinemapGraphic {
+        private _geometry;
+        private _isInsided;
+        id: string;
+        attributes: any;
+        isShow: boolean;
+        symbol: any;
+        kind: string;
+        circle: any;
+        layer: IMinemapGraphicsLayer;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: MinemapCircle): void;
+        addTo(map: any): void;
+    }
+}
+declare namespace flagwind {
+    /**
      * 编辑要素图层
      */
     class MinemapEditLayer implements IFlagwindEditLayer {
@@ -1697,7 +1722,7 @@ declare namespace flagwind {
         private cursorOverPointFlag;
         constructor(businessLayer: MinemapPointLayer);
         readonly map: any;
-        registerEvent(graphic: MinemapMarker): void;
+        registerEvent(graphic: MinemapMarkerGraphic): void;
         updatePoint(editLayer: this): void;
         mouseMovePoint(e: any): void;
         activateEdit(key: string): void;
@@ -1712,7 +1737,7 @@ declare namespace flagwind {
         hasListener(type: string): boolean;
         dispatchEvent(type: string, data?: any): void;
         dispatchEvent(args: EventArgs): void;
-        onCreateGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
+        onCreateGraphicsLayer(options: any): MinemapGraphicsLayer;
     }
 }
 declare namespace flagwind {
@@ -1729,6 +1754,32 @@ declare namespace flagwind {
         show(): void;
         hide(): void;
         showDataList(data: Array<any>): void;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 文本
+     */
+    class MinemapLabelGraphic extends EventProvider implements IMinemapGraphic {
+        private _geometry;
+        private _isInsided;
+        id: string;
+        attributes: any;
+        isShow: boolean;
+        symbol: any;
+        kind: string;
+        label: any;
+        layer: IMinemapGraphicsLayer;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        geometry: MinemapPoint;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: MinemapPoint): void;
+        addTo(map: any): void;
     }
 }
 declare namespace flagwind {
@@ -1774,6 +1825,11 @@ declare namespace flagwind {
         getPoint(ringIndex: number, pointIndex: number): number[];
         insertPoint(ringIndex: number, pointIndex: number, point: Array<number>): void;
         removePoint(ringIndex: number, pointIndex: number): void;
+        /**
+         * 判断点是否在圆里面
+         * @param point 点
+         */
+        inside(point: Array<any>): boolean;
         toJson(): {
             "type": string;
             "data": {
@@ -1785,6 +1841,30 @@ declare namespace flagwind {
                 };
             };
         };
+    }
+    /**
+     * 圆
+     */
+    class MinemapCircle extends MinemapGeometry {
+        center: Array<number>;
+        radius: number;
+        constructor(spatial?: MinemapSpatial);
+        toJson(): {
+            "type": string;
+            "data": {
+                "type": string;
+                "properties": any;
+                "geometry": {
+                    "type": string;
+                    "coordinates": number[];
+                };
+            };
+        };
+        /**
+         * 判断点是否在圆里面
+         * @param point 点
+         */
+        inside(point: Array<any>): boolean;
     }
     /**
      * 坐标点
@@ -1816,6 +1896,7 @@ declare namespace flagwind {
         isShow: boolean;
         isInsided: boolean;
         kind: string;
+        layer: IMinemapGraphicsLayer;
         show(): void;
         hide(): void;
         remove(): void;
@@ -1824,88 +1905,8 @@ declare namespace flagwind {
         setGeometry(geometry: MinemapGeometry): void;
         addTo(map: any): void;
     }
-    class MinemapMarker extends EventProvider implements IMinemapGraphic {
-        private _kind;
-        /**
-         * 是否在地图上
-         */
-        private _isInsided;
-        private _geometry;
-        id: string;
-        isShow: boolean;
-        symbol: any;
-        marker: any;
-        element: any;
-        attributes: any;
-        layer: MinemapMarkerLayer;
-        EVENTS_MAP: Map<string, Function>;
-        constructor(options: any);
-        /**
-         * 复制节点
-         * @param id 元素ID
-         */
-        clone(id: string): MinemapMarker;
-        readonly kind: string;
-        readonly isInsided: boolean;
-        /**
-         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
-         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
-         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
-         * @param  {string} type 事件类型。
-         * @param  {Function} 处理事件的侦听器函数。
-         * @param  {any} scope? 侦听函数绑定的 this 对象。
-         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
-         * @returns void
-         */
-        on(type: string, listener: Function, scope?: any, once?: boolean): void;
-        /**
-         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
-         * @param  {string} type 事件类型。
-         * @param  {Function} listener 处理事件的侦听器函数。
-         * @param  {any} scope? 侦听函数绑定的 this 对象。
-         * @returns void
-         */
-        off(type: string, listener: Function, scope?: any): void;
-        show(): void;
-        hide(): void;
-        remove(): void;
-        delete(): void;
-        setAngle(angle: number): void;
-        setSymbol(symbol: any): void;
-        draw(): void;
-        geometry: MinemapPoint;
-        setGeometry(value: MinemapGeometry): void;
-        addTo(map: any): void;
-        protected fireEvent(type: string, data?: any): void;
-    }
-    class MinemapGeoJson implements IMinemapGraphic {
-        layer: MinemapGeoJsonLayer;
-        private _kind;
-        private _geometry;
-        /**
-         * 是否在地图上
-         */
-        _isInsided: boolean;
-        id: string;
-        isShow: boolean;
-        type: string;
-        layout: any;
-        paint: any;
-        attributes: any;
-        constructor(layer: MinemapGeoJsonLayer, options: any);
-        readonly kind: string;
-        readonly isInsided: boolean;
-        show(): void;
-        hide(): void;
-        remove(): void;
-        delete(): void;
-        setSymbol(symbol: any): void;
-        geometry: MinemapGeometry;
-        setGeometry(value: MinemapGeometry): void;
-        addTo(map: any): void;
-        addLayer(map: any): void;
-    }
     interface IMinemapGraphicsLayer {
+        map: any;
         graphics: Array<IMinemapGraphic>;
         show(): void;
         hide(): void;
@@ -1914,8 +1915,9 @@ declare namespace flagwind {
         addToMap(map: any): void;
         removeFromMap(map: any): void;
         on(eventName: string, callBack: Function): void;
+        dispatchEvent(type: string, data?: any): void;
     }
-    class MinemapMarkerLayer extends EventProvider implements IMinemapGraphicsLayer {
+    class MinemapGraphicsLayer extends EventProvider implements IMinemapGraphicsLayer {
         options: any;
         private GRAPHICS_MAP;
         /**
@@ -1950,52 +1952,13 @@ declare namespace flagwind {
         hide(): void;
         remove(graphic: IMinemapGraphic): void;
         clear(): void;
-        add(graphic: MinemapMarker): void;
+        add(graphic: IMinemapGraphic): void;
         addToMap(map: any): void;
         removeFromMap(map: any): void;
-    }
-    class MinemapGeoJsonLayer extends EventProvider implements IMinemapGraphicsLayer {
-        options: any;
-        private GRAPHICS_MAP;
-        /**
-         * 是否在地图上
-         */
-        _isInsided: boolean;
-        id: string;
-        map: any;
-        readonly isInsided: boolean;
-        constructor(options: any);
-        readonly graphics: any;
-        show(): void;
-        hide(): void;
-        remove(graphic: IMinemapGraphic): void;
-        clear(): void;
-        add(graphic: MinemapGeoJson): void;
-        addToMap(map: any): void;
-        removeFromMap(map: any): void;
-        /**
-         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
-         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
-         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
-         * @param  {string} type 事件类型。
-         * @param  {Function} 处理事件的侦听器函数。
-         * @param  {any} scope? 侦听函数绑定的 this 对象。
-         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
-         * @returns void
-         */
-        on(type: string, listener: Function, scope?: any, once?: boolean): void;
-        /**
-         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
-         * @param  {string} type 事件类型。
-         * @param  {Function} listener 处理事件的侦听器函数。
-         * @param  {any} scope? 侦听函数绑定的 this 对象。
-         * @returns void
-         */
-        off(type: string, listener: Function, scope?: any): void;
     }
 }
 declare namespace flagwind {
-    class MinemapLocationLayer extends MinemapMarkerLayer implements IFlagwindLocationLayer {
+    class MinemapLocationLayer extends MinemapGraphicsLayer implements IFlagwindLocationLayer {
         flagwindMap: FlagwindMap;
         point: MinemapPoint;
         constructor(flagwindMap: FlagwindMap, options: any);
@@ -2037,6 +2000,63 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    class MinemapMarkerGraphic extends EventProvider implements IMinemapGraphic {
+        private _kind;
+        /**
+         * 是否在地图上
+         */
+        private _isInsided;
+        private _geometry;
+        id: string;
+        isShow: boolean;
+        symbol: any;
+        marker: any;
+        element: any;
+        attributes: any;
+        layer: IMinemapGraphicsLayer;
+        constructor(options: any);
+        addClass(className: string): void;
+        removeClass(className: string): void;
+        /**
+         * 复制节点
+         * @param id 元素ID
+         */
+        clone(id: string): MinemapMarkerGraphic;
+        readonly kind: string;
+        readonly isInsided: boolean;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setAngle(angle: number): void;
+        setSymbol(symbol: any): void;
+        draw(): void;
+        geometry: MinemapPoint;
+        setGeometry(value: MinemapGeometry): void;
+        addTo(map: any): void;
+        protected fireEvent(type: string, data?: any): void;
+    }
+}
+declare namespace flagwind {
     /**
      * 点图层
      */
@@ -2044,7 +2064,7 @@ declare namespace flagwind {
         businessService: IFlagwindBusinessService;
         isLoading: boolean;
         constructor(businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
-        onCreateGraphicsLayer(options: any): MinemapMarkerLayer | MinemapGeoJsonLayer;
+        onCreateGraphicsLayer(options: any): MinemapGraphicsLayer;
         onShowInfoWindow(evt: any): void;
         /**
          * 把实体转换成标准的要素属性信息
@@ -2080,6 +2100,56 @@ declare namespace flagwind {
          * 更新设备状态
          */
         private updateStatus();
+    }
+}
+declare namespace flagwind {
+    /**
+     * 面
+     */
+    class MinemapPolygonGraphic extends EventProvider implements IMinemapGraphic {
+        private _geometry;
+        private _isInsided;
+        id: string;
+        attributes: any;
+        isShow: boolean;
+        symbol: any;
+        kind: string;
+        polygon: any;
+        layer: IMinemapGraphicsLayer;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: MinemapPolygon): void;
+        addTo(map: any): void;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 线
+     */
+    class MinemapPolylineGraphic extends EventProvider implements IMinemapGraphic {
+        private _geometry;
+        private _isInsided;
+        id: string;
+        attributes: any;
+        isShow: boolean;
+        symbol: any;
+        kind: string;
+        polyline: any;
+        layer: IMinemapGraphicsLayer;
+        readonly isInsided: boolean;
+        constructor(layer: IMinemapGraphicsLayer, options: any);
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: MinemapPolyline): void;
+        addTo(map: any): void;
     }
 }
 declare namespace flagwind {
@@ -2142,6 +2212,24 @@ declare namespace flagwind {
         constructor(result: any);
         getPoints(spatial: any): Array<MinemapPoint>;
         getLine(spatial: any): MinemapPolyline;
+    }
+}
+declare namespace flagwind {
+    const SELECT_BOX_OPTIONS: any;
+    /**
+     * 线
+     */
+    class MinemapSelectBox extends EventProvider {
+        flagwindMap: FlagwindMap;
+        options: any;
+        private edit;
+        mode: string;
+        layers: Array<FlagwindBusinessLayer>;
+        constructor(flagwindMap: FlagwindMap, options: any);
+        onCreateRecord(me: this, e: any): void;
+        addLayer(layer: FlagwindBusinessLayer): void;
+        clear(): void;
+        active(mode: string): void;
     }
 }
 declare var minemap: any;

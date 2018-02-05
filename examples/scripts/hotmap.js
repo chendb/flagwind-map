@@ -23,7 +23,10 @@ requirejs(['flagwindMap'],
 
         var flagwind = flagwindMap.default;
         var mapSetting = new flagwind.MinemapSetting();
+        mapSetting.mapDomain="113.106.54.47:1180";
+        mapSetting.accessToken="658e22d73c60405a8a7c82f69f298c2b";
         mapSetting.center = [116.46, 39.92];
+        mapSetting.wkid = 3591
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
             onLoad: function () {
 

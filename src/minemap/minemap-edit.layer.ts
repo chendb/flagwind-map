@@ -5,7 +5,7 @@ namespace flagwind {
      * 编辑要素图层
      */
     export class MinemapEditLayer implements IFlagwindEditLayer {
-        private graphic: MinemapMarker;
+        private graphic: MinemapMarkerGraphic;
         private draggingFlag: boolean = false;
         private cursorOverPointFlag: boolean = false;
 
@@ -17,7 +17,7 @@ namespace flagwind {
             return this.businessLayer.flagwindMap.map;
         }
 
-        public registerEvent(graphic: MinemapMarker): void {
+        public registerEvent(graphic: MinemapMarkerGraphic): void {
             const me = this;
             graphic.on("onMouseOver", function (args: EventArgs) {
                 console.log("test--->onMouseOver");
@@ -64,6 +64,9 @@ namespace flagwind {
 
         public mouseMovePoint(e: any) {
             let editLayer = (<any>window)._editLayer;
+            if (!editLayer) {
+                return;
+            }
             console.log("test-->status  over:" + editLayer.cursorOverPointFlag + ".drag:" + editLayer.draggingFlag);
             if (!editLayer.draggingFlag) return;
             console.log("test-->update  x:" + e.lngLat.lng + ".y:" + e.lngLat.lat);
@@ -72,7 +75,7 @@ namespace flagwind {
         }
 
         public activateEdit(key: string): void {
-            let g: MinemapMarker = this.businessLayer.getGraphicById(key);
+            let g: MinemapMarkerGraphic = this.businessLayer.getGraphicById(key);
             if (g) {
                 this.graphic = g.clone(g.id + "_copy");
             }
@@ -82,7 +85,7 @@ namespace flagwind {
         }
 
         public cancelEdit(key: string): void {
-            let graphic: MinemapMarker = this.graphic;
+            let graphic: MinemapMarkerGraphic = this.graphic;
             graphic.remove();
             this.map.off("mousemove", this.mouseMovePoint);
             this.businessLayer.show();

@@ -3,10 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>四维图新-修改坐标</title>
+    <title>四维图新-卡口图层</title>
+    <!-- minedata.cn 113.106.54.47:1180-->
     <link rel="stylesheet" href="http://113.106.54.47:1180/minemapapi/v1.3/minemap.css">
-    <!-- <script src="http://minedata.cn/minemapapi/v1.3/minemap.js"></script> -->
+    <link rel="stylesheet" href="http://113.106.54.47:1180/minemapapi/v1.3/plugins/edit/minemap-edit.css"/>
+    <!-- <script src="http://113.106.54.47:1180/minemapapi/v1.3/minemap.js"></script> -->
     <script src="http://113.106.54.47:1180/minemapapi/demo/js/minemap-wmts.js"></script>
+    <script src="http://113.106.54.47:1180/minemapapi/v1.3/plugins/edit/minemap-edit.js"></script>
     <style>
         html,
         body,
@@ -21,7 +24,7 @@
             padding: 0;
         }
 
-        .flagwind-map-title.hide{
+        .flagwind-map-title.hide {
             display: none
         }
 
@@ -32,11 +35,15 @@
 
         .minemap-marker.tollgate {
             background-size: cover;
-            width: 50px;
-            height: 50px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             cursor: pointer;
         }
+        .minemap-marker.tollgate.checked  img{
+            opacity: 0.5;
+        }
+
 
         .minemap-popup {
             max-width: 200px;
@@ -47,10 +54,11 @@
 <body>
     <div id="map"></div>
     <div style="position:absolute;top:0px;right:0px;">
-        <button id="btnActive">激活编辑</button>
-        <button id="btnCancel">取消编辑</button>
+        <button id="btnCircle">圆形</button>
+        <button id="btnRectangle">矩形</button>
+        <button id="btnPolygon">多边形</button>
     </div>
 </body>
-<script data-main="scripts/editor" src="scripts/require.js"></script>
+<script data-main="scripts/selectbox" src="scripts/require.js"></script>
 
 </html>
