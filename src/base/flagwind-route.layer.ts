@@ -4,6 +4,7 @@ namespace flagwind {
     export const ROUTE_LAYER_OPTIONS: any = {
 
         routeType: "Line",
+        movingImageUrl: "",
 
         onLineStartEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
             console.log("onLineStartEvent");
@@ -255,10 +256,6 @@ namespace flagwind {
             }
         }
         public clear(name: string) {
-            if (!name) {
-                console.error("没有指定清除的线路名称");
-                return;
-            }
             if (name) {
                 let trackline = this.getTrackLine(name);
                 if (trackline == null) return;

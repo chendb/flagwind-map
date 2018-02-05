@@ -23,7 +23,10 @@ requirejs(['flagwindMap'],
 
         var flagwind = flagwindMap.default;
         var mapSetting = new flagwind.MinemapSetting();
+        mapSetting.mapDomain="113.106.54.47:1180";
+        mapSetting.accessToken="658e22d73c60405a8a7c82f69f298c2b";
         mapSetting.center = [116.46, 39.92];
+        mapSetting.wkid = 3591
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
             onLoad: function () {
 
@@ -47,7 +50,7 @@ requirejs(['flagwindMap'],
                     }, {
                         tollCode: "3",
                         tollName: "天津路卡口",
-                        lon: 116.465,
+                        lon: 116.469,
                         lat: 39.922
                     }]);
                 });
@@ -89,6 +92,9 @@ requirejs(['flagwindMap'],
         var tollgateLayer = new flagwind.MinemapPointLayer(businessService, myMap, "tollgateLayer", {
             kind: "marker",
             dataType: "tollgate",
+            symbol:{
+                imageUrl:"http://113.106.54.47:1180/minemapapi/demo/images/police.png"
+            },
             onLoad: function () {
                 alert("测试");
             }

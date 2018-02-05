@@ -23,7 +23,11 @@ requirejs(['flagwindMap'],
 
         var flagwind = flagwindMap.default;
         var mapSetting = new flagwind.MinemapSetting();
+        mapSetting.mapDomain="113.106.54.47:1180";
+        mapSetting.accessToken="658e22d73c60405a8a7c82f69f298c2b";
         mapSetting.center = [116.46, 39.92];
+        mapSetting.wkid = 3591
+
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
             onLoad: function () {
 
@@ -88,18 +92,20 @@ requirejs(['flagwindMap'],
             routeType: "NA"
         });
 
-        var start = new flagwind.MinemapMarker({
+        var start = new flagwind.MinemapMarkerGraphic({
             id: "1",
             symbol: {
+                imageUrl: "http://113.106.54.47:1180/minemapapi/demo/images/police.png",
                 className: "graphic-tollgate"
             },
             point: new flagwind.MinemapPoint(116.461, 39.929),
             attributes: {}
         });
 
-        var end = new flagwind.MinemapMarker({
-            id: "1",
+        var end = new flagwind.MinemapMarkerGraphic({
+            id: "2",
             symbol: {
+                imageUrl: "http://113.106.54.47:1180/minemapapi/demo/images/police.png",
                 className: "graphic-tollgate"
             },
             point: new flagwind.MinemapPoint(116.466, 39.9298),
@@ -115,7 +121,7 @@ requirejs(['flagwindMap'],
         }
 
         document.getElementById("btnClear").onclick = function () {
-            routeLayer.clear();
+            routeLayer.clear("trackline");
         }
 
         document.getElementById("btnPlay").onclick = function () {

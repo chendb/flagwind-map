@@ -51,28 +51,23 @@ namespace flagwind {
                 || originGraphic.geometry.y !== targetGraphic.geometry.y;
         }
         public onShowSegmentLine(segment: TrackSegment): void {
-            let lineGraphic = new MinemapGeoJson(this.moveLineLayer.layer, {
+            let lineGraphic = new MinemapPolylineGraphic(this.moveLineLayer.layer, {
                 id: segment.name + "_" + segment.index,
-                type: "line",
                 geometry: segment.polyline,
-                "layout": {
-                    "line-join": "round",
-                    "line-cap": "round"
+                attributes: {
+                    id: segment.name + "_" + segment.index
                 },
-                "paint": {
-                    "line-color": "#ff0000",
-                    "line-width": 6
-                }
+                symbol: { strokeDashArray: [1, 1] }
             });
             segment.lineGraphic = lineGraphic;
             this.moveLineLayer.addGraphic(segment.name, lineGraphic);
         }
 
         public onGetStandardStops(name: String, stops: Array<any>): Array<any> {
-            let list: Array<MinemapMarker> = [];
+            let list: Array<MinemapMarkerGraphic> = [];
             if (stops == null || stops.length === 0) return list;
             stops.forEach(g => {
-                if (g instanceof MinemapMarker) {
+                if (g instanceof MinemapMarkerGraphic) {
                     g.attributes.__type = "stop";
                     g.attributes.__line = name;
                     list.push(g);
@@ -99,7 +94,7 @@ namespace flagwind {
             }
 
             const me = this;
-            minemap.service.queryRouteDrivingResult2(startXY, endXY, wayXY, 1, 16, 1, 0, 0, function (error: any, results: any) {
+            minemap.service.queryRouteDrivingResult3(startXY, endXY, wayXY, 2, "", function (error: any, results: any) {
                 if (error) {
                     me.errorHandler(error, segment);
                 } else {
@@ -131,15 +126,13 @@ namespace flagwind {
             // 当路由分析出错时，两点之间的最短路径以直线代替
             segment.setMultPoints(points);
         }
-        // public onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void {
-        //     moveMarkLayer.layer.on(eventName, callBack);
-        // }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
-            let marker = new MinemapMarker({
+            let marker = new MinemapMarkerGraphic({
                 id: trackline.name,
                 symbol: {
-                    className: "graphic-car"
+                    imageUrl: this.options.movingImageUrl,
+                    className: "graphic-moving"
                 },
                 point: graphic.geometry,
                 attributes: graphic.attributes

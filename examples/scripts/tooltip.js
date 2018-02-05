@@ -23,6 +23,8 @@ requirejs(['flagwindMap'],
 
         var flagwind = flagwindMap.default;
         var mapSetting = new flagwind.MinemapSetting();
+        mapSetting.mapDomain="113.106.54.47:1180";
+        mapSetting.accessToken="658e22d73c60405a8a7c82f69f298c2b";
         mapSetting.center = [116.46, 39.92];
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
             onLoad: function () {
@@ -90,6 +92,9 @@ requirejs(['flagwindMap'],
             kind: "marker",
             showTooltipOnHover: true,
             dataType: "tollgate",
+            symbol:{
+                imageUrl:"http://113.106.54.47:1180/minemapapi/demo/images/police.png"
+            },
             onLoad: function () {
                 alert("测试");
             }

@@ -1,6 +1,6 @@
 /// <reference path="./minemap.model.ts" />
 namespace flagwind {
-    export class MinemapLocationLayer extends MinemapMarkerLayer implements IFlagwindLocationLayer {
+    export class MinemapLocationLayer extends MinemapGraphicsLayer implements IFlagwindLocationLayer {
 
         public point: MinemapPoint;
 
@@ -21,7 +21,7 @@ namespace flagwind {
 
         public locate() {
             this.clear();
-            const marker = new MinemapMarker({
+            const marker = new MinemapMarkerGraphic({
                 id: "flagwind_map_location",
                 type: "Point",
                 geometry: this.point,

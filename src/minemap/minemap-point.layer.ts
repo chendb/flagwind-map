@@ -13,14 +13,7 @@ namespace flagwind {
         }
 
         public onCreateGraphicsLayer(options: any) {
-            if (options.kind === "marker") {
-                return new MinemapMarkerLayer(options);
-            }
-            if (options.kind === "geojson") {
-                return new MinemapGeoJsonLayer(options);
-            }
-            console.warn("未指定图层类型");
-            return new MinemapMarkerLayer(options);
+            return new MinemapGraphicsLayer(options);
         }
 
         public onShowInfoWindow(evt: any): void {
@@ -36,15 +29,6 @@ namespace flagwind {
                 }
             });
         }
-
-        // /**
-        //  * 图层事件处理
-        //  * @param eventName 事件名称
-        //  * @param callback 回调
-        //  */
-        // public onAddEventListener(eventName: string, callback: Function): void {
-        //     this.layer.on(eventName, callback);
-        // }
 
         /**
          * 把实体转换成标准的要素属性信息
@@ -63,10 +47,11 @@ namespace flagwind {
             if (item.selected) {
                 className += " checked";
             }
-            return new MinemapMarker({
+            return new MinemapMarkerGraphic({
                 id: item.id,
                 symbol: {
-                    className: className
+                    className: className,
+                    imageUrl: this.options.imageUrl || this.options.symbol.imageUrl
                 },
                 point: {
                     y: item.latitude,

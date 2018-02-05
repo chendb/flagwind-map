@@ -90,7 +90,7 @@ namespace flagwind {
          * @returns void
          */
         public on(type: string, listener: Function, scope: any = this, once: boolean = false): void {
-            this.addListener(type, listener, scope, once);
+            this.layer.addListener(type, listener, scope, once);
         }
 
         /**
@@ -101,7 +101,7 @@ namespace flagwind {
          * @returns void
          */
         public off(type: string, listener: Function, scope: any = this): void {
-            this.removeListener(type, listener, scope);
+            this.layer.removeListener(type, listener, scope);
         }
 
         public abstract onCreateGraphicsLayer(args: any): any;

@@ -1,6 +1,4 @@
 namespace flagwind {
-    // const MINEMAP_MAP_EVENTS_MAP: Map<string, string> = Map.of(["onLoad", "load"]);
-    // MINEMAP_MAP_EVENTS_MAP.set("onLoad", "load");
 
     export class MinemapMap extends FlagwindMap {
 
@@ -11,15 +9,7 @@ namespace flagwind {
             super(mapSetting, mapEl, options);
             this.onInit();
         }
-        // /**
-        //  * 事件监听
-        //  * @param eventName 事件名称
-        //  * @param callBack 回调
-        //  */
-        // public onAddEventListener(eventName: string, callBack: Function): void {
-        //     let en = MINEMAP_MAP_EVENTS_MAP.get(eventName) || eventName;
-        //     this.innerMap.on(en, callBack);
-        // }
+
         /**
          * 中心定位
          * @param point 坐标点
@@ -53,7 +43,7 @@ namespace flagwind {
                 style: "http://" + this.mapSetting.mapDomain + "/service/solu/style/id/" + minemap.solution,
                 center: this.mapSetting.center || [116.46, 39.92],
                 zoom: this.mapSetting.zoom,
-                pitch: 60,
+                pitch: 0,
                 maxZoom: this.mapSetting.maxZoom || 17,    // 地图最大缩放级别限制
                 minZoom: this.mapSetting.minZoom || 9      // 地图最小缩放级别限制
             });
@@ -109,7 +99,7 @@ namespace flagwind {
             map.on("moveend", function (args: any) {
                 me.dispatchEvent("onMoveEnd", args);
             });
-            // #endregion
+            // #endregionn
 
             return map;
         }

@@ -49,7 +49,7 @@ namespace flagwind {
                 this.onLoad();
             } else {
                 const me = this;
-                this.flagwindMap.on("load", function () {
+                this.flagwindMap.on("onLoad", function () {
                     me.onLoad();
                 });
             }
@@ -60,8 +60,6 @@ namespace flagwind {
         public abstract onCreatGraphicByModel(item: any): any;
 
         public abstract onUpdateGraphicByModel(item: any): void;
-
-        // public abstract onAddEventListener(eventName: string, callback: Function): void;
 
         public onAddLayerBefor(): void {
             console.log("onAddLayerBefor");
@@ -104,14 +102,14 @@ namespace flagwind {
 
         // 设置选择状态
         public setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void {
-            if(refresh) {
+            if (refresh) {
                 this.clearSelectStatus();
             }
             for (let i = 0; i < dataList.length; i++) {
                 let model = this.onChangeStandardModel(dataList[i]);
                 let graphic = this.getGraphicById(model.id);
                 if (graphic) {
-                    this.setSelectStatus(graphic, true);
+                    this.setSelectStatus(graphic.attributes, true);
                 }
             }
         }
@@ -166,17 +164,6 @@ namespace flagwind {
             const pt = this.getPoint(item);
             this.onUpdateGraphicByModel(item);
 
-            // const iconUrl = this.getIconUrl(item);
-
-            // graphic.setSymbol(new esri.symbol.PictureMarkerSymbol(
-            //     iconUrl,
-            //     this.getGraphicWidth(null),
-            //     this.getGraphicHeight(null)));
-            // graphic.setGeometry(pt);
-            // graphic.attributes = item;
-
-            // graphic.draw(); // 重绘
-
             return pt;
         }
 
@@ -221,7 +208,7 @@ namespace flagwind {
 
         protected registerEvent(): void {
             let _deviceLayer = this;
-            this.on("onCliick", function (evt: EventArgs) {
+            this.on("onClick", function (evt: EventArgs) {
                 _deviceLayer.onLayerClick(_deviceLayer, evt.data);
             });
 
