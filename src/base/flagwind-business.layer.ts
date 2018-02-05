@@ -112,6 +112,12 @@ namespace flagwind {
                     this.setSelectStatus(graphic.attributes, true);
                 }
             }
+
+            this.options.onCheck({
+                target: dataList,
+                check: true,
+                selectedItems: this.getSelectedGraphics().map(g => g.attributes)
+            });
         }
 
         /**
@@ -168,12 +174,17 @@ namespace flagwind {
         }
 
         public clearSelectStatus(): void {
-            let graphics = this.layer.graphics;
+            let graphics: Array<any> = this.layer.graphics;
             for (let i = 0; i < graphics.length; i++) {
                 if (graphics[i].attributes.selected) {
                     this.setSelectStatus(graphics[i], false);
                 }
             }
+            this.options.onCheck({
+                target: graphics ? graphics.map(v => v.attributes) : [],
+                check: false,
+                selectedItems: this.getSelectedGraphics().map(g => g.attributes)
+            });
         }
         public getSelectedGraphics(): Array<any> {
             return (<Array<any>>this.layer.graphics).filter(g => g.attributes && g.attributes.selected);
@@ -248,7 +259,7 @@ namespace flagwind {
                 deviceLayer.options.onCheck({
                     target: [evt.graphic.attributes],
                     check: evt.graphic.attributes.selected,
-                    selectGraphics: deviceLayer.getSelectedGraphics()
+                    selectedItems: deviceLayer.getSelectedGraphics()
                 });
             }
 

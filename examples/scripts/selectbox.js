@@ -100,7 +100,11 @@ requirejs(['flagwindMap'],
             }
         });
 
-        var selectbox = new flagwind.MinemapSelectBox(myMap, {});
+        var selectbox = new flagwind.MinemapSelectBox(myMap, {
+            onCheckChanged:function(evt){
+                
+            }
+        });
        selectbox.addLayer(tollgateLayer);
 
 

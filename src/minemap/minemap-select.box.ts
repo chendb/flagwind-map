@@ -50,11 +50,6 @@ namespace flagwind {
                 });
                 let checkItems = checkGrahpics.map(g => g.attributes);
                 layer.setSelectStatusByModels(checkItems, false);
-                me.options.onCheckChanged({
-                    layer: layer,
-                    current: checkItems,
-                    all: layer.getSelectedGraphics().map(g => g.attributes)
-                });
             });
 
             me.clear();
