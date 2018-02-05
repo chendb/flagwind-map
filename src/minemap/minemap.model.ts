@@ -210,6 +210,9 @@ namespace flagwind {
                 this.element.classList = [options.symbol.className];
             }
             this.marker = new minemap.Marker(this.element, { offset: [-10, -14] });
+            if (this.element.parentNode && options.symbol.className.indexOf("checked") !== -1) {
+                this.element.parentNode.classList.add("checked");
+            }
             if (options.point) {
                 this.geometry = new MinemapPoint(options.point.x, options.point.y);
             }
