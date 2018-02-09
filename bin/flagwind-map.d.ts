@@ -2012,6 +2012,7 @@ declare namespace flagwind {
         symbol: any;
         marker: any;
         element: any;
+        icon: any;
         attributes: any;
         layer: IMinemapGraphicsLayer;
         constructor(options: any);
@@ -2071,6 +2072,8 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onChangeStandardModel(item: any): any;
+        getImageUrl(item: any): string;
+        getClassName(item: any): string;
         /**
          * 创建要素方法
          * @param item 实体信息
@@ -2096,6 +2099,8 @@ declare namespace flagwind {
          * 关闭定时器
          */
         stop(): void;
+        protected setSelectStatus(item: any, selected: boolean): void;
+        protected setGraphicStatus(item: any): void;
         /**
          * 更新设备状态
          */

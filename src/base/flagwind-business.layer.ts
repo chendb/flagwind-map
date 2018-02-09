@@ -176,7 +176,7 @@ namespace flagwind {
         public clearSelectStatus(): void {
             let graphics: Array<any> = this.layer.graphics;
             for (let i = 0; i < graphics.length; i++) {
-                if (graphics[i].attributes.selected) {
+                if (graphics[i].attributes.selected || typeof graphics[i].attributes.selected !== "boolean") {
                     this.setSelectStatus(graphics[i], false);
                 }
             }

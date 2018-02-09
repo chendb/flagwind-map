@@ -15,6 +15,7 @@ namespace flagwind {
 
         public marker: any;
         public element: any;
+        public icon: any;
 
         public attributes: any;
 
@@ -26,11 +27,11 @@ namespace flagwind {
 
             this.symbol = options.symbol ? options.symbol : {};
             this.attributes = options.attributes ? options.attributes : {};
-            let icon = options.icon;
-            if ((!icon) && this.symbol.imageUrl) {
-                icon = new minemap.Icon({ imageUrl: this.symbol.imageUrl });
+            this.icon = options.icon;
+            if ((!this.icon) && this.symbol.imageUrl) {
+                this.icon = new minemap.Icon({ imageUrl: this.symbol.imageUrl });
             }
-            this.marker = new minemap.Marker(icon, { offset: [-10, -14] });
+            this.marker = new minemap.Marker(this.icon, { offset: [-10, -14] });
             this.element = this.marker.getElement();
             if (options.point) {
                 this.geometry = new MinemapPoint(options.point.x, options.point.y);
@@ -38,12 +39,21 @@ namespace flagwind {
             if (options.geometry) {
                 this.geometry = options.geometry;
             }
+            if (options && options.className) {
+                this.addClass(options.className);
+                this.symbol.className = "";
+            }
             if (options.symbol && options.symbol.className) {
                 this.addClass(options.symbol.className);
+                this.symbol.className = "";
             }
         }
 
         public addClass(className: string) {
+            this.symbol.className = className;
+            if (className === " " || className === null || className === undefined) {
+                return;
+            }
             let classList = className.split(" ");
             for (let i = 0; i < classList.length; i++) {
                 this.marker.getElement().classList.add(classList[i]);
@@ -51,6 +61,9 @@ namespace flagwind {
         }
 
         public removeClass(className: string) {
+            if (className === " " || className === null || className === undefined) {
+                return;
+            }
             let classList = className.split(" ");
             for (let i = 0; i < classList.length; i++) {
                 this.marker.getElement().classList.remove(classList[i]);
@@ -155,7 +168,7 @@ namespace flagwind {
                 this.marker.setIcon(symbol.icon);
             }
             if (symbol.imageUrl) {
-                this.marker.setImageUrl(symbol.imageUrl);
+                this.icon.setImageUrl(symbol.imageUrl);
             }
             if (symbol.title) {
                 this.marker.setTitle(symbol.title);

@@ -1011,7 +1011,7 @@ var flagwind;
             }
             var me = this;
             this.on("click", function (evt) {
-                me.options.onMapClick(evt.data);
+                me.options.onMapClick(evt); // evt.data
             });
         };
         FlagwindMap.prototype.showBaseLayer = function (id) {
@@ -2110,6 +2110,11 @@ var flagwind;
                     this.setSelectStatus(graphic.attributes, true);
                 }
             }
+            this.options.onCheck({
+                target: dataList,
+                check: true,
+                selectedItems: this.getSelectedGraphics().map(function (g) { return g.attributes; })
+            });
         };
         /**
          * 保存要素（如果存在，则修改，否则添加）
@@ -2168,6 +2173,11 @@ var flagwind;
                     this.setSelectStatus(graphics[i], false);
                 }
             }
+            this.options.onCheck({
+                target: graphics ? graphics.map(function (v) { return v.attributes; }) : [],
+                check: false,
+                selectedItems: this.getSelectedGraphics().map(function (g) { return g.attributes; })
+            });
         };
         FlagwindBusinessLayer.prototype.getSelectedGraphics = function () {
             return this.layer.graphics.filter(function (g) { return g.attributes && g.attributes.selected; });
@@ -2235,7 +2245,7 @@ var flagwind;
                 deviceLayer.options.onCheck({
                     target: [evt.graphic.attributes],
                     check: evt.graphic.attributes.selected,
-                    selectGraphics: deviceLayer.getSelectedGraphics()
+                    selectedItems: deviceLayer.getSelectedGraphics()
                 });
             }
         };
@@ -4514,7 +4524,7 @@ var flagwind;
                 minZoom: this.mapSetting.minZoom || 9 // 地图最小缩放级别限制
             });
             this.spatial = new flagwind.MinemapSpatial(minemap.solution);
-            var popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
+            var popup = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
             popup.addTo(map);
             var div = this.tooltipElement = document.createElement("div");
@@ -4562,8 +4572,11 @@ var flagwind;
             return map;
         };
         MinemapMap.prototype.onShowInfoWindow = function (evt) {
-            if (!this.innerMap.infoWindow) {
-                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] });
+            // if (!this.innerMap.infoWindow) {
+            //     this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] });
+            // }
+            if (this.innerMap.infoWindow) {
+                this.innerMap.infoWindow.remove();
             }
             if (evt.options) {
                 var options = evt.options;
@@ -4578,34 +4591,44 @@ var flagwind;
                 if (options.offset) {
                     params["offset"] = options.offset;
                 }
-                params = __assign({ closeOnClick: true, closeButton: true, offset: [0, -35] }, params);
-                this.innerMap.infoWindow.remove();
+                params = __assign({ closeOnClick: false, closeButton: true, offset: [0, -35] }, params);
                 this.innerMap.infoWindow = new minemap.Popup(params);
-                this.innerMap.infoWindow.addTo(this.innerMap);
             }
+            else {
+                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] });
+            }
+            this.innerMap.infoWindow.addTo(this.innerMap);
             if (evt.context) {
                 switch (evt.context.type) {
                     case "dom":
                         this.innerMap.infoWindow.setDOMContent(document.getElementById(evt.context.content) || "");
                         break; // 不推荐使用该方法，每次调用会删掉以前dom节点
                     case "html":
-                        this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
-                            + evt.context.title + "</h4>"
-                            + "<div class='info-window-content'>"
-                            + evt.context.content + "</div>");
+                        // this.innerMap.infoWindow.setHTML(
+                        //     "<h4 class='info-window-title'>"
+                        //     + evt.context.title + "</h4>"
+                        //     + "<div class='info-window-content'>"
+                        //     + evt.context.content + "</div>");
+                        this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>" + evt.context.title + "</h4><div class='info-window-content'>" + evt.context.content + "</div>");
                         break;
                     case "text":
                         this.innerMap.infoWindow.setText(evt.context.content || "");
                         break;
                     default:
-                        this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
-                            + evt.context.title + "</h4>"
-                            + "<div class='info-window-content'>"
-                            + evt.context.content + "</div>");
+                        // this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
+                        //     + evt.context.title + "</h4>"
+                        //     + "<div class='info-window-content'>"
+                        //     + evt.context.content + "</div>"
+                        // );
+                        this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>" + evt.context.title + "</h4><div class='info-window-content'>" + evt.context.content + "</div>");
                         break;
                 }
             }
             this.innerMap.infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
+            var popup = document.querySelector(".minemap-map .minemap-popup");
+            if (popup) {
+                popup.style.height = popup.offsetHeight;
+            }
         };
         MinemapMap.prototype.onCloseInfoWindow = function () {
             if (this.innerMap.infoWindow) {
@@ -4657,11 +4680,11 @@ var flagwind;
             _this.id = options.id;
             _this.symbol = options.symbol ? options.symbol : {};
             _this.attributes = options.attributes ? options.attributes : {};
-            var icon = options.icon;
-            if ((!icon) && _this.symbol.imageUrl) {
-                icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl });
+            _this.icon = options.icon;
+            if ((!_this.icon) && _this.symbol.imageUrl) {
+                _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl });
             }
-            _this.marker = new minemap.Marker(icon, { offset: [-10, -14] });
+            _this.marker = new minemap.Marker(_this.icon, { offset: [-10, -14] });
             _this.element = _this.marker.getElement();
             if (options.point) {
                 _this.geometry = new flagwind.MinemapPoint(options.point.x, options.point.y);
@@ -4669,18 +4692,30 @@ var flagwind;
             if (options.geometry) {
                 _this.geometry = options.geometry;
             }
+            if (options && options.className) {
+                _this.addClass(options.className);
+                _this.symbol.className = "";
+            }
             if (options.symbol && options.symbol.className) {
                 _this.addClass(options.symbol.className);
+                _this.symbol.className = "";
             }
             return _this;
         }
         MinemapMarkerGraphic.prototype.addClass = function (className) {
+            this.symbol.className = className;
+            if (className === " " || className === null || className === undefined) {
+                return;
+            }
             var classList = className.split(" ");
             for (var i = 0; i < classList.length; i++) {
                 this.marker.getElement().classList.add(classList[i]);
             }
         };
         MinemapMarkerGraphic.prototype.removeClass = function (className) {
+            if (className === " " || className === null || className === undefined) {
+                return;
+            }
             var classList = className.split(" ");
             for (var i = 0; i < classList.length; i++) {
                 this.marker.getElement().classList.remove(classList[i]);
@@ -4784,7 +4819,7 @@ var flagwind;
                 this.marker.setIcon(symbol.icon);
             }
             if (symbol.imageUrl) {
-                this.marker.setImageUrl(symbol.imageUrl);
+                this.icon.setImageUrl(symbol.imageUrl);
             }
             if (symbol.title) {
                 this.marker.setTitle(symbol.title);
@@ -4912,10 +4947,8 @@ var flagwind;
                 graphic: evt.graphic,
                 context: {
                     type: "html",
-                    content: {
-                        title: context.title,
-                        content: context.content
-                    }
+                    title: context.title,
+                    content: context.content
                 }
             });
         };
@@ -4926,20 +4959,42 @@ var flagwind;
         MinemapPointLayer.prototype.onChangeStandardModel = function (item) {
             return this.businessService.changeStandardModel(item);
         };
+        MinemapPointLayer.prototype.getImageUrl = function (item) {
+            if (item.selected == null) {
+                return this.options.imageUrl || this.options.symbol.imageUrl;
+            }
+            var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
+            var imageParts = imageUrl.split(".");
+            if (item.selected) {
+                return imageParts[0] + "_checked." + imageParts[1];
+            }
+            else {
+                return imageParts[0] + "_unchecked." + imageParts[1];
+            }
+        };
+        MinemapPointLayer.prototype.getClassName = function (item) {
+            if (item.selected == null) {
+                return "";
+            }
+            if (item.selected) {
+                return "checked";
+            }
+            else {
+                return "unchecked";
+            }
+        };
         /**
          * 创建要素方法
          * @param item 实体信息
          */
         MinemapPointLayer.prototype.onCreatGraphicByModel = function (item) {
             var className = this.options.dataType || "graphic-tollgate";
-            if (item.selected) {
-                className += " checked";
-            }
+            var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
             return new flagwind.MinemapMarkerGraphic({
                 id: item.id,
+                className: className,
                 symbol: {
-                    className: className,
-                    imageUrl: this.options.imageUrl || this.options.symbol.imageUrl
+                    imageUrl: imageUrl
                 },
                 point: {
                     y: item.latitude,
@@ -4953,11 +5008,16 @@ var flagwind;
          * @param item 实体信息
          */
         MinemapPointLayer.prototype.onUpdateGraphicByModel = function (item) {
-            this.removeGraphicById(item.id);
+            // this.removeGraphicById(item.id);
             // let minemapMarker = <MinemapMarker>this.onCreatGraphicByModel(item);
-            this.addGraphicByModel(item);
+            // this.addGraphicByModel(item);
             // (<MinemapMarkerLayer>this.layer).add(minemapMarker);
             // throw new Error("Method not implemented.");
+            var graphic = this.getGraphicById(item.id);
+            if (graphic) {
+                graphic.geometry = new flagwind.MinemapPoint(item.longitude, item.latitude);
+                this.setGraphicStatus(item);
+            }
         };
         MinemapPointLayer.prototype.openInfoWindow = function (id, context, options) {
             var graphic = this.getGraphicById(id);
@@ -5009,6 +5069,17 @@ var flagwind;
             if (this.timer) {
                 clearInterval(this.timer);
             }
+        };
+        MinemapPointLayer.prototype.setSelectStatus = function (item, selected) {
+            item.selected = selected;
+            this.setGraphicStatus(item);
+        };
+        MinemapPointLayer.prototype.setGraphicStatus = function (item) {
+            var graphic = this.getGraphicById(item.id);
+            graphic.setSymbol({
+                className: this.getClassName(item),
+                imageUrl: this.getImageUrl(item)
+            });
         };
         /**
          * 更新设备状态
@@ -5512,11 +5583,6 @@ var flagwind;
                 });
                 var checkItems = checkGrahpics.map(function (g) { return g.attributes; });
                 layer.setSelectStatusByModels(checkItems, false);
-                me.options.onCheckChanged({
-                    layer: layer,
-                    current: checkItems,
-                    all: layer.getSelectedGraphics().map(function (g) { return g.attributes; })
-                });
             });
             me.clear();
         };

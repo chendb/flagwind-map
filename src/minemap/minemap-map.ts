@@ -50,7 +50,7 @@ namespace flagwind {
 
             this.spatial = new MinemapSpatial(minemap.solution);
 
-            let popup = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] }); // 创建全局信息框
+            let popup = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] }); // 创建全局信息框
             map.infoWindow = popup;
             popup.addTo(map);
 
@@ -104,8 +104,11 @@ namespace flagwind {
             return map;
         }
         public onShowInfoWindow(evt: any): void {
-            if (!this.innerMap.infoWindow) {
-                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: true, closeButton: true, offset: [0, -35] });
+            // if (!this.innerMap.infoWindow) {
+            //     this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] });
+            // }
+            if (this.innerMap.infoWindow) {
+                this.innerMap.infoWindow.remove();
             }
             if (evt.options) {
                 let options = evt.options;
@@ -120,37 +123,49 @@ namespace flagwind {
                 if (options.offset) {
                     params["offset"] = options.offset;
                 }
-                params = { closeOnClick: true, closeButton: true, offset: [0, -35], ...params };
-                this.innerMap.infoWindow.remove();
+                params = { closeOnClick: false, closeButton: true, offset: [0, -35], ...params };
                 this.innerMap.infoWindow = new minemap.Popup(params);
-                this.innerMap.infoWindow.addTo(this.innerMap);
+            } else {
+                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] });
             }
+            this.innerMap.infoWindow.addTo(this.innerMap);
+
             if (evt.context) {
                 switch (evt.context.type) {
                     case "dom":
                         this.innerMap.infoWindow.setDOMContent(document.getElementById(evt.context.content) || "");
                         break; // 不推荐使用该方法，每次调用会删掉以前dom节点
                     case "html":
+                        // this.innerMap.infoWindow.setHTML(
+                        //     "<h4 class='info-window-title'>"
+                        //     + evt.context.title + "</h4>"
+                        //     + "<div class='info-window-content'>"
+                        //     + evt.context.content + "</div>");
                         this.innerMap.infoWindow.setHTML(
-                            "<h4 class='info-window-title'>"
-                            + evt.context.title + "</h4>"
-                            + "<div class='info-window-content'>"
-                            + evt.context.content + "</div>");
+                            `<h4 class='info-window-title'>${evt.context.title}</h4><div class='info-window-content'>${evt.context.content}</div>`
+                        );
                         break;
                     case "text":
                         this.innerMap.infoWindow.setText(evt.context.content || "");
                         break;
                     default:
-                        this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
-                            + evt.context.title + "</h4>"
-                            + "<div class='info-window-content'>"
-                            + evt.context.content + "</div>"
+                        // this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
+                        //     + evt.context.title + "</h4>"
+                        //     + "<div class='info-window-content'>"
+                        //     + evt.context.content + "</div>"
+                        // );
+                        this.innerMap.infoWindow.setHTML(
+                            `<h4 class='info-window-title'>${evt.context.title}</h4><div class='info-window-content'>${evt.context.content}</div>`
                         );
                         break;
                 }
             }
 
             this.innerMap.infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
+            let popup: any = document.querySelector(".minemap-map .minemap-popup");
+            if (popup) {
+                popup.style.height = popup.offsetHeight;
+            }
         }
 
         public onCloseInfoWindow(): void {

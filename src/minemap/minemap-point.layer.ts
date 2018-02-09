@@ -22,10 +22,8 @@ namespace flagwind {
                 graphic: evt.graphic,
                 context: {
                     type: "html",
-                    content: {
-                        title: context.title,
-                        content: context.content
-                    }
+                    title: context.title,
+                    content: context.content
                 }
             });
         }
@@ -38,20 +36,45 @@ namespace flagwind {
             return this.businessService.changeStandardModel(item);
         }
 
+        public getImageUrl(item: any): string {
+            if (item.selected == null) {
+                return this.options.imageUrl || this.options.symbol.imageUrl;
+            }
+
+            let imageUrl: String = this.options.imageUrl || this.options.symbol.imageUrl;
+            let imageParts = imageUrl.split(".");
+            if (item.selected) {
+                return imageParts[0] + "_checked." + imageParts[1];
+            } else {
+                return imageParts[0] + "_unchecked." + imageParts[1];
+            }
+        }
+
+        public getClassName(item: any): string {
+            if (item.selected == null) {
+                return "";
+            }
+
+            if (item.selected) {
+                return "checked";
+            } else {
+                return "unchecked";
+            }
+
+        }
+
         /**
          * 创建要素方法
          * @param item 实体信息
          */
         public onCreatGraphicByModel(item: any): any {
             let className = this.options.dataType || "graphic-tollgate";
-            if (item.selected) {
-                className += " checked";
-            }
+            let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
             return new MinemapMarkerGraphic({
                 id: item.id,
+                className: className,
                 symbol: {
-                    className: className,
-                    imageUrl: this.options.imageUrl || this.options.symbol.imageUrl
+                    imageUrl: imageUrl
                 },
                 point: {
                     y: item.latitude,
@@ -66,11 +89,16 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onUpdateGraphicByModel(item: any): void {
-            this.removeGraphicById(item.id);
+            // this.removeGraphicById(item.id);
             // let minemapMarker = <MinemapMarker>this.onCreatGraphicByModel(item);
-            this.addGraphicByModel(item);
+            // this.addGraphicByModel(item);
             // (<MinemapMarkerLayer>this.layer).add(minemapMarker);
             // throw new Error("Method not implemented.");
+            let graphic: MinemapMarkerGraphic = this.getGraphicById(item.id);
+            if (graphic) {
+                graphic.geometry = new MinemapPoint(item.longitude, item.latitude);
+                this.setGraphicStatus(item);
+            }
         }
 
         public openInfoWindow(id: string, context: any, options: any) {
@@ -125,6 +153,27 @@ namespace flagwind {
             if ((<any>this).timer) {
                 clearInterval((<any>this).timer);
             }
+        }
+
+        protected setSelectStatus(item: any, selected: boolean): void {
+            let graphics: Array<any> = this.layer.graphics;
+            graphics.forEach(item => {
+                if (!item.attributes.selected) {
+                    item.selected = false;
+                    this.setGraphicStatus(item);
+                }
+            });
+            
+            item.selected = selected;
+            this.setGraphicStatus(item);
+        }
+
+        protected setGraphicStatus(item: any): void {
+            let graphic: MinemapMarkerGraphic = this.getGraphicById(item.id);
+            graphic.setSymbol({
+                className: this.getClassName(item),
+                imageUrl: this.getImageUrl(item)
+            });
         }
 
         /**
