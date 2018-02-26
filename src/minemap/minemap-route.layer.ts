@@ -75,7 +75,7 @@ namespace flagwind {
                     throw new Error("未知的停靠点定义.");
                 }
             });
-            return stops;
+            return list;
         }
 
         /**
@@ -90,6 +90,7 @@ namespace flagwind {
             let endXY = segment.endGraphic.geometry.x + "," + segment.endGraphic.geometry.y;
             let wayXY: string = null;
             if (waypoints) {
+                // wayXY = waypoints.map(g => `${ g.geometry.x },${ g.geometry.y }`).join(",");
                 wayXY = waypoints.join(",");
             }
 

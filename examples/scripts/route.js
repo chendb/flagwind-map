@@ -101,9 +101,18 @@ requirejs(['flagwindMap'],
             point: new flagwind.MinemapPoint(116.461, 39.929),
             attributes: {}
         });
+        var middle = new flagwind.MinemapMarkerGraphic({
+            id: "2",
+            symbol: {
+                imageUrl: "http://113.106.54.47:1180/minemapapi/demo/images/police.png",
+                className: "graphic-tollgate"
+            },
+            point: new flagwind.MinemapPoint(116.452, 39.919),
+            attributes: {}
+        });
 
         var end = new flagwind.MinemapMarkerGraphic({
-            id: "2",
+            id: "3",
             symbol: {
                 imageUrl: "http://113.106.54.47:1180/minemapapi/demo/images/police.png",
                 className: "graphic-tollgate"
@@ -113,7 +122,7 @@ requirejs(['flagwindMap'],
         });
 
         document.getElementById("btnShow").onclick = function () {
-            routeLayer.solveSegment("trackline", [start, end], {});
+            routeLayer.solveSegment("trackline", [start, middle, end], {});
         }
 
         document.getElementById("btnHide").onclick = function () {

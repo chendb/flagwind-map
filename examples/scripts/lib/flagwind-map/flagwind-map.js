@@ -2169,8 +2169,8 @@ var flagwind;
         FlagwindBusinessLayer.prototype.clearSelectStatus = function () {
             var graphics = this.layer.graphics;
             for (var i = 0; i < graphics.length; i++) {
-                if (graphics[i].attributes.selected) {
-                    this.setSelectStatus(graphics[i], false);
+                if (graphics[i].attributes.selected || typeof graphics[i].attributes.selected !== "boolean") {
+                    this.setSelectStatus(graphics[i].attributes, false);
                 }
             }
             this.options.onCheck({
@@ -5071,6 +5071,14 @@ var flagwind;
             }
         };
         MinemapPointLayer.prototype.setSelectStatus = function (item, selected) {
+            var _this = this;
+            var graphics = this.layer.graphics;
+            graphics.forEach(function (item) {
+                if (!item.attributes.selected) {
+                    item.selected = false;
+                    _this.setGraphicStatus(item);
+                }
+            });
             item.selected = selected;
             this.setGraphicStatus(item);
         };
@@ -5355,7 +5363,7 @@ var flagwind;
                     throw new Error("未知的停靠点定义.");
                 }
             });
-            return stops;
+            return list;
         };
         /**
          * 由路由服务来路径规划
@@ -5369,6 +5377,7 @@ var flagwind;
             var endXY = segment.endGraphic.geometry.x + "," + segment.endGraphic.geometry.y;
             var wayXY = null;
             if (waypoints) {
+                // wayXY = waypoints.map(g => `${ g.geometry.x },${ g.geometry.y }`).join(",");
                 wayXY = waypoints.join(",");
             }
             var me = this;
@@ -5590,6 +5599,23 @@ var flagwind;
             layer.options.enableSelectMode = true;
             this.layers.push(layer);
         };
+        MinemapSelectBox.prototype.showSelectBar = function (mapId) {
+            var me = this;
+            var mapEle = document.getElementById(mapId);
+            var container = document.createElement("div");
+            container.setAttribute("id", "edit-ctrl-group");
+            container.innerHTML = "<div class=\"edit-btn\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon1\"></span></div>";
+            // <div class="edit-btn" title="撤销上一步操作" data-operate="undo"><span class="iconfont icon-undo"></span></div>
+            // <div class="edit-btn" title="重复上一步操作" data-operate="redo"><span class="iconfont icon-redo"></span></div>
+            // <div class="edit-btn" title="删除所选" data-operate="trash"><span class="iconfont icon-tool-trash"></span></div>`;
+            mapEle.appendChild(container);
+            var operateBtns = document.querySelectorAll("#" + mapId + " .edit-btn");
+            for (var i = 0; i < operateBtns.length; i++) {
+                operateBtns[i].onclick = function () {
+                    me.active(this.dataset.operate);
+                };
+            }
+        };
         MinemapSelectBox.prototype.clear = function () {
             if (this.edit) {
                 this.edit.onBtnCtrlActive("trash");
@@ -5605,6 +5631,58 @@ var flagwind;
         return MinemapSelectBox;
     }(flagwind.EventProvider));
     flagwind.MinemapSelectBox = MinemapSelectBox;
+})(flagwind || (flagwind = {}));
+var flagwind;
+(function (flagwind) {
+    var MinemapVehicleRouteLayer = /** @class */ (function (_super) {
+        __extends(MinemapVehicleRouteLayer, _super);
+        function MinemapVehicleRouteLayer() {
+            var _this = _super !== null && _super.apply(this, arguments) || this;
+            _this.stops = [];
+            return _this;
+        }
+        MinemapVehicleRouteLayer.prototype.showTrack = function (trackName, stopList, options) {
+            var stops = this.getStopsGraphicList(stopList);
+            this.solveSegment(trackName, stops, options);
+            this.trackName = trackName;
+            this.stops = stops;
+        };
+        MinemapVehicleRouteLayer.prototype.getStopsGraphicList = function (stopList) {
+            var _this = this;
+            return stopList.map(function (item) {
+                return new flagwind.MinemapMarkerGraphic({
+                    id: item.tollCode,
+                    symbol: _this.options.symbol,
+                    point: new flagwind.MinemapPoint(item.tollLongitude, item.tollLatitude),
+                    attributes: item
+                });
+            });
+        };
+        MinemapVehicleRouteLayer.prototype.showTrackToolBox = function (mapId) {
+            var me = this;
+            var mapEle = document.getElementById(mapId);
+            var container = document.createElement("div");
+            container.setAttribute("id", "route-ctrl-group");
+            container.innerHTML = "<div class=\"route-btn\" title=\"\u6C42\u89E3\" data-operate=\"solveSegment\"><span class=\"iconfont icon-show\">\u6C42\u89E3</span></div>\n                <div class=\"route-btn\" title=\"\u64AD\u653E\" data-operate=\"start\"><span class=\"iconfont icon-start\">\u64AD\u653E</span></div>\n                <div class=\"route-btn\" title=\"\u6682\u505C\" data-operate=\"pause\"><span class=\"iconfont icon-pause\">\u6682\u505C</span></div>\n                <div class=\"route-btn\" title=\"\u7EE7\u7EED\" data-operate=\"continue\"><span class=\"iconfont icon-continue\">\u7EE7\u7EED</span></div>\n                <div class=\"route-btn\" title=\"\u9690\u85CF\" data-operate=\"hide\"><span class=\"iconfont icon-hide\">\u9690\u85CF</span></div>\n                <div class=\"route-btn\" title=\"\u6E05\u9664\" data-operate=\"clear\"><span class=\"iconfont icon-clear\">\u6E05\u9664</span></div>";
+            mapEle.appendChild(container);
+            var operateBtns = document.querySelectorAll("#" + mapId + " .route-btn");
+            for (var i = 0; i < operateBtns.length; i++) {
+                operateBtns[i].onclick = function () {
+                    if (this.dataset.operate === "solveSegment") {
+                        me[this.dataset.operate](me.trackName, me.stops, {});
+                    }
+                    else if (this.dataset.operate === "hide") {
+                        me[this.dataset.operate]();
+                    }
+                    else {
+                        me[this.dataset.operate](me.trackName);
+                    }
+                };
+            }
+        };
+        return MinemapVehicleRouteLayer;
+    }(flagwind.MinemapRouteLayer));
+    flagwind.MinemapVehicleRouteLayer = MinemapVehicleRouteLayer;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {

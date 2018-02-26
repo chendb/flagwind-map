@@ -2233,8 +2233,18 @@ declare namespace flagwind {
         constructor(flagwindMap: FlagwindMap, options: any);
         onCreateRecord(me: this, e: any): void;
         addLayer(layer: FlagwindBusinessLayer): void;
+        showSelectBar(mapId: string): void;
         clear(): void;
         active(mode: string): void;
+    }
+}
+declare namespace flagwind {
+    class MinemapVehicleRouteLayer extends MinemapRouteLayer {
+        private stops;
+        private trackName;
+        showTrack(trackName: string, stopList: Array<any>, options: any): void;
+        getStopsGraphicList(stopList: Array<any>): MinemapMarkerGraphic[];
+        showTrackToolBox(mapId: string): void;
     }
 }
 declare var minemap: any;
