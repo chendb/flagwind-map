@@ -1381,6 +1381,7 @@ var flagwind;
             this.options = options;
             // public moveMarkLayer: { graphics: any; remove: (arg0: any) => void; _map: null; clear: () => void; id: any; add: (arg0: any) => void; show: () => void; hide: () => void; };
             this.trackLines = [];
+            this.activedtrackLineName = "";
             this.options = __assign({}, flagwind.ROUTE_LAYER_OPTIONS, options);
             // this.mapService = flagwindMap.mapService;
             this.moveLineLayer = this.onCreateLineLayer(layerName + "LineLayer");
@@ -1544,6 +1545,24 @@ var flagwind;
                 trackline.changeSpeed(speed);
             }
         };
+        FlagwindRouteLayer.prototype.speedUp = function (name) {
+            var trackline = this.getTrackLine(name);
+            if (trackline) {
+                return trackline.speedUp();
+            }
+            else {
+                return "当前路线为空！";
+            }
+        };
+        FlagwindRouteLayer.prototype.speedDown = function (name) {
+            var trackline = this.getTrackLine(name);
+            if (trackline) {
+                return trackline.speedDown();
+            }
+            else {
+                return "当前路线为空！";
+            }
+        };
         FlagwindRouteLayer.prototype.clear = function (name) {
             if (name) {
                 var trackline = this.getTrackLine(name);
@@ -1575,6 +1594,7 @@ var flagwind;
          * 清除所有
          */
         FlagwindRouteLayer.prototype.clearAll = function () {
+            window.stop();
             this.checkMapSetting();
             for (var i = 0; i < this.trackLines.length; i++) {
                 var trackline = this.trackLines[i];
@@ -1588,6 +1608,51 @@ var flagwind;
             if (this.moveLineLayer) {
                 this.moveLineLayer.clear();
             }
+        };
+        FlagwindRouteLayer.prototype.deleteTrackToolBox = function () {
+            var ele = document.getElementById("route-ctrl-group");
+            if (ele)
+                ele.remove();
+        };
+        FlagwindRouteLayer.prototype.showTrackToolBox = function () {
+            if (document.getElementById("route-ctrl-group")) {
+                console.log("TrackToolBox已经创建，不可重复创建！");
+                document.getElementById("route-ctrl-group").style.display = "block";
+                return;
+            }
+            var me = this;
+            var trackToolBox = document.createElement("div");
+            trackToolBox.setAttribute("id", "route-ctrl-group");
+            trackToolBox.innerHTML = "<div class=\"tool-btns\"><span class=\"route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                <span class=\"route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                <span class=\"route-btn icon-speedDown\" title=\"\u51CF\u901F\" data-operate=\"speedDown\"></span>\n                <span class=\"route-btn icon-speedUp\" title=\"\u52A0\u901F\" data-operate=\"speedUp\"></span>\n                <span class=\"route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span></div>\n                <div class=\"tool-text\"><span></span></div>";
+            this.flagwindMap.innerMap._container.appendChild(trackToolBox);
+            var playBtn = document.querySelector("#route-ctrl-group .icon-continue");
+            var pauseBtn = document.querySelector("#route-ctrl-group .icon-pause");
+            var speedUpBtn = document.querySelector("#route-ctrl-group .icon-speedUp");
+            var speedDownBtn = document.querySelector("#route-ctrl-group .icon-speedDown");
+            var clearBtn = document.querySelector("#route-ctrl-group .icon-clear");
+            var toolBoxTextEle = document.querySelector("#route-ctrl-group .tool-text span");
+            playBtn.onclick = function () {
+                me.continue(me.activedtrackLineName);
+                playBtn.style.display = "none";
+                pauseBtn.style.display = "block";
+                toolBoxTextEle.innerHTML = "当前状态：正在播放";
+            };
+            pauseBtn.onclick = function () {
+                me.pause(me.activedtrackLineName);
+                playBtn.style.display = "block";
+                pauseBtn.style.display = "none";
+                toolBoxTextEle.innerHTML = "当前状态：已暂停";
+            };
+            speedUpBtn.onclick = function () {
+                toolBoxTextEle.innerHTML = me.speedUp(me.activedtrackLineName);
+            };
+            speedDownBtn.onclick = function () {
+                toolBoxTextEle.innerHTML = me.speedDown(me.activedtrackLineName);
+            };
+            clearBtn.onclick = function () {
+                me.clearAll();
+                toolBoxTextEle.innerHTML = "";
+            };
         };
         /*********************播放控制**************************/
         /**
@@ -1603,6 +1668,7 @@ var flagwind;
             if (stops.length < 1) {
                 throw Error("站点不能少于2");
             }
+            this.activedtrackLineName = name;
             var stopGraphics = this.onGetStandardStops(name, stops);
             var segment = this.getLastSegment(name);
             var startLineIndex = segment ? segment.index + 1 : 0;
@@ -1615,10 +1681,15 @@ var flagwind;
                     startLineIndex += 1;
                 }
             }
-            var start = stopGraphics.splice(0, 1)[0]; // 从数组中取出第一个
-            var end = stopGraphics.splice(stopGraphics.length - 1, 1)[0]; // 从数组中取出最后一个
-            var waypoints = stopGraphics; //
-            this.post(startLineIndex, name, start, end, options, waypoints);
+            // const start = stopGraphics.splice(0, 1)[0];// 从数组中取出第一个
+            // const end = stopGraphics.splice(stopGraphics.length - 1, 1)[0];// 从数组中取出最后一个
+            // const waypoints = stopGraphics; //
+            // this.post(startLineIndex, name, start, end, options, waypoints);
+            for (var i = 0; i < stopGraphics.length - 1; i++) {
+                var start = stopGraphics[i];
+                var end = stopGraphics[i + 1];
+                this.post(startLineIndex + i, name, start, end, options);
+            }
         };
         /**
          * 发送路由请求
@@ -2454,6 +2525,7 @@ var flagwind;
             this.options = options;
             this.segments = [];
             this.isMovingGraphicHide = false;
+            this.options = __assign({}, flagwind.TRACKSEGMENT_OPTIONS, options);
         }
         /**
          * 隐藏移动要素
@@ -2523,6 +2595,31 @@ var flagwind;
                 var segemtn = this.segments[i];
                 segemtn.changeSpeed(speed);
             }
+        };
+        /**
+         * 增速
+         */
+        TrackLine.prototype.speedUp = function () {
+            if (!this.speed)
+                this.speed = this.options.speed;
+            if (this.speed < 800) {
+                this.speed = Math.max(this.speed * 2, this.options.speed);
+                this.changeSpeed(this.speed);
+                return "\u5F53\u524D\u72B6\u6001\uFF1A" + this.speed / this.options.speed + "\u500D\u64AD\u653E";
+            }
+            else {
+                return "最大速度：4倍播放";
+            }
+        };
+        /**
+         * 减速
+         */
+        TrackLine.prototype.speedDown = function () {
+            if (!this.speed)
+                this.speed = this.options.speed;
+            this.speed = Math.max(this.speed / 2, this.options.speed);
+            this.changeSpeed(this.speed);
+            return "\u5F53\u524D\u72B6\u6001\uFF1A" + this.speed / this.options.speed + "\u500D\u64AD\u653E";
         };
         /**
          * 启动线路播放（从第一个路段的起点开始）
@@ -2667,7 +2764,7 @@ var flagwind;
                 return null;
             for (var i = 0; i < this.segments.length; i++) {
                 var rl = this.segments[i];
-                if (rl.name === name && rl.index === index) {
+                if (rl.name === this.name && rl.index === index) {
                     line = rl;
                 }
             }
@@ -3992,17 +4089,20 @@ var flagwind;
             this.echartslayer._container.style.display = "none";
         };
         MinemapHotmapLayer.prototype.showDataList = function (data) {
+            this.chartOptions.series[0].data = this.changeStandardData(data);
+            this.echartslayer.chart.setOption(this.chartOptions);
+        };
+        MinemapHotmapLayer.prototype.changeStandardData = function (data) {
             var list = [];
             data.forEach(function (g) {
-                if (g instanceof Array) {
+                if (g instanceof Array && typeof g[0] === "number" && typeof g[1] === "number") {
                     list.push(g);
                 }
-                else {
-                    list.push([g.x, g.y, g.count]);
+                else if ((g.x || g.lon) && (g.y || g.lat) && g.count) {
+                    list.push([g.x || g.lon, g.y || g.lat, g.count]);
                 }
             });
-            this.chartOptions.series[0].data = data;
-            this.echartslayer.chart.setOption(this.chartOptions);
+            return list;
         };
         return MinemapHotmapLayer;
     }());
@@ -4589,22 +4689,12 @@ var flagwind;
                         this.innerMap.infoWindow.setDOMContent(document.getElementById(evt.context.content) || "");
                         break; // 不推荐使用该方法，每次调用会删掉以前dom节点
                     case "html":
-                        // this.innerMap.infoWindow.setHTML(
-                        //     "<h4 class='info-window-title'>"
-                        //     + evt.context.title + "</h4>"
-                        //     + "<div class='info-window-content'>"
-                        //     + evt.context.content + "</div>");
                         this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>" + evt.context.title + "</h4><div class='info-window-content'>" + evt.context.content + "</div>");
                         break;
                     case "text":
                         this.innerMap.infoWindow.setText(evt.context.content || "");
                         break;
                     default:
-                        // this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
-                        //     + evt.context.title + "</h4>"
-                        //     + "<div class='info-window-content'>"
-                        //     + evt.context.content + "</div>"
-                        // );
                         this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>" + evt.context.title + "</h4><div class='info-window-content'>" + evt.context.content + "</div>");
                         break;
                 }
@@ -4791,6 +4881,10 @@ var flagwind;
             this.marker.getElement().style["-moz-transform"] = "rotate(" + angle + "deg)";
             this.marker.getElement().style["-webkit-transform"] = "rotate(" + angle + "deg)";
             this.marker.getElement().style["-o-transform"] = "rotate(" + angle + "deg)";
+            var routeCar = this.marker.getElement().querySelector(".graphic-moving .minemap-icon");
+            if (routeCar) {
+                routeCar.style.transform = "rotate(" + angle + "deg)";
+            }
         };
         MinemapMarkerGraphic.prototype.setSymbol = function (symbol) {
             if (symbol.className) {
@@ -5371,11 +5465,16 @@ var flagwind;
                     me.errorHandler(error, segment);
                 }
                 else {
-                    var routeResult = new flagwind.RouteResult(results);
-                    me.solveComplete({
-                        polyline: routeResult.getLine(me.spatial),
-                        length: routeResult.data.rows[0].distance
-                    }, segment);
+                    if (results.errcode === 0 && results.data) {
+                        var routeResult = new flagwind.RouteResult(results);
+                        me.solveComplete({
+                            polyline: routeResult.getLine(me.spatial),
+                            length: routeResult.data.rows[0].distance
+                        }, segment);
+                    }
+                    else {
+                        me.errorHandler(results.errmsg, segment);
+                    }
                 }
             });
         };
@@ -5407,6 +5506,7 @@ var flagwind;
             });
             trackline.markerGraphic = marker;
             this.moveMarkLayer.addGraphic(trackline.name, marker);
+            // document.querySelector(".minemap-icon").classList.add("route-car");
         };
         /**
          * 每次位置移动线路上的要素样式变换操作
@@ -5584,6 +5684,11 @@ var flagwind;
             layer.options.enableSelectMode = true;
             this.layers.push(layer);
         };
+        MinemapSelectBox.prototype.deleteSelectBar = function () {
+            var ele = document.getElementById("#edit-ctrl-group");
+            if (ele)
+                ele.remove();
+        };
         MinemapSelectBox.prototype.showSelectBar = function (mapId) {
             var me = this;
             var mapEle = document.getElementById(mapId);
@@ -5622,48 +5727,26 @@ var flagwind;
     var MinemapVehicleRouteLayer = /** @class */ (function (_super) {
         __extends(MinemapVehicleRouteLayer, _super);
         function MinemapVehicleRouteLayer() {
-            var _this = _super !== null && _super.apply(this, arguments) || this;
-            _this.stops = [];
-            return _this;
+            return _super !== null && _super.apply(this, arguments) || this;
         }
-        MinemapVehicleRouteLayer.prototype.showTrack = function (trackName, stopList, options) {
+        MinemapVehicleRouteLayer.prototype.showTrack = function (trackLineName, stopList, options) {
             var stops = this.getStopsGraphicList(stopList);
-            this.solveSegment(trackName, stops, options);
-            this.trackName = trackName;
-            this.stops = stops;
+            this.solveSegment(trackLineName, stops, options);
         };
         MinemapVehicleRouteLayer.prototype.getStopsGraphicList = function (stopList) {
             var _this = this;
-            return stopList.map(function (item) {
-                return new flagwind.MinemapMarkerGraphic({
-                    id: item.tollCode,
-                    symbol: _this.options.symbol,
-                    point: new flagwind.MinemapPoint(item.tollLongitude, item.tollLatitude),
-                    attributes: item
-                });
+            var dataList = [];
+            stopList.forEach(function (g) {
+                if ((g.tollCode || g.equipmentCode) && g.tollLatitude && g.tollLongitude) {
+                    dataList.push(new flagwind.MinemapMarkerGraphic({
+                        id: g.tollCode || g.equipmentCode,
+                        symbol: _this.options.symbol,
+                        point: new flagwind.MinemapPoint(g.tollLongitude, g.tollLatitude),
+                        attributes: g
+                    }));
+                }
             });
-        };
-        MinemapVehicleRouteLayer.prototype.showTrackToolBox = function (mapId) {
-            var me = this;
-            var mapEle = document.getElementById(mapId);
-            var container = document.createElement("div");
-            container.setAttribute("id", "route-ctrl-group");
-            container.innerHTML = "<div class=\"route-btn\" title=\"\u6C42\u89E3\" data-operate=\"solveSegment\"><span class=\"iconfont icon-show\">\u6C42\u89E3</span></div>\n                <div class=\"route-btn\" title=\"\u64AD\u653E\" data-operate=\"start\"><span class=\"iconfont icon-start\">\u64AD\u653E</span></div>\n                <div class=\"route-btn\" title=\"\u6682\u505C\" data-operate=\"pause\"><span class=\"iconfont icon-pause\">\u6682\u505C</span></div>\n                <div class=\"route-btn\" title=\"\u7EE7\u7EED\" data-operate=\"continue\"><span class=\"iconfont icon-continue\">\u7EE7\u7EED</span></div>\n                <div class=\"route-btn\" title=\"\u9690\u85CF\" data-operate=\"hide\"><span class=\"iconfont icon-hide\">\u9690\u85CF</span></div>\n                <div class=\"route-btn\" title=\"\u6E05\u9664\" data-operate=\"clear\"><span class=\"iconfont icon-clear\">\u6E05\u9664</span></div>";
-            mapEle.appendChild(container);
-            var operateBtns = document.querySelectorAll("#" + mapId + " .route-btn");
-            for (var i = 0; i < operateBtns.length; i++) {
-                operateBtns[i].onclick = function () {
-                    if (this.dataset.operate === "solveSegment") {
-                        me[this.dataset.operate](me.trackName, me.stops, {});
-                    }
-                    else if (this.dataset.operate === "hide") {
-                        me[this.dataset.operate]();
-                    }
-                    else {
-                        me[this.dataset.operate](me.trackName);
-                    }
-                };
-            }
+            return dataList;
         };
         return MinemapVehicleRouteLayer;
     }(flagwind.MinemapRouteLayer));
@@ -5723,7 +5806,9 @@ var flagwind;
             for (i = 0; i <= points.length - interval; i = i + interval) {
                 var start = points[i];
                 var end = points[i + interval];
-                length += MinemapUtils.getLength(start, end);
+                if (start && end) {
+                    length += MinemapUtils.getLength(start, end);
+                }
             }
             if (i < points.length - 1) {
                 length += MinemapUtils.getLength(points[i], points[points.length - 1]);

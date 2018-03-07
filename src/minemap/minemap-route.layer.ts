@@ -99,11 +99,15 @@ namespace flagwind {
                 if (error) {
                     me.errorHandler(error, segment);
                 } else {
-                    let routeResult = new RouteResult(results);
-                    me.solveComplete({
-                        polyline: routeResult.getLine(me.spatial),
-                        length: routeResult.data.rows[0].distance
-                    }, segment);
+                    if (results.errcode === 0 && results.data) {
+                        let routeResult = new RouteResult(results);
+                        me.solveComplete({
+                            polyline: routeResult.getLine(me.spatial),
+                            length: routeResult.data.rows[0].distance
+                        }, segment);
+                    } else {
+                        me.errorHandler(results.errmsg, segment);
+                    }
                 }
             });
 
@@ -140,7 +144,7 @@ namespace flagwind {
             });
             trackline.markerGraphic = marker;
             this.moveMarkLayer.addGraphic(trackline.name, marker);
-
+            // document.querySelector(".minemap-icon").classList.add("route-car");
         }
         /**
          * 每次位置移动线路上的要素样式变换操作

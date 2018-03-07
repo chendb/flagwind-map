@@ -148,11 +148,16 @@ namespace flagwind {
         }
 
         public setAngle(angle: number) {
-            this.marker.getElement().style.transform = "rotate(" + angle + "deg)";
-            this.marker.getElement().style["-ms-transform"] = "rotate(" + angle + "deg)";
-            this.marker.getElement().style["-moz-transform"] = "rotate(" + angle + "deg)";
-            this.marker.getElement().style["-webkit-transform"] = "rotate(" + angle + "deg)";
-            this.marker.getElement().style["-o-transform"] = "rotate(" + angle + "deg)";
+            this.marker.getElement().style.transform = `rotate(${angle}deg)`;
+            this.marker.getElement().style["-ms-transform"] = `rotate(${angle}deg)`;
+            this.marker.getElement().style["-moz-transform"] = `rotate(${angle}deg)`;
+            this.marker.getElement().style["-webkit-transform"] = `rotate(${angle}deg)`;
+            this.marker.getElement().style["-o-transform"] = `rotate(${angle}deg)`;
+
+            let routeCar = this.marker.getElement().querySelector(".graphic-moving .minemap-icon");
+            if(routeCar) {
+                routeCar.style.transform = `rotate(${angle}deg)`;
+            }
         }
 
         public setSymbol(symbol: any): void {

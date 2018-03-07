@@ -377,6 +377,7 @@ declare namespace flagwind {
         moveLineLayer: FlagwindGroupLayer;
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
+        activedtrackLineName: string;
         constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
         abstract onCreateLineLayer(id: string): FlagwindGroupLayer;
         abstract onCreateMovingLayer(id: string): FlagwindGroupLayer;
@@ -462,12 +463,16 @@ declare namespace flagwind {
          * 调速
          */
         changeSpeed(name: string, speed: number): void;
+        speedUp(name: string): string;
+        speedDown(name: string): string;
         clear(name: string): void;
         clearLine(name: string): void;
         /**
          * 清除所有
          */
         clearAll(): void;
+        deleteTrackToolBox(): void;
+        showTrackToolBox(): void;
         /*********************播放控制**************************/
         /**
          * 求解最短路径（与solve不同，它求解的是一个路段，该路段起点为stops[0],终点为stops[stops.length-1]
@@ -786,6 +791,7 @@ declare namespace flagwind {
         markerGraphic: any;
         segments: Array<TrackSegment>;
         isMovingGraphicHide: boolean;
+        speed: number | null;
         constructor(flagwindMap: FlagwindMap, name: string, options: any);
         /**
          * 隐藏移动要素
@@ -811,6 +817,14 @@ declare namespace flagwind {
          * 调速
          */
         changeSpeed(speed: number): void;
+        /**
+         * 增速
+         */
+        speedUp(): string;
+        /**
+         * 减速
+         */
+        speedDown(): string;
         /**
          * 启动线路播放（从第一个路段的起点开始）
          */
@@ -1754,6 +1768,7 @@ declare namespace flagwind {
         show(): void;
         hide(): void;
         showDataList(data: Array<any>): void;
+        changeStandardData(data: Array<any>): any[][];
     }
 }
 declare namespace flagwind {
@@ -2233,6 +2248,7 @@ declare namespace flagwind {
         constructor(flagwindMap: FlagwindMap, options: any);
         onCreateRecord(me: this, e: any): void;
         addLayer(layer: FlagwindBusinessLayer): void;
+        deleteSelectBar(): void;
         showSelectBar(mapId: string): void;
         clear(): void;
         active(mode: string): void;
@@ -2240,11 +2256,8 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     class MinemapVehicleRouteLayer extends MinemapRouteLayer {
-        private stops;
-        private trackName;
-        showTrack(trackName: string, stopList: Array<any>, options: any): void;
-        getStopsGraphicList(stopList: Array<any>): MinemapMarkerGraphic[];
-        showTrackToolBox(mapId: string): void;
+        showTrack(trackLineName: string, stopList: Array<any>, options: any): void;
+        getStopsGraphicList(stopList: Array<any>): any[];
     }
 }
 declare var minemap: any;

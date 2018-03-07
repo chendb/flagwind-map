@@ -29,7 +29,9 @@ namespace flagwind {
             for (i = 0; i <= points.length - interval; i = i + interval) {
                 let start = points[i];
                 let end = points[i + interval];
-                length += MinemapUtils.getLength(start, end);
+                if(start && end) {
+                    length += MinemapUtils.getLength(start, end);
+                }
             }
             if (i < points.length - 1) {
                 length += MinemapUtils.getLength(points[i], points[points.length - 1]);

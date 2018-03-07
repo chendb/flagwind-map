@@ -61,6 +61,11 @@ namespace flagwind {
             this.layers.push(layer);
         }
 
+        public deleteSelectBar(): void {
+            let ele = document.getElementById("edit-ctrl-group");
+            if(ele) ele.remove();
+        }
+
         public showSelectBar(mapId: string): void {
             let me = this;
             let mapEle = document.getElementById(mapId);

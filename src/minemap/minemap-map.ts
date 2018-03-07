@@ -136,11 +136,6 @@ namespace flagwind {
                         this.innerMap.infoWindow.setDOMContent(document.getElementById(evt.context.content) || "");
                         break; // 不推荐使用该方法，每次调用会删掉以前dom节点
                     case "html":
-                        // this.innerMap.infoWindow.setHTML(
-                        //     "<h4 class='info-window-title'>"
-                        //     + evt.context.title + "</h4>"
-                        //     + "<div class='info-window-content'>"
-                        //     + evt.context.content + "</div>");
                         this.innerMap.infoWindow.setHTML(
                             `<h4 class='info-window-title'>${evt.context.title}</h4><div class='info-window-content'>${evt.context.content}</div>`
                         );
@@ -149,11 +144,6 @@ namespace flagwind {
                         this.innerMap.infoWindow.setText(evt.context.content || "");
                         break;
                     default:
-                        // this.innerMap.infoWindow.setHTML("<h4 class='info-window-title'>"
-                        //     + evt.context.title + "</h4>"
-                        //     + "<div class='info-window-content'>"
-                        //     + evt.context.content + "</div>"
-                        // );
                         this.innerMap.infoWindow.setHTML(
                             `<h4 class='info-window-title'>${evt.context.title}</h4><div class='info-window-content'>${evt.context.content}</div>`
                         );

@@ -38,6 +38,7 @@ namespace flagwind {
         // public moveMarkLayer: { graphics: any; remove: (arg0: any) => void; _map: null; clear: () => void; id: any; add: (arg0: any) => void; show: () => void; hide: () => void; };
 
         public trackLines: Array<TrackLine> = [];
+        public activedtrackLineName: string = "";
 
         public constructor(public flagwindMap: FlagwindMap, public layerName: string, public options: any) {
             this.options = { ...ROUTE_LAYER_OPTIONS, ...options };
@@ -255,6 +256,22 @@ namespace flagwind {
                 trackline.changeSpeed(speed);
             }
         }
+        public speedUp(name: string) {
+            let trackline = this.getTrackLine(name);
+            if (trackline) {
+                return trackline.speedUp();
+            } else {
+                return "当前路线为空！";
+            }
+        }
+        public speedDown(name: string) {
+            let trackline = this.getTrackLine(name);
+            if (trackline) {
+                return trackline.speedDown();
+            } else {
+                return "当前路线为空！";
+            }
+        }
         public clear(name: string) {
             if (name) {
                 let trackline = this.getTrackLine(name);
@@ -272,7 +289,6 @@ namespace flagwind {
                 this.moveLineLayer.clear();
                 this.trackLines = [];
             }
-
         }
 
         public clearLine(name: string) {
@@ -287,6 +303,8 @@ namespace flagwind {
          * 清除所有
          */
         public clearAll() {
+            window.stop();
+
             this.checkMapSetting();
             for (let i = 0; i < this.trackLines.length; i++) {
                 let trackline = this.trackLines[i];
@@ -302,6 +320,59 @@ namespace flagwind {
             if (this.moveLineLayer) {
                 this.moveLineLayer.clear();
             }
+        }
+
+        public deleteTrackToolBox(): void {
+            let ele = document.getElementById("route-ctrl-group");
+            if (ele) ele.remove();
+        }
+
+        public showTrackToolBox(): void {
+            if (document.getElementById("route-ctrl-group")) {
+                console.log("TrackToolBox已经创建，不可重复创建！");
+                document.getElementById("route-ctrl-group").style.display = "block";
+                return;
+            }
+            const me = this;
+            let trackToolBox = document.createElement("div");
+            trackToolBox.setAttribute("id", "route-ctrl-group");
+            trackToolBox.innerHTML = `<div class="tool-btns"><span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
+                <span class="route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
+                <span class="route-btn icon-speedDown" title="减速" data-operate="speedDown"></span>
+                <span class="route-btn icon-speedUp" title="加速" data-operate="speedUp"></span>
+                <span class="route-btn icon-clear" title="清除轨迹" data-operate="clear"></span></div>
+                <div class="tool-text"><span></span></div>`;
+            this.flagwindMap.innerMap._container.appendChild(trackToolBox);
+
+            let playBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-continue");
+            let pauseBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-pause");
+            let speedUpBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-speedUp");
+            let speedDownBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-speedDown");
+            let clearBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-clear");
+            let toolBoxTextEle: HTMLElement = document.querySelector("#route-ctrl-group .tool-text span");
+            playBtn.onclick = function () {
+                me.continue(me.activedtrackLineName);
+                playBtn.style.display = "none";
+                pauseBtn.style.display = "block";
+                toolBoxTextEle.innerHTML = "当前状态：正在播放";
+            };
+            pauseBtn.onclick = function () {
+                me.pause(me.activedtrackLineName);
+                playBtn.style.display = "block";
+                pauseBtn.style.display = "none";
+                toolBoxTextEle.innerHTML = "当前状态：已暂停";
+            };
+            speedUpBtn.onclick = function () {
+                toolBoxTextEle.innerHTML = me.speedUp(me.activedtrackLineName);
+            };
+            speedDownBtn.onclick = function () {
+                toolBoxTextEle.innerHTML = me.speedDown(me.activedtrackLineName);
+            };
+            clearBtn.onclick = function () {
+                me.clearAll();
+                toolBoxTextEle.innerHTML = "";
+            };
+
         }
 
         /*********************播放控制**************************/
@@ -320,6 +391,8 @@ namespace flagwind {
             if (stops.length < 1) {
                 throw Error("站点不能少于2");
             }
+            
+            this.activedtrackLineName = name;
 
             const stopGraphics = this.onGetStandardStops(name, stops);
 
@@ -334,11 +407,15 @@ namespace flagwind {
                     startLineIndex += 1;
                 }
             }
-            const start = stopGraphics.splice(0, 1)[0];// 从数组中取出第一个
-            const end = stopGraphics.splice(stopGraphics.length - 1, 1)[0];// 从数组中取出最后一个
-            const waypoints = stopGraphics; //
-            this.post(startLineIndex, name, start, end, options, waypoints);
-
+            // const start = stopGraphics.splice(0, 1)[0];// 从数组中取出第一个
+            // const end = stopGraphics.splice(stopGraphics.length - 1, 1)[0];// 从数组中取出最后一个
+            // const waypoints = stopGraphics; //
+            // this.post(startLineIndex, name, start, end, options, waypoints);
+            for (let i = 0; i < stopGraphics.length - 1; i++) {
+                let start = stopGraphics[i];
+                let end = stopGraphics[i + 1];
+                this.post(startLineIndex + i, name, start, end, options);
+            }
         }
 
         /**

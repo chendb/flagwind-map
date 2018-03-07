@@ -208,11 +208,13 @@ namespace flagwind {
         public segments: Array<TrackSegment> = [];
         public isMovingGraphicHide = false;
 
+        public speed: number | null;
+
         public constructor(
             public flagwindMap: FlagwindMap,
             public name: string,
             public options: any) {
-
+            this.options = { ...TRACKSEGMENT_OPTIONS, ...options };
         }
 
         /**
@@ -223,7 +225,7 @@ namespace flagwind {
         public hideMovingGraphic() {
             this.isMovingGraphicHide = true;
             this.markerGraphic.hide();
-           // this.flagwindMap.onHideGraphic(this.markerGraphic);
+            // this.flagwindMap.onHideGraphic(this.markerGraphic);
         }
 
         /**
@@ -275,6 +277,28 @@ namespace flagwind {
                 let segemtn = this.segments[i];
                 segemtn.changeSpeed(speed);
             }
+        }
+        /**
+         * 增速
+         */
+        public speedUp() {
+            if (!this.speed) this.speed = this.options.speed;
+            if (this.speed < 800) {
+                this.speed = Math.max(this.speed * 2, this.options.speed);
+                this.changeSpeed(this.speed);
+                return `当前状态：${this.speed / this.options.speed}倍播放`;
+            } else {
+                return "最大速度：4倍播放";
+            }
+        }
+        /**
+         * 减速
+         */
+        public speedDown() {
+            if (!this.speed) this.speed = this.options.speed;
+            this.speed = Math.max(this.speed / 2, this.options.speed);
+            this.changeSpeed(this.speed);
+            return `当前状态：${this.speed / this.options.speed}倍播放`;
         }
         /**
          * 启动线路播放（从第一个路段的起点开始）
@@ -416,7 +440,7 @@ namespace flagwind {
 
             for (let i = 0; i < this.segments.length; i++) {
                 const rl = this.segments[i];
-                if (rl.name === name && rl.index === index) {
+                if (rl.name === this.name && rl.index === index) {
                     line = rl;
                 }
             }

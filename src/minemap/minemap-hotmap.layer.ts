@@ -70,17 +70,19 @@ namespace flagwind {
             this.echartslayer._container.style.display = "none";
         }
         public showDataList(data: Array<any>): void {
+            this.chartOptions.series[0].data = this.changeStandardData(data);
+            this.echartslayer.chart.setOption(this.chartOptions);
+        }
+        public changeStandardData(data: Array<any>) {
             let list: Array<Array<any>> = [];
             data.forEach(g => {
-                if (g instanceof Array) {
+                if (g instanceof Array && typeof g[0] === "number" && typeof g[1] === "number") {
                     list.push(g);
-                } else {
-                    list.push([g.x, g.y, g.count]);
-
+                } else if((g.x || g.lon) && (g.y || g.lat) && g.count) {
+                    list.push([g.x || g.lon, g.y || g.lat, g.count]);
                 }
             });
-            this.chartOptions.series[0].data = data;
-            this.echartslayer.chart.setOption(this.chartOptions);
+            return list;
         }
 
     }
