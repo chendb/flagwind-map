@@ -25,6 +25,45 @@ namespace flagwind {
             resList.push({ x: end.x, y: end.y });
             return resList;
         }
+
+        // public static getLength(tmppolyline: any, units: any) {
+        //     let length = esri.geometry.geodesicLengths([tmppolyline], units)[0];
+        //     return MapSetting.units * length;
+        // }
+
+        /**
+         * 把一个直线，切成多个点
+         * @param start 始点
+         * @param end 终点
+         * @param n 点数
+         */
+        public static extractPoints(start: { x: number; y: number }, end: { x: number; y: number }, n: number) {
+            let resList = [];
+            if (n === 0) {
+                resList.push({
+                    x: start.x,
+                    y: start.y
+                });
+                resList.push({
+                    x: end.x,
+                    y: end.y
+                });
+                return resList;
+            }
+            let xDiff = (end.x - start.x) / n;
+            let yDiff = (end.y - start.y) / n;
+            for (let j = 0; j < n; j++) {
+                resList.push({
+                    x: start.x + j * xDiff,
+                    y: start.y + j * yDiff
+                });
+            }
+            resList.push({
+                x: end.x,
+                y: end.y
+            });
+            return resList;
+        }
         /**
          * 线段抽稀操作
          * @param paths  多线段

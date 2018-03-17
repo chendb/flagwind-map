@@ -5,6 +5,12 @@ namespace flagwind {
 
         routeType: "Line",
         movingImageUrl: "",
+        routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route",
+        // showPlayTrackToolBar: false, //是否显示轨迹回放工具栏
+        speed: 100,
+        minSpeedRatio: 0.25,
+        maxSpeedRatio: 4,
+        trackLevel: 2,
 
         onLineStartEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
             console.log("onLineStartEvent");
@@ -25,7 +31,7 @@ namespace flagwind {
     };
 
     export const TRACKLINE_OPTIONS: any = {
-        markerUrl: "",
+        markerUrl: "../examples/scripts/images/carTop.png",
         markerLabel: "",
         markerHeight: 48,
         markerWidth: 48

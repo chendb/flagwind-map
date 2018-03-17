@@ -176,6 +176,7 @@ declare namespace flagwind {
 declare let esri: any;
 declare let dojo: any;
 declare let dijit: any;
+declare let HeatmapLayer: any;
 declare namespace flagwind {
     class EsriEditLayer extends FlagwindFeatureLayer implements IFlagwindEditLayer {
         editObj: any;
@@ -260,6 +261,23 @@ declare namespace flagwind {
 declare namespace flagwind {
     class EsriGroupLayer extends FlagwindGroupLayer {
         onCreateGraphicsLayer(args: any): any;
+    }
+}
+declare namespace flagwind {
+    class EsriHeatmapLayer implements IFlagwindHotmapLayer {
+        flagwindMap: FlagwindMap;
+        private map;
+        options: any;
+        heatLayer: any;
+        heatContainer: HTMLElement;
+        constructor(flagwindMap: FlagwindMap, options: any);
+        createHeatLayer(): any;
+        resize(): void;
+        clear(): void;
+        show(): void;
+        hide(): void;
+        showDataList(data: Array<any>, extent: any): void;
+        changeStandardData(data: Array<any>): any[];
     }
 }
 declare namespace flagwind {
@@ -349,7 +367,7 @@ declare namespace flagwind {
         onCenterAt(point: any): void;
         onCreatePoint(options: any): any;
         onCreateMap(): void;
-        onShowInfoWindow(options: any): void;
+        onShowInfoWindow(evt: any): void;
         onCloseInfoWindow(): void;
         onCreateBaseLayers(): FlagwindTiledLayer[];
         onShowTooltip(graphic: any): void;
@@ -365,6 +383,178 @@ declare namespace flagwind {
          * @memberof FlagwindMap
          */
         protected getTileInfo(): any;
+    }
+}
+declare namespace flagwind {
+    class EsriMarkerGraphic extends EventProvider implements IEsriGraphic {
+        private _kind;
+        /**
+         * 是否在地图上
+         */
+        private _isInsided;
+        private _geometry;
+        id: string;
+        isShow: boolean;
+        symbol: any;
+        marker: any;
+        element: any;
+        icon: any;
+        attributes: any;
+        options: any;
+        spatial: any;
+        layer: IEsriGraphicsLayer;
+        constructor(options: any);
+        addClass(className: string): void;
+        removeClass(className: string): void;
+        /**
+         * 复制节点
+         * @param id 元素ID
+         */
+        clone(id: string): EsriMarkerGraphic;
+        readonly kind: string;
+        readonly isInsided: boolean;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setAngle(angle: number): void;
+        setSymbol(symbol: any): void;
+        draw(): void;
+        geometry: EsriPoint;
+        setGeometry(value: EsriGeometry): void;
+        addTo(layer: any): void;
+        protected fireEvent(type: string, data?: any): void;
+    }
+}
+declare namespace flagwind {
+    const BUSINESS_LAYER_OPTIONS: any;
+    /**
+     * 业务图层
+     */
+    abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
+        flagwindMap: FlagwindMap;
+        id: string;
+        options: any;
+        constructor(flagwindMap: FlagwindMap, id: string, options: any);
+        onInit(): void;
+        abstract onShowInfoWindow(evt: any): void;
+        abstract onCreatGraphicByModel(item: any): any;
+        abstract onUpdateGraphicByModel(item: any): void;
+        onAddLayerBefor(): void;
+        onAddLayerAfter(): void;
+        readonly map: any;
+        readonly spatial: any;
+        closeInfoWindow(): void;
+        gotoCenterById(key: string): void;
+        saveGraphicList(dataList: Array<any>): void;
+        updateGraphicList(dataList: Array<any>): void;
+        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
+        /**
+         * 保存要素（如果存在，则修改，否则添加）
+         */
+        saveGraphicByModel(item: any): void;
+        addGraphicByModel(item: any): void;
+        creatGraphicByModel(item: any): any;
+        /**
+         * 修改要素
+         */
+        updateGraphicByModel(item: any, graphic?: any | null): void;
+        clearSelectStatus(): void;
+        getSelectedGraphics(): Array<any>;
+        /**
+         * 创建点要素（把业务数据的坐标转换成地图上的点）
+         */
+        getPoint(item: any): any;
+        /**
+         * 把地图上的点转换成业务的坐标
+         * @param {*} point
+         */
+        formPoint(point: any): any;
+        protected onLoad(): void;
+        protected onMapLoad(): void;
+        protected registerEvent(): void;
+        protected onLayerClick(deviceLayer: this, evt: any): void;
+        protected fireEvent(eventName: string, event: any): void;
+        protected setSelectStatus(item: any, selected: boolean): void;
+        /**
+         * 变换成标准实体（最好子类重写）
+         *
+         * @protected
+         * @param {*} item
+         * @returns {{ id: String, name: String, longitude: number, latitude: number }}
+         * @memberof FlagwindBusinessLayer
+         */
+        protected abstract onChangeStandardModel(item: any): any;
+        protected onValidModel(item: any): any;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 点图层
+     */
+    class EsriPointLayer extends FlagwindBusinessLayer {
+        businessService: IFlagwindBusinessService;
+        isLoading: boolean;
+        constructor(businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
+        onCreateGraphicsLayer(options: any): EsriGraphicsLayer;
+        openInfoWindow(id: string, context: any, options: any): void;
+        onShowInfoWindow(evt: any): void;
+        /**
+         * 把实体转换成标准的要素属性信息
+         * @param item 实体信息
+         */
+        onChangeStandardModel(item: any): any;
+        getImageUrl(item: any): string;
+        getClassName(item: any): string;
+        /**
+         * 创建要素方法
+         * @param item 实体信息
+         */
+        onCreatGraphicByModel(item: any): any;
+        /**
+         * 更新要素方法
+         * @param item 实体信息
+         */
+        onUpdateGraphicByModel(item: any): void;
+        /**
+         * 加载并显示设备点位
+         *
+         * @memberof TollgateLayer
+         */
+        showDataList(): void;
+        /**
+         * 开启定时器
+         */
+        start(): void;
+        /**
+         * 关闭定时器
+         */
+        stop(): void;
+        protected setSelectStatus(item: any, selected: boolean): void;
+        protected setGraphicStatus(item: any): void;
+        /**
+         * 更新设备状态
+         */
+        private updateStatus();
     }
 }
 declare namespace flagwind {
@@ -537,17 +727,13 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     class EsriRouteLayer extends FlagwindRouteLayer {
-        flagwindMap: FlagwindMap;
-        layerName: string;
-        options: any;
         moveLineLayer: FlagwindGroupLayer;
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
-        constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
         onSetSegmentByLine(options: any, segment: TrackSegment): void;
         onSetSegmentByPoint(options: any, segment: TrackSegment): void;
         onShowSegmentLine(segment: TrackSegment): void;
-        onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
+        onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): void;
         onCreateLineLayer(id: string): FlagwindGroupLayer;
         onCreateMovingLayer(id: string): FlagwindGroupLayer;
         onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
@@ -562,6 +748,26 @@ declare namespace flagwind {
          * 每次位置移动线路上的要素样式变换操作
          */
         protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
+    }
+}
+declare namespace flagwind {
+    const SELECT_BOX_OPTIONS_ESRI: any;
+    /**
+     * 线
+     */
+    class EsriSelectBox extends EventProvider {
+        flagwindMap: FlagwindMap;
+        options: any;
+        private draw;
+        mode: string;
+        layers: Array<FlagwindBusinessLayer>;
+        constructor(flagwindMap: FlagwindMap, options: any);
+        onCreateRecord(me: this, e: any): void;
+        addLayer(layer: FlagwindBusinessLayer): void;
+        deleteSelectBar(): void;
+        showSelectBar(mapId: string): void;
+        clear(): void;
+        active(mode: string): void;
     }
 }
 declare namespace flagwind {
@@ -591,65 +797,150 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    const BUSINESS_LAYER_OPTIONS: any;
+    class EsriVehicleRouteLayer extends EsriRouteLayer {
+        showTrack(trackLineName: string, stopList: Array<any>, options: any): void;
+        getStopsGraphicList(stopList: Array<any>): any[];
+    }
+}
+declare namespace flagwind {
     /**
-     * 业务图层
+     * 几何对象
      */
-    abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
-        flagwindMap: FlagwindMap;
+    abstract class EsriGeometry {
+        type: string;
+        spatial: EsriSpatial;
+        point: any;
+        attributes: any;
+        constructor(type: string, evt: any, spatial: EsriSpatial);
+        abstract toJson(): any;
+    }
+    /**
+     * 线
+     */
+    /**
+     * 面
+     */
+    /**
+     * 圆
+     */
+    /**
+     * 坐标点
+     */
+    class EsriPoint extends EsriGeometry {
+        x: number;
+        y: number;
+        spatial: EsriSpatial;
+        constructor(x: number, y: number, spatial?: EsriSpatial);
+        toJson(): {
+            "type": string;
+            "properties": any;
+            "geometry": {
+                "type": string;
+                "coordinates": number[];
+            };
+        };
+    }
+    /**
+     * 空间投影
+     */
+    class EsriSpatial {
+        wkid: number;
+        spatial: any;
+        constructor(wkid: number);
+    }
+    interface IEsriGraphic {
         id: string;
+        attributes: any;
+        isShow: boolean;
+        isInsided: boolean;
+        kind: string;
+        layer: IEsriGraphicsLayer;
+        show(): void;
+        hide(): void;
+        remove(): void;
+        delete(): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: EsriGeometry): void;
+        addTo(layer: any): void;
+    }
+    interface IEsriGraphicsLayer {
+        map: any;
+        layer: any;
+        graphics: Array<IEsriGraphic>;
+        show(): void;
+        hide(): void;
+        add(graphic: any): void;
+        remove(graphic: any): void;
+        addToMap(map: any): void;
+        removeFromMap(layer: any): void;
+        on(eventName: string, callBack: Function): void;
+        dispatchEvent(type: string, data?: any): void;
+    }
+    class EsriGraphicsLayer extends EventProvider implements IEsriGraphicsLayer {
         options: any;
-        constructor(flagwindMap: FlagwindMap, id: string, options: any);
-        onInit(): void;
-        abstract onShowInfoWindow(evt: any): void;
-        abstract onCreatGraphicByModel(item: any): any;
-        abstract onUpdateGraphicByModel(item: any): void;
-        onAddLayerBefor(): void;
-        onAddLayerAfter(): void;
-        readonly map: any;
-        readonly spatial: any;
-        closeInfoWindow(): void;
-        gotoCenterById(key: string): void;
-        saveGraphicList(dataList: Array<any>): void;
-        updateGraphicList(dataList: Array<any>): void;
-        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
+        private GRAPHICS_MAP;
         /**
-         * 保存要素（如果存在，则修改，否则添加）
+         * 是否在地图上
          */
-        saveGraphicByModel(item: any): void;
-        addGraphicByModel(item: any): void;
-        creatGraphicByModel(item: any): any;
+        _isInsided: boolean;
+        id: string;
+        map: any;
+        layer: any;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        readonly graphics: any;
         /**
-         * 修改要素
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
          */
-        updateGraphicByModel(item: any, graphic?: any | null): void;
-        clearSelectStatus(): void;
-        getSelectedGraphics(): Array<any>;
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
         /**
-         * 创建点要素（把业务数据的坐标转换成地图上的点）
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
          */
-        getPoint(item: any): any;
-        /**
-         * 把地图上的点转换成业务的坐标
-         * @param {*} point
-         */
-        formPoint(point: any): any;
-        protected onLoad(): void;
-        protected onMapLoad(): void;
-        protected registerEvent(): void;
-        protected onLayerClick(deviceLayer: this, evt: any): void;
-        protected fireEvent(eventName: string, event: any): void;
-        protected setSelectStatus(item: any, selected: boolean): void;
-        /**
-         * 变换成标准实体（最好子类重写）
-         *
-         * @protected
-         * @param {*} item
-         * @returns {{ id: String, name: String, longitude: number, latitude: number }}
-         * @memberof FlagwindBusinessLayer
-         */
-        protected abstract onChangeStandardModel(item: any): any;
-        protected onValidModel(item: any): any;
+        off(type: string, listener: Function, scope?: any): void;
+        show(): void;
+        hide(): void;
+        remove(graphic: IEsriGraphic): void;
+        clear(): void;
+        add(graphic: IEsriGraphic): void;
+        addToMap(map: any): void;
+        removeFromMap(map: any): void;
+    }
+}
+declare var echarts: any;
+declare namespace flagwind {
+    class EsriSetting implements IMapSetting {
+        baseUrl: string;
+        imageUrl: string;
+        zhujiImageUrl: string;
+        mapDomain: string;
+        mapVersion: string;
+        accessToken: string;
+        arcgisApi: string;
+        wkid: number;
+        routeUrl: string;
+        extent: Array<number>;
+        basemap: string;
+        webTiledUrl: string;
+        units: number;
+        center: Array<number>;
+        wkidFromApp: number;
+        is25D: boolean;
+        minZoom: number;
+        maxZoom: number;
+        zoom: number;
+        logo: boolean;
+        slider: boolean;
     }
 }
 declare namespace flagwind {
@@ -696,7 +987,7 @@ declare namespace flagwind {
         show(): void;
         hide(): void;
         resize(): void;
-        showDataList(datas: Array<any>): void;
+        showDataList(datas: Array<any>, etent: any): void;
     }
 }
 declare namespace flagwind {
@@ -875,6 +1166,8 @@ declare namespace flagwind {
 declare namespace flagwind {
     interface IMapSetting {
         baseUrl: string;
+        imageUrl: string;
+        zhujiImageUrl: string;
         mapDomain: string;
         mapVersion: string;
         accessToken: string;
@@ -906,6 +1199,22 @@ declare namespace flagwind {
          * @param n 增加的点数
          */
         static density(start: MinemapPoint, end: MinemapPoint, n: number): {
+            x: number;
+            y: number;
+        }[];
+        /**
+         * 把一个直线，切成多个点
+         * @param start 始点
+         * @param end 终点
+         * @param n 点数
+         */
+        static extractPoints(start: {
+            x: number;
+            y: number;
+        }, end: {
+            x: number;
+            y: number;
+        }, n: number): {
             x: number;
             y: number;
         }[];
@@ -2081,6 +2390,7 @@ declare namespace flagwind {
         isLoading: boolean;
         constructor(businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
         onCreateGraphicsLayer(options: any): MinemapGraphicsLayer;
+        openInfoWindow(id: string, context: any, options: any): void;
         onShowInfoWindow(evt: any): void;
         /**
          * 把实体转换成标准的要素属性信息
@@ -2099,7 +2409,6 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onUpdateGraphicByModel(item: any): void;
-        openInfoWindow(id: string, context: any, options: any): void;
         /**
          * 加载并显示设备点位
          *
@@ -2265,6 +2574,8 @@ declare var turf: any;
 declare namespace flagwind {
     class MinemapSetting implements IMapSetting {
         baseUrl: string;
+        imageUrl: string;
+        zhujiImageUrl: string;
         mapDomain: string;
         mapVersion: string;
         accessToken: string;

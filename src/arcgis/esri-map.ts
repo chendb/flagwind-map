@@ -28,6 +28,8 @@ namespace flagwind {
             });
             let setting = this.mapSetting;
             let mapArguments = <any>{
+                wkid: setting.wkid,
+                center: setting.center,
                 logo: setting.logo,
                 slider: setting.slider,
                 zoom: setting.zoom,
@@ -57,6 +59,7 @@ namespace flagwind {
             // 地图对象
             const map = new esri.Map(this.mapEl, mapArguments);
             map.infoWindow.anchor = "top";
+            this.innerMap = map;
 
             let div = (<any>this).tooltipElement = document.createElement("div");
             div.classList.add("flagwind-map-tooltip");
@@ -64,6 +67,10 @@ namespace flagwind {
             const me = this;
 
             // #region click event
+
+            map.on("load", function (args: any) {
+                me.dispatchEvent("onLoad", args);
+            });
 
             map.on("click", function (args: any) {
                 me.dispatchEvent("onClick", args);
@@ -137,18 +144,46 @@ namespace flagwind {
 
         }
 
-        public onShowInfoWindow(options: any): void {
-            throw new Error("Method not implemented.");
+        public onShowInfoWindow(evt: any): void {
+            if (this.innerMap.infoWindow) {
+                this.innerMap.infoWindow.hide();
+            }
+
+            if (evt.context) {
+                const pt = this.getPoint(evt.graphic.attributes);
+                this.innerMap.infoWindow.setTitle(evt.context.title);
+                this.innerMap.infoWindow.setContent(evt.context.content);
+                this.innerMap.infoWindow.show(pt);
+                // this.innerMap.infoWindow.setTitle("");
+                // this.innerMap.infoWindow.setContent("");
+
+                // this.innerMap.centerAt(pt).then(() => {
+                //     this.innerMap.infoWindow.setTitle(evt.context.title);
+                //     this.innerMap.infoWindow.setContent(evt.context.content);
+                // });
+
+                // this.innerMap.infoWindow.show();
+            }
         }
 
         public onCloseInfoWindow(): void {
-            throw new Error("Method not implemented.");
+            if (this.innerMap.infoWindow) {
+                this.innerMap.infoWindow.hide();
+            }
         }
 
         public onCreateBaseLayers() {
             let baseLayers = new Array<FlagwindTiledLayer>();
+            if (this.mapSetting.imageUrl) {
+                const layer = new EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, "影像图层");
+                baseLayers.push(layer);
+            }
             if (this.mapSetting.baseUrl) {
                 const layer = new EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, "瓦片图层");
+                baseLayers.push(layer);
+            }
+            if (this.mapSetting.zhujiImageUrl) {
+                const layer = new EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, "瓦片图层");
                 baseLayers.push(layer);
             }
             if (this.mapSetting.webTiledUrl) {

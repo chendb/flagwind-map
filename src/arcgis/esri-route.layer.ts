@@ -7,15 +7,47 @@ namespace flagwind {
         public moveMarkLayer: FlagwindGroupLayer;
         public trackLines: Array<TrackLine> = [];
 
-        public constructor(public flagwindMap: FlagwindMap, public layerName: string, public options: any) {
-            super(flagwindMap, layerName, options);
-        }
+        // public constructor(public flagwindMap: FlagwindMap, public layerName: string, public options: any) {
+        //     super(flagwindMap, layerName, options);
+        //     this.options = {
+        //         routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route",
+        //         // showPlayTrackToolBar: false, //是否显示轨迹回放工具栏
+        //         speed: 100,
+        //         routeType: "NA",
+        //         minSpeedRatio: 0.25,
+        //         maxSpeedRatio: 4,
+        //         trackLevel: 2,
+        //         ...this.options
+        //     };
+        // }
 
         public onSetSegmentByLine(options: any, segment: TrackSegment) {
-            throw new Error("Method not implemented.");
+            let polyline = options.polyline;
+            let length = options.length;
+            if (polyline.paths.length > 0) {
+                let paths = polyline.paths;
+                // 每公里抽取的点数
+                let numsOfKilometer = segment.options.numsOfKilometer;
+                if (numsOfKilometer === undefined) {
+                    numsOfKilometer = 100;
+                }
+                segment.line = MapUtils.vacuate([paths], length, numsOfKilometer);
+            }
         }
         public onSetSegmentByPoint(options: any, segment: TrackSegment) {
-            throw new Error("Method not implemented.");
+            let points = options.points;
+            let numsOfKilometer = segment.options.numsOfKilometer;
+            const polyline = new esri.geometry.Polyline(this.flagwindMap.spatial);
+            for (let i = 0; i < points.length - 1; i++) {
+                const start = points[i], end = points[i + 1];
+                const tmppolyline = (new esri.geometry.Polyline(this.flagwindMap.spatial)).addPath([start, end]);
+                const length = esri.geometry.geodesicLengths([tmppolyline], esri.Units.KILOMETERS)[0];
+                const tmppoints = MapUtils.extractPoints(start, end, length * numsOfKilometer);
+                polyline.addPath(tmppoints);
+            }
+            segment.length = esri.geometry.geodesicLengths([polyline], esri.Units.KILOMETERS)[0];
+            segment.polyline = polyline;
+            segment.line = MapUtils.vacuate([segment.polyline.paths], segment.length, numsOfKilometer);
         }
 
         public onShowSegmentLine(segment: TrackSegment) {
@@ -29,7 +61,7 @@ namespace flagwind {
                 index: segment.index,
                 line: segment.name
             }));
-            this.moveLineLayer.addGraphic(segment.name, [segment.lineGraphic]);
+            this.moveLineLayer.addGraphic(segment.name, segment.lineGraphic);
         }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
@@ -37,7 +69,10 @@ namespace flagwind {
             let markerHeight = trackline.options.markerHeight || 48;
             let markerWidth = trackline.options.markerWidth || 48;
             let symbol = new esri.symbol.PictureMarkerSymbol(markerUrl, markerHeight, markerWidth);
-            return this.getStandardGraphic(new esri.Graphic(graphic.geometry, symbol, { type: "marker", line: trackline.name }));
+            let marker = this.getStandardGraphic(new esri.Graphic(graphic.geometry, symbol, { type: "marker", line: trackline.name }));
+            trackline.markerGraphic = marker;
+            this.moveMarkLayer.addGraphic(trackline.name, marker);
+            // return this.getStandardGraphic(new esri.Graphic(graphic.geometry, symbol, { type: "marker", line: trackline.name }));
             // return this.mapService.getTrackLineMarkerGraphic(trackline, graphic, angle);
         }
 
@@ -134,12 +169,12 @@ namespace flagwind {
         }
 
         protected getStandardGraphic(graphic: any) {
-            graphic.show = function () {
-                console.log("graphic 的显示方法没有实现");
-            };
-            graphic.hide = function () {
-                console.log("graphic 的隐藏方法没有实现");
-            };
+            // graphic.show = function () {
+            //     console.log("graphic 的显示方法没有实现");
+            // };
+            // graphic.hide = function () {
+            //     console.log("graphic 的隐藏方法没有实现");
+            // };
             return graphic;
 
         }

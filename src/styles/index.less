@@ -1,0 +1,306 @@
+@import "./views/error";
+
+/************* 定制样式 ***********/
+.minemap-map {
+    width: 100%;
+    height: 100%;
+}
+#flagwind-map-title {
+    background-image: url('../../images/map/toll/on.png');
+    background-size: cover;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+
+
+/*--------------------------------
+           *  标注  *
+--------------------------------*/
+.minemap-map .minemap-marker {
+    transform-style: preserve-3d;
+    perspective: 20px;
+}
+.minemap-map .tollgate.checked, .minemap-map .fence.checked {
+    transition: 3s ease;
+    z-index: 1;
+}
+.minemap-map .tollgate .minemap-icon, .minemap-map .tollgate .minemap-icon img {
+    /*background: url('../../images/map/toll/pin-green.png') no-repeat center center;
+    background-size: contain;*/
+    width: 20px!important;
+    height: 28px!important;
+}
+.minemap-map .fence .minemap-icon, .minemap-map .fence .minemap-icon img {
+    /*background: url('../../images/map/toll/pin-green.png') no-repeat center center;
+    background-size: contain;*/
+    width: 32px!important;
+    height: 32px!important;
+}
+.minemap-map .tollgate.checked .minemap-icon {
+    /*background: url('../../images/map/toll/pin-toll.png') no-repeat center center;
+    background-size: contain;*/
+    -webkit-box-reflect: below 5px -webkit-linear-gradient(top, rgba(0,0,0,0) 10%, rgba(0,0,0,0.4) 100%);
+    animation: 10s 3s tollChecked ease-in-out infinite;
+}
+.minemap-map .fence.checked .minemap-icon {
+    -webkit-box-reflect: below 5px -webkit-linear-gradient(top, rgba(0,0,0,0) 10%, rgba(0,0,0,0.4) 100%);
+    animation: 12s 3s fenceChecked ease-in-out infinite;
+}
+.minemap-map .tollgate.checked .minemap-icon, .minemap-map .tollgate.checked .minemap-icon img {
+    width: 40px!important;
+    height: 29px!important;
+}
+.minemap-map .fence.checked .minemap-icon, .minemap-map .fence.checked .minemap-icon img {
+    width: 40px!important;
+    height: 40px!important;
+}
+/*--------------------------------
+           *  标注end  *
+--------------------------------*/
+
+
+/*--------------------------------
+           *  信息窗口  *
+--------------------------------*/
+.minemap-map .minemap-popup {
+    overflow: hidden;
+    transform-style: preserve-3d;
+    perspective: 200px;
+    /*transition: 3s;*/
+}
+.minemap-map .minemap-popup .minemap-popup-tip {
+    border-top-color: #cccccc73;
+    border-bottom-color: #cccccc73;
+    /*border-left-color: #cccccc73;
+    border-right-color: #cccccc73;*/
+}
+.minemap-map .minemap-popup .minemap-popup-content {
+    background: #cccccc73;
+    animation: 1s infowindowRiseUp ease;
+    animation-fill-mode: both;
+}
+.minemap-map .minemap-popup .minemap-popup-close-button {
+    font-size: 14px;
+}
+.minemap-map .minemap-popup .info-window-title {
+    font-weight: bold;
+    border-left: 4px solid #2665c4ab;
+    padding-left: 10px;
+}
+
+@keyframes infowindowRiseUp {
+    0% {
+        height: 40%;
+        background: rgba(204, 204, 204, 0);
+        transform: rotateY(180deg);
+        /* transform: rotateX(60deg) rotateY(30deg) rotateZ(15deg); */
+    }
+    100% {
+        height: 100%;
+        background: rgba(204, 204, 204, 0.4);
+        transform: rotateY(360deg);
+        /* transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); */
+    }
+}
+@keyframes tollChecked {
+    0% {
+        transform: rotateY(0deg) rotateZ(0deg);
+    }
+    20% {
+        transform: rotateY(0deg) rotateZ(30deg);
+    }
+    30% {
+        transform: rotateY(10deg) rotateZ(30deg);
+    }
+    32% {
+        transform: rotateY(10deg) rotateZ(30deg);
+    }
+    40% {
+        transform: rotateY(20deg) rotateZ(30deg);
+    }
+    42% {
+        transform: rotateY(20deg) rotateZ(30deg);
+    }
+    50% {
+        transform: rotateY(30deg) rotateZ(30deg);
+    }
+    70% {
+        transform: rotateY(0deg) rotateZ(30deg);
+    }
+    100% {
+        transform: rotateY(0deg) rotateZ(0deg);
+    }
+}
+@keyframes fenceChecked {
+    0% {
+        transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
+    }
+    10% {
+        transform: translate3d(10px, 10px, 0) rotateY(0deg) rotateZ(0deg);
+    }
+    40% {
+        transform: translate3d(15px, 15px, 3px) rotateY(9deg) rotateZ(10deg);
+    }
+    50% {
+        transform: translate3d(15px, 15px, 3px) rotateY(9deg) rotateZ(10deg);
+    }
+    60% {
+        transform: translate3d(15px, 15px, 3px) rotateY(4deg) rotateZ(4deg);
+    }
+    80% {
+        transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
+    }
+    100% {
+        transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg);
+    }
+}
+/*--------------------------------
+           *  信息窗口end  *
+--------------------------------*/
+
+
+
+/*--------------------------------
+           *  绘制控件  *
+--------------------------------*/
+#edit-ctrl-group {
+    position: absolute;
+    z-index: 300;
+    top: 10px;
+    right: 10px;
+    width: 32px;
+    overflow: hidden;
+}
+
+#edit-ctrl-group .edit-btn {
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    font-size: 14px;
+    vertical-align: middle;
+    text-align: center;
+    cursor: pointer;
+    color: #111;
+    border: 1px solid #ddd;
+}
+
+#edit-ctrl-group .edit-btn span {
+    width: 30px;
+    height: 30px;
+    display: inline-block;
+}
+
+#edit-ctrl-group .edit-btn:hover {
+    background-color: #efefef;
+}
+#edit-ctrl-group .icon-draw-circle {
+    background: url('../../images/map/elliptical.png') no-repeat center center;
+}
+#edit-ctrl-group .icon-draw-square {
+    background: url('../../images/map/rectangular.png') no-repeat center center;
+}
+#edit-ctrl-group .icon-draw-polygon1 {
+    background: url('../../images/map/custom.png') no-repeat center center;
+}
+#edit-ctrl-group .icon-undo {
+    background: url('../../images/map/click.png') no-repeat center center;
+}
+#edit-ctrl-group .icon-redo {
+    background: url('../../images/map/click.png') no-repeat center center;
+}
+#edit-ctrl-group .icon-tool-delete {
+    background: url('../../images/map/bin.png') no-repeat center center;
+}
+/*--------------------------------
+           *  绘制控件end  *
+--------------------------------*/
+
+
+/*--------------------------------
+           *  路由控件  *
+--------------------------------*/
+#route-ctrl-group {
+    width: 130px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 300;
+    background: #fff;
+    box-shadow: 1px 1px 2px 0px #333;
+    border-radius: 2px;
+    transition: 1s;
+}
+#route-ctrl-group .tool-btns {
+    height: 40px;
+    padding: 0 10px;
+    display: flex;
+    justify-content: flex-start;
+    flex-flow: row nowrap;
+    align-items: center;
+}
+#route-ctrl-group .route-btn {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    cursor: pointer;
+    border: 1px solid #43A3FD;
+    border-radius: 2px;
+    margin-right: 6px;
+}
+#route-ctrl-group .tool-text {
+    padding: 0 10px 5px;
+    overflow: hidden;
+}
+#route-ctrl-group .tool-text span {
+    color: #2665c4;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    animation: 10s 3s routeToolBox linear infinite;
+}
+#route-ctrl-group .route-btn:hover {
+    background-color: #efefef;
+}
+#route-ctrl-group .icon-continue {
+    background: url('../../images/map/play.png') no-repeat center center;
+}
+#route-ctrl-group .icon-pause {
+    background: url('../../images/map/pause.png') no-repeat center center;
+}
+#route-ctrl-group .icon-speedUp {
+    background: url('../../images/map/speedUp.png') no-repeat center center;
+}
+#route-ctrl-group .icon-speedDown {
+    background: url('../../images/map/slowDown.png') no-repeat center center;
+}
+#route-ctrl-group .icon-clear {
+    background: url('../../images/map/bin.png') no-repeat center center;
+}
+@keyframes routeToolBox {
+    0% {
+        transform: translateX(0);
+    }
+    40% {
+        transform: translateX(-130px);
+    }
+    40.01% {
+        transform: translateX(130px);
+    }
+    80% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(0);
+    }
+}
+.graphic-moving .minemap-icon {
+    transition: 1s;
+}
+/*--------------------------------
+           *  路由控件end  *
+--------------------------------*/
+
+
+
+/************ 定义样式 end ************/

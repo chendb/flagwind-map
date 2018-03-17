@@ -3,7 +3,7 @@ namespace flagwind {
     /**
      * 点图层
      */
-    export class MinemapPointLayer extends FlagwindBusinessLayer {
+    export class EsriPointLayer extends FlagwindBusinessLayer {
 
         public isLoading: boolean = false; // 设备是否正在加载
 
@@ -13,16 +13,17 @@ namespace flagwind {
         }
 
         public onCreateGraphicsLayer(options: any) {
-            return new MinemapGraphicsLayer(options);
+            // return new esri.layers.GraphicsLayer(options);
+            return new EsriGraphicsLayer(options);
         }
-
+        
         public openInfoWindow(id: string, context: any, options: any) {
             let graphic = this.getGraphicById(id);
             if (context) {
                 this.flagwindMap.onShowInfoWindow({
                     graphic: graphic,
                     context: context,
-                    options: options
+                    options: options || {}
                 });
             } else {
                 this.onShowInfoWindow({
@@ -85,16 +86,18 @@ namespace flagwind {
         public onCreatGraphicByModel(item: any): any {
             let className = this.options.dataType || "graphic-tollgate";
             let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
-            return new MinemapMarkerGraphic({
+            return new EsriMarkerGraphic({
                 id: item.id,
                 className: className,
                 symbol: {
                     imageUrl: imageUrl
                 },
-                point: {
-                    y: item.latitude,
-                    x: item.longitude
-                },
+                point: this.getPoint(item),
+                // point: {
+                //     y: item.latitude,
+                //     x: item.longitude
+                // },
+                spatial: this.flagwindMap.spatial,
                 attributes: item
             });
         }
@@ -109,9 +112,10 @@ namespace flagwind {
             // this.addGraphicByModel(item);
             // (<MinemapMarkerLayer>this.layer).add(minemapMarker);
             // throw new Error("Method not implemented.");
-            let graphic: MinemapMarkerGraphic = this.getGraphicById(item.id);
+            let graphic: EsriMarkerGraphic = this.getGraphicById(item.id);
             if (graphic) {
-                graphic.geometry = new MinemapPoint(item.longitude, item.latitude);
+                graphic.geometry = new EsriPoint(item.longitude, item.latitude);
+                graphic.attributes = item;
                 this.setGraphicStatus(graphic);
             }
         }
@@ -169,11 +173,15 @@ namespace flagwind {
         }
 
         protected setGraphicStatus(item: any): void {
-            let graphic: MinemapMarkerGraphic = this.getGraphicById(item.id);
+            let graphic: EsriMarkerGraphic = this.getGraphicById(item.id);
+            if(typeof graphic.attributes.selected === "boolean") {
+                graphic["selected"] = graphic.attributes.selected;
+            }
             graphic.setSymbol({
-                className: this.getClassName(item),
-                imageUrl: this.getImageUrl(item)
+                className: this.getClassName(graphic),
+                imageUrl: this.getImageUrl(graphic)
             });
+            graphic.draw();
         }
 
         /**

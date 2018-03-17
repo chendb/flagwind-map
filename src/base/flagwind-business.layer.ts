@@ -18,6 +18,9 @@ namespace flagwind {
         onEditInfo: function (evt: any, isSave: boolean) {
             console.log("onEditInfo");
         },
+        onVisibleChanged: function (isShow: boolean) {
+            console.log("onVisibleChanged");
+        },
         enableEdit: true,      // 启用要素编辑功能
         enableSelectMode: false, // 是否启用选择模块
         selectMode: 1,           // 1为多选，2为单选
@@ -32,7 +35,9 @@ namespace flagwind {
 
         public constructor(
             public flagwindMap: FlagwindMap,
-            public id: string, public options: any) {
+            public id: string,
+            public options: any) {
+
             super(id, options.title || "设备图层");
             options = { ...BUSINESS_LAYER_OPTIONS, ...options };
 

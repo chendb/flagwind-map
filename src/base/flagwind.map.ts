@@ -30,6 +30,7 @@ namespace flagwind {
             public mapSetting: IMapSetting,
             public mapEl: any,
             options: any) {
+                
             super();
             this.options = { ...MAP_OPTIONS, ...options };
         }

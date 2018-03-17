@@ -1,6 +1,8 @@
 namespace flagwind {
     export interface IMapSetting {
         baseUrl: string;
+        imageUrl: string;
+        zhujiImageUrl: string;
         mapDomain: string;
         mapVersion: string;
         accessToken: string;

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>arcGIS地图</title>
+    <!-- <link rel="stylesheet" href="https://js.arcgis.com/3.23/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css"> -->
+    <link rel="stylesheet" href="http://27.17.34.22:8081/arcgis4js/library/3.16/esri/css/esri.css">
+    <link rel="stylesheet" href="http://27.17.34.22:8081/arcgis4js/library/3.16/dijit/themes/claro/claro.css">
+    <link rel="stylesheet" href="scripts/css/flagwind-map.css">
+    <!-- <script src="https://js.arcgis.com/3.23/"></script> -->
+    <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #flagwind-map-title, .marker {
+            background-image: url('http://minedata.cn/minemapapi/demo/images/police.png');
+            background-size: cover;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .graphic-tollgate{
+            background-image: url('http://minedata.cn/minemapapi/demo/images/police.png');
+            background-size: cover;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer; 
+        }
+    
+        .minemap-popup {
+            max-width: 200px;
+        }
+    
+    </style>
+</head>
+
+<body>
+    <button class="tollgate">添加卡口</button>
+    <button class="clear">清除卡口</button>
+    <button class="centerAt">定位到卡口</button>
+    <button class="openInfoWindow">打开信息框</button>
+    <button class="closeInfoWindow">关闭信息框</button>
+    <button class="setSelectedToll">设置选择卡口</button>
+    <button class="getSelectedToll">获取选择卡口</button>
+    <button class="clearSelectedToll">清除选择卡口</button>
+    <button class="showSelectBar">显示框选工具</button>
+    <button class="showHeatMap">显示热点图</button>
+    <button class="closeHeatMap">关闭热点图</button>
+    <button class="showRoute">显示轨迹</button>
+    <button class="play">播放</button>
+    <button class="continue">继续</button>
+    <button class="pause">暂停</button>
+    <button class="clearRoute">清除轨迹</button>
+    <div id="map"></div>
+    
+</body>
+<script data-main="scripts/index-esri" src="scripts/require.js"></script>
+
+</html>

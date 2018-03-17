@@ -3,6 +3,7 @@
 declare let esri: any;
 declare let dojo: any;
 declare let dijit: any;
+declare let HeatmapLayer: any;
 
 namespace flagwind {
 
@@ -13,9 +14,7 @@ namespace flagwind {
         public businessLayer: FlagwindBusinessLayer;
         public flagwindMap: FlagwindMap;
 
-        public constructor(
-            businessLayer: FlagwindBusinessLayer,
-            options: any) {
+        public constructor(businessLayer: FlagwindBusinessLayer, options: any) {
             options = { ...EDIT_LAYER_OPTIONS, ...options };
             super("edit_" + businessLayer.id, "编辑图层");
             this.businessLayer = businessLayer;

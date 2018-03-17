@@ -5,6 +5,8 @@ namespace flagwind {
 
     export class MinemapSetting implements IMapSetting {
         public baseUrl: string;
+        public imageUrl: string;
+        public zhujiImageUrl: string;
         public mapDomain: string = "minedata.cn";
         public mapVersion: string = "v1.3";
         public accessToken: string = "25cc55a69ea7422182d00d6b7c0ffa93";
