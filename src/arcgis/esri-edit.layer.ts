@@ -21,7 +21,7 @@ namespace flagwind {
             this.flagwindMap = businessLayer.flagwindMap;
             this.options = options;
 
-            this.editObj = new esri.toolbars.Edit(this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
+            this.editObj = new esri.toolbars.edit(this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
             this.flagwindMap.addFeatureLayer(this);
             if (this.flagwindMap.innerMap.loaded) {
                 this.onLoad();

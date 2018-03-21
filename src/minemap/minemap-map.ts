@@ -50,7 +50,7 @@ namespace flagwind {
 
             this.spatial = new MinemapSpatial(minemap.solution);
 
-            let popup = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] }); // 创建全局信息框
+            let popup = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [-10, -35] }); // 创建全局信息框
             map.infoWindow = popup;
             popup.addTo(map);
 
@@ -123,10 +123,10 @@ namespace flagwind {
                 if (options.offset) {
                     params["offset"] = options.offset;
                 }
-                params = { closeOnClick: false, closeButton: true, offset: [0, -35], ...params };
+                params = { closeOnClick: false, closeButton: true, offset: [-10, -35], ...params };
                 this.innerMap.infoWindow = new minemap.Popup(params);
             } else {
-                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] });
+                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [-10, -35] });
             }
             this.innerMap.infoWindow.addTo(this.innerMap);
 

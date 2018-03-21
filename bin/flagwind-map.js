@@ -852,7 +852,7 @@ var flagwind;
         EsriHeatmapLayer.prototype.hide = function () {
             this.heatContainer.style.display = "none";
         };
-        EsriHeatmapLayer.prototype.showDataList = function (data, extent) {
+        EsriHeatmapLayer.prototype.showDataList = function (data, changeExtent) {
             var _this = this;
             var dataList = this.changeStandardData(data);
             if (dataList.length === 0) {
@@ -873,9 +873,8 @@ var flagwind;
                     }
                 };
             });
-            if (extent) {
+            if (changeExtent) {
                 this.map.innerMap.setExtent(points.getExtent(), false);
-                // this.map.innerMap.setExtent(new esri.geometry.Extent(points.getExtent().xmin, points.getExtent().ymin, points.getExtent().xmax, points.getExtent().ymax, this.map.spatial), true);
             }
             this.heatLayer.setData(heatDatas);
         };
@@ -1176,7 +1175,9 @@ var flagwind;
                     x: setting.extent[2],
                     y: setting.extent[3]
                 });
+                // let tileExtent = new esri.geometry.Extent({xmin: setting.extent[0],ymin: setting.extent[1],xmax: setting.extent[2],ymax: setting.extent[3],spatialReference: {wkid: mapArguments.wkid}});
                 var tileExtent = new esri.geometry.Extent(minXY.x, minXY.y, maxXY.x, maxXY.y, this.spatial);
+                // mapArguments.extent = esri.geometry.geographicToWebMercator(tileExtent);
                 mapArguments.extent = tileExtent;
             }
             if (setting.webTiledUrl) {
@@ -1246,6 +1247,7 @@ var flagwind;
             });
             // #endregion 
             map.on("extent-change", function (args) {
+                // console.trace("------extentChange", args);
                 me.dispatchEvent("onExtentChange", args);
             });
             map.on("resize", function (args) {
@@ -1279,15 +1281,15 @@ var flagwind;
             var _this = this;
             var baseLayers = new Array();
             if (this.mapSetting.imageUrl) {
-                var layer = new flagwind.EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, "影像图层");
+                var layer = new flagwind.EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, this.spatial, "影像图层");
                 baseLayers.push(layer);
             }
             if (this.mapSetting.baseUrl) {
-                var layer = new flagwind.EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, "瓦片图层");
+                var layer = new flagwind.EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
             }
             if (this.mapSetting.zhujiImageUrl) {
-                var layer = new flagwind.EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, "瓦片图层");
+                var layer = new flagwind.EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
             }
             if (this.mapSetting.webTiledUrl) {
@@ -1295,7 +1297,7 @@ var flagwind;
                 var cycleLayer = new esri.layers.WebTiledLayer(this.mapSetting.webTiledUrl, {
                     tileInfo: tileInfo1
                 });
-                var layer = new flagwind.EsriTiledLayer("base_arcgis_tiled", null, "瓦片图层");
+                var layer = new flagwind.EsriTiledLayer("base_arcgis_tiled", null, this.spatial, "瓦片图层");
                 layer.layer = cycleLayer;
                 baseLayers.push(layer);
             }
@@ -1677,6 +1679,7 @@ var flagwind;
             }
         };
         EsriMarkerGraphic.prototype.addTo = function (layer) {
+            var _this = this;
             this._isInsided = true;
             // this.marker.addTo(map);
             layer.add(this.marker);
@@ -1684,55 +1687,90 @@ var flagwind;
                 console.log("无法获取标注元素");
                 return;
             }
+            // let me = this;
+            // this.marker.getNode().on("mouseover", function (args: any) {
+            //     console.log("fire marker onMouseOver");
+            //     me.fireEvent("onMouseOver", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+            // this.marker.getNode().on("mouseout", function (args: any) {
+            //     console.log("fire marker onMouseOut");
+            //     me.fireEvent("onMouseOut", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+            // this.marker.getNode().on("mouseup", function (args: any) {
+            //     console.log("fire marker onMouseUp");
+            //     me.fireEvent("onMouseUp", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+            // this.marker.getNode().on("mousedown", function (args: any) {
+            //     console.log("fire marker onMouseDown");
+            //     me.fireEvent("onMouseDown", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+            // this.marker.getNode().on("dblclick", function (args: any) {
+            //     console.log("fire marker onClick");
+            //     me.fireEvent("onDblClick", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+            // this.marker.getNode().on("click", function (args: any) {
+            //     console.log("fire marker onClick");
+            //     me.fireEvent("onClick", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+            var events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
+            events.forEach(function (g) {
+                _this.registerEvent(_this.marker.getNode(), g);
+            });
+        };
+        EsriMarkerGraphic.prototype.registerEvent = function (ele, evt) {
             var me = this;
-            layer.on("mouse-over", function (args) {
-                console.log("fire marker onMouseOver");
-                me.fireEvent("onMouseOver", {
+            ele[evt] = function (args) {
+                switch (evt) {
+                    case "onmouseover":
+                        evt = "onMouseOver";
+                        break;
+                    case "onmouseout":
+                        evt = "onMouseOut";
+                        break;
+                    case "onmouseup":
+                        evt = "onMouseUp";
+                        break;
+                    case "onmousedown":
+                        evt = "onMouseDown";
+                        break;
+                    case "ondblclick":
+                        evt = "onDblClick";
+                        break;
+                    case "onclick":
+                        evt = "onClick";
+                        break;
+                }
+                console.log("fire marker " + evt);
+                me.fireEvent(evt, {
                     graphic: me,
                     mapPoint: me.geometry,
                     orgion: args
                 });
-            });
-            layer.on("mouse-out", function (args) {
-                console.log("fire marker onMouseOut");
-                me.fireEvent("onMouseOut", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
-            layer.on("mouse-up", function (args) {
-                console.log("fire marker onMouseUp");
-                me.fireEvent("onMouseUp", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
-            layer.on("mouse-down", function (args) {
-                console.log("fire marker onMouseDown");
-                me.fireEvent("onMouseDown", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
-            layer.on("dbl-click", function (args) {
-                console.log("fire marker onClick");
-                me.fireEvent("onDblClick", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
-            layer.on("click", function (args) {
-                console.log("fire marker onClick");
-                me.fireEvent("onClick", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
+            };
         };
         EsriMarkerGraphic.prototype.fireEvent = function (type, data) {
             this.dispatchEvent(type, data);
@@ -2990,16 +3028,18 @@ var flagwind;
      * @class FlagwindTiledLayer
      */
     var FlagwindTiledLayer = /** @class */ (function () {
-        function FlagwindTiledLayer(id, url, title) {
+        function FlagwindTiledLayer(id, url, spatial, title) {
             this.id = id;
             this.url = url;
+            this.spatial = spatial;
             this.title = title;
             this.isShow = true;
             if (url) {
                 this.layer = this.onCreateTiledLayer({
                     url: url,
                     id: id,
-                    title: title
+                    title: title,
+                    spatial: spatial
                 });
             }
         }
@@ -3009,7 +3049,7 @@ var flagwind;
             }
         };
         FlagwindTiledLayer.prototype.removeLayer = function (map) {
-            this.layer.removeFormMap(map);
+            this.layer.removeFromMap(map);
         };
         FlagwindTiledLayer.prototype.show = function () {
             this.isShow = true;
@@ -3033,11 +3073,11 @@ var flagwind;
         }
         EsriTiledLayer.prototype.onCreateTiledLayer = function (args) {
             // let layer = new esri.layers.GraphicsLayer(args);
-            var layer = new esri.layers.ArcGISTiledMapServiceLayer(args.url, { id: args.id });
+            var layer = new esri.layers.ArcGISTiledMapServiceLayer(args.url, { id: args.id, SpatialReference: args.spatial });
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -5028,10 +5068,11 @@ var flagwind;
      * 编辑要素图层
      */
     var MinemapEditLayer = /** @class */ (function () {
-        function MinemapEditLayer(businessLayer) {
+        function MinemapEditLayer(businessLayer, options) {
             this.businessLayer = businessLayer;
             this.draggingFlag = false;
             this.cursorOverPointFlag = false;
+            this.options = __assign({ EDIT_LAYER_OPTIONS: flagwind.EDIT_LAYER_OPTIONS }, options);
         }
         Object.defineProperty(MinemapEditLayer.prototype, "map", {
             get: function () {
@@ -5073,16 +5114,19 @@ var flagwind;
             });
         };
         MinemapEditLayer.prototype.updatePoint = function (editLayer) {
-            var isOK = confirm("确定要更新坐标为x:" + editLayer.graphic.geometry.x + ",y:" + editLayer.graphic.geometry.x);
+            var isOK = confirm("确定要更新坐标为x:" + editLayer.graphic.geometry.x + ",y:" + editLayer.graphic.geometry.y);
             if (!isOK) {
                 this.cancelEdit(this.graphic.attributes.id);
                 return;
             }
-            editLayer.onChanged({
-                key: editLayer.graphic.attributes.id,
-                longitude: editLayer.graphic.geometry.x,
-                latitude: editLayer.graphic.geometry.y
-            }, isOK);
+            var graphic = this.businessLayer.getGraphicById(this.graphic.attributes.id);
+            graphic.setGeometry(new flagwind.MinemapPoint(this.graphic.geometry.x, this.graphic.geometry.y));
+            this.options.onEditInfo(editLayer.graphic.attributes.id, editLayer.graphic.geometry.x, editLayer.graphic.geometry.y, isOK);
+            // editLayer.onChanged({
+            //     key: editLayer.graphic.attributes.id,
+            //     longitude: editLayer.graphic.geometry.x,
+            //     latitude: editLayer.graphic.geometry.y
+            // }, isOK);
         };
         MinemapEditLayer.prototype.mouseMovePoint = function (e) {
             var editLayer = window._editLayer;
@@ -5106,8 +5150,7 @@ var flagwind;
             this.registerEvent(this.graphic);
         };
         MinemapEditLayer.prototype.cancelEdit = function (key) {
-            var graphic = this.graphic;
-            graphic.remove();
+            this.graphic.remove();
             this.map.off("mousemove", this.mouseMovePoint);
             this.businessLayer.show();
             this.cursorOverPointFlag = false;
@@ -5602,14 +5645,14 @@ var flagwind;
         };
         MinemapGraphicsLayer.prototype.show = function () {
             this.GRAPHICS_MAP.forEach(function (g) {
-                if (!g.value.isShow) {
+                if (g.value.isShow) {
                     g.value.show();
                 }
             });
         };
         MinemapGraphicsLayer.prototype.hide = function () {
             this.GRAPHICS_MAP.forEach(function (g) {
-                if (g.value.isShow) {
+                if (!g.value.isShow) {
                     g.value.hide();
                 }
             });
@@ -5737,7 +5780,7 @@ var flagwind;
                 minZoom: this.mapSetting.minZoom || 9 // 地图最小缩放级别限制
             });
             this.spatial = new flagwind.MinemapSpatial(minemap.solution);
-            var popup = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] }); // 创建全局信息框
+            var popup = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [-10, -35] }); // 创建全局信息框
             map.infoWindow = popup;
             popup.addTo(map);
             var div = this.tooltipElement = document.createElement("div");
@@ -5804,11 +5847,11 @@ var flagwind;
                 if (options.offset) {
                     params["offset"] = options.offset;
                 }
-                params = __assign({ closeOnClick: false, closeButton: true, offset: [0, -35] }, params);
+                params = __assign({ closeOnClick: false, closeButton: true, offset: [-10, -35] }, params);
                 this.innerMap.infoWindow = new minemap.Popup(params);
             }
             else {
-                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] });
+                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [-10, -35] });
             }
             this.innerMap.infoWindow.addTo(this.innerMap);
             if (evt.context) {
@@ -5982,7 +6025,7 @@ var flagwind;
                 throw new flagwind.Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
             }
             this.marker.addTo(this.layer.map);
-            this.isShow = false;
+            this.isShow = true;
         };
         MinemapMarkerGraphic.prototype.hide = function () {
             this.marker.remove();

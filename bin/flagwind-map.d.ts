@@ -276,7 +276,7 @@ declare namespace flagwind {
         clear(): void;
         show(): void;
         hide(): void;
-        showDataList(data: Array<any>, extent: any): void;
+        showDataList(data: Array<any>, changeExtent: boolean): void;
         changeStandardData(data: Array<any>): any[];
     }
 }
@@ -442,6 +442,7 @@ declare namespace flagwind {
         geometry: EsriPoint;
         setGeometry(value: EsriGeometry): void;
         addTo(layer: any): void;
+        protected registerEvent(ele: HTMLElement, evt: string): void;
         protected fireEvent(type: string, data?: any): void;
     }
 }
@@ -780,10 +781,11 @@ declare namespace flagwind {
     abstract class FlagwindTiledLayer {
         id: string;
         url: string | null;
+        spatial: any;
         title: string | null;
         layer: any;
         isShow: boolean;
-        constructor(id: string, url: string | null, title: string | null);
+        constructor(id: string, url: string | null, spatial: any, title: string | null);
         abstract onCreateTiledLayer(args: any): any;
         appendTo(map: any): void;
         removeLayer(map: any): void;
@@ -2043,7 +2045,8 @@ declare namespace flagwind {
         private graphic;
         private draggingFlag;
         private cursorOverPointFlag;
-        constructor(businessLayer: MinemapPointLayer);
+        options: any;
+        constructor(businessLayer: MinemapPointLayer, options: Object);
         readonly map: any;
         registerEvent(graphic: MinemapMarkerGraphic): void;
         updatePoint(editLayer: this): void;

@@ -49,7 +49,9 @@ namespace flagwind {
                     x: setting.extent[2],
                     y: setting.extent[3]
                 });
+                // let tileExtent = new esri.geometry.Extent({xmin: setting.extent[0],ymin: setting.extent[1],xmax: setting.extent[2],ymax: setting.extent[3],spatialReference: {wkid: mapArguments.wkid}});
                 let tileExtent = new esri.geometry.Extent(minXY.x, minXY.y, maxXY.x, maxXY.y, this.spatial);
+                // mapArguments.extent = esri.geometry.geographicToWebMercator(tileExtent);
                 mapArguments.extent = tileExtent;
             }
 
@@ -136,6 +138,7 @@ namespace flagwind {
             // #endregion 
 
             map.on("extent-change", function (args: any) {
+                // console.trace("------extentChange", args);
                 me.dispatchEvent("onExtentChange", args);
             });
             map.on("resize", function (args: any) {
@@ -175,15 +178,15 @@ namespace flagwind {
         public onCreateBaseLayers() {
             let baseLayers = new Array<FlagwindTiledLayer>();
             if (this.mapSetting.imageUrl) {
-                const layer = new EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, "影像图层");
+                const layer = new EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, this.spatial, "影像图层");
                 baseLayers.push(layer);
             }
             if (this.mapSetting.baseUrl) {
-                const layer = new EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, "瓦片图层");
+                const layer = new EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
             }
             if (this.mapSetting.zhujiImageUrl) {
-                const layer = new EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, "瓦片图层");
+                const layer = new EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
             }
             if (this.mapSetting.webTiledUrl) {
@@ -192,7 +195,7 @@ namespace flagwind {
                 const cycleLayer = new esri.layers.WebTiledLayer(this.mapSetting.webTiledUrl, {
                     tileInfo: tileInfo1
                 });
-                const layer = new EsriTiledLayer("base_arcgis_tiled", null, "瓦片图层");
+                const layer = new EsriTiledLayer("base_arcgis_tiled", null, this.spatial, "瓦片图层");
                 layer.layer = cycleLayer;
                 baseLayers.push(layer);
             }

@@ -122,7 +122,7 @@ namespace flagwind {
                 throw new Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
             }
             this.marker.addTo(this.layer.map);
-            this.isShow = false;
+            this.isShow = true;
         }
 
         public hide(): void {

@@ -52,7 +52,7 @@ namespace flagwind {
         public hide(): void {
             this.heatContainer.style.display = "none";
         }
-        public showDataList(data: Array<any>, extent: any): void {
+        public showDataList(data: Array<any>, changeExtent: boolean): void {
             let dataList = this.changeStandardData(data);
             if (dataList.length === 0) {
                 console.log("未传入热点数据");
@@ -73,9 +73,8 @@ namespace flagwind {
                     }
                 };
             });
-            if(extent) {
+            if(changeExtent) {
                 this.map.innerMap.setExtent(points.getExtent(), false);
-                // this.map.innerMap.setExtent(new esri.geometry.Extent(points.getExtent().xmin, points.getExtent().ymin, points.getExtent().xmax, points.getExtent().ymax, this.map.spatial), true);
             }
             this.heatLayer.setData(heatDatas);
         }

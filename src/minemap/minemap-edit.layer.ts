@@ -9,8 +9,10 @@ namespace flagwind {
         private draggingFlag: boolean = false;
         private cursorOverPointFlag: boolean = false;
 
-        public constructor(public businessLayer: MinemapPointLayer) {
+        public options: any;
 
+        public constructor(public businessLayer: MinemapPointLayer, options: Object) {
+            this.options = {EDIT_LAYER_OPTIONS, ...options};
         }
 
         public get map(): any {
@@ -49,16 +51,25 @@ namespace flagwind {
         }
 
         public updatePoint(editLayer: this) {
-            let isOK = confirm("确定要更新坐标为x:" + editLayer.graphic.geometry.x + ",y:" + editLayer.graphic.geometry.x);
+            let isOK = confirm("确定要更新坐标为x:" + editLayer.graphic.geometry.x + ",y:" + editLayer.graphic.geometry.y);
             if (!isOK) {
                 this.cancelEdit(this.graphic.attributes.id);
                 return;
             }
-            editLayer.onChanged({
-                key: editLayer.graphic.attributes.id,
-                longitude: editLayer.graphic.geometry.x,
-                latitude: editLayer.graphic.geometry.y
-            }, isOK);
+            let graphic: MinemapMarkerGraphic = this.businessLayer.getGraphicById(this.graphic.attributes.id);
+            graphic.setGeometry(new MinemapPoint(this.graphic.geometry.x, this.graphic.geometry.y));
+
+            this.options.onEditInfo(
+                editLayer.graphic.attributes.id,
+                editLayer.graphic.geometry.x,
+                editLayer.graphic.geometry.y,
+                isOK
+            );
+            // editLayer.onChanged({
+            //     key: editLayer.graphic.attributes.id,
+            //     longitude: editLayer.graphic.geometry.x,
+            //     latitude: editLayer.graphic.geometry.y
+            // }, isOK);
 
         }
 
@@ -85,8 +96,7 @@ namespace flagwind {
         }
 
         public cancelEdit(key: string): void {
-            let graphic: MinemapMarkerGraphic = this.graphic;
-            graphic.remove();
+            this.graphic.remove();
             this.map.off("mousemove", this.mouseMovePoint);
             this.businessLayer.show();
             this.cursorOverPointFlag = false;

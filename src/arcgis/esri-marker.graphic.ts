@@ -238,59 +238,84 @@ namespace flagwind {
                 console.log("无法获取标注元素");
                 return;
             }
+
+            // let me = this;
+            // this.marker.getNode().on("mouseover", function (args: any) {
+            //     console.log("fire marker onMouseOver");
+            //     me.fireEvent("onMouseOver", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+
+            // this.marker.getNode().on("mouseout", function (args: any) {
+            //     console.log("fire marker onMouseOut");
+            //     me.fireEvent("onMouseOut", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+
+            // this.marker.getNode().on("mouseup", function (args: any) {
+            //     console.log("fire marker onMouseUp");
+            //     me.fireEvent("onMouseUp", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+
+            // this.marker.getNode().on("mousedown", function (args: any) {
+            //     console.log("fire marker onMouseDown");
+            //     me.fireEvent("onMouseDown", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+
+            // this.marker.getNode().on("dblclick", function (args: any) {
+            //     console.log("fire marker onClick");
+            //     me.fireEvent("onDblClick", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+            // this.marker.getNode().on("click", function (args: any) {
+            //     console.log("fire marker onClick");
+            //     me.fireEvent("onClick", {
+            //         graphic: me,
+            //         mapPoint: me.geometry,
+            //         orgion: args
+            //     });
+            // });
+            let events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
+            events.forEach(g => {
+                this.registerEvent(this.marker.getNode(), g);
+            });
+        }
+
+        protected registerEvent(ele: HTMLElement, evt: string): void {
             let me = this;
-            layer.on("mouse-over", function (args: any) {
-                console.log("fire marker onMouseOver");
-                me.fireEvent("onMouseOver", {
+            ele[evt] = function(args: any) {
+                switch (evt) {
+                    case "onmouseover": evt = "onMouseOver"; break;
+                    case "onmouseout": evt = "onMouseOut"; break;
+                    case "onmouseup": evt = "onMouseUp"; break;
+                    case "onmousedown": evt = "onMouseDown"; break;
+                    case "ondblclick": evt = "onDblClick"; break;
+                    case "onclick": evt = "onClick"; break;
+                }
+                console.log(`fire marker ${evt}`);
+                me.fireEvent(evt, {
                     graphic: me,
                     mapPoint: me.geometry,
                     orgion: args
                 });
-            });
-
-            layer.on("mouse-out", function (args: any) {
-                console.log("fire marker onMouseOut");
-                me.fireEvent("onMouseOut", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
-
-            layer.on("mouse-up", function (args: any) {
-                console.log("fire marker onMouseUp");
-                me.fireEvent("onMouseUp", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
-
-            layer.on("mouse-down", function (args: any) {
-                console.log("fire marker onMouseDown");
-                me.fireEvent("onMouseDown", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
-
-            layer.on("dbl-click", function (args: any) {
-                console.log("fire marker onClick");
-                me.fireEvent("onDblClick", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
-            layer.on("click", function (args: any) {
-                console.log("fire marker onClick");
-                me.fireEvent("onClick", {
-                    graphic: me,
-                    mapPoint: me.geometry,
-                    orgion: args
-                });
-            });
+            };
         }
 
         protected fireEvent(type: string, data?: any): void {

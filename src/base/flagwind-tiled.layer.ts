@@ -10,13 +10,14 @@ namespace flagwind {
         public layer: any;
         public isShow: boolean = true;
 
-        public constructor(public id: string, public url: string | null, public title: string | null) {
+        public constructor(public id: string, public url: string | null, public spatial: any, public title: string | null) {
 
             if (url) {
                 this.layer = this.onCreateTiledLayer({
                     url: url,
                     id: id,
-                    title: title
+                    title: title,
+                    spatial: spatial
                 });
             }
         }
@@ -30,7 +31,7 @@ namespace flagwind {
         }
 
         public removeLayer(map: any) {
-            this.layer.removeFormMap(map);
+            this.layer.removeFromMap(map);
         }
 
         public show() {
