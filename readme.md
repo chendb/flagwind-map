@@ -16,3 +16,9 @@ npm run build
 ```
 npm run dev
 ```
+
+## 发布
+
+```
+npm publish
+```
