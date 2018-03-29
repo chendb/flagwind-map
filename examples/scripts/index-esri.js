@@ -75,18 +75,8 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
             tollList: [{
                 tollCode: "1",
                 tollName: "1234567",
-                tollLongitude: 118.66587,
-                tollLatitude: 37.43251
-            }, {
-                tollCode: "2",
-                tollName: "2234567",
-                tollLongitude: 118.66587,
-                tollLatitude: 37.53251
-            }, {
-                tollCode: "3",
-                tollName: "2234567",
-                tollLongitude: 118.76587,
-                tollLatitude: 37.43251
+                tollLongitude: 118.678011,
+                tollLatitude: 37.433081
             }],
             getDataList: function () {
                 return new Promise(function (resolve, reject) {

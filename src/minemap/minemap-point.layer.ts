@@ -92,8 +92,8 @@ namespace flagwind {
                     imageUrl: imageUrl
                 },
                 point: {
-                    y: item.latitude,
-                    x: item.longitude
+                    y: this.getPoint(item).y,
+                    x: this.getPoint(item).x
                 },
                 attributes: item
             });

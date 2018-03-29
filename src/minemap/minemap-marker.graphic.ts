@@ -121,7 +121,8 @@ namespace flagwind {
             if (!this.layer) {
                 throw new Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
             }
-            this.marker.addTo(this.layer.map);
+            // this.marker.addTo(this.layer.map);
+            this.addTo(this.layer.map);
             this.isShow = true;
         }
 

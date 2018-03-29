@@ -99,6 +99,7 @@ namespace flagwind {
             this.graphic.remove();
             this.map.off("mousemove", this.mouseMovePoint);
             this.businessLayer.show();
+            this.map.dragPan.enable();
             this.cursorOverPointFlag = false;
             this.draggingFlag = false;
         }

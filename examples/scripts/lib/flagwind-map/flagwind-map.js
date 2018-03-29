@@ -492,7 +492,7 @@ var flagwind;
             _this.businessLayer = businessLayer;
             _this.flagwindMap = businessLayer.flagwindMap;
             _this.options = options;
-            _this.editObj = new esri.toolbars.edit(_this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
+            _this.editObj = new esri.toolbars.Edit(_this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
             _this.flagwindMap.addFeatureLayer(_this);
             if (_this.flagwindMap.innerMap.loaded) {
                 _this.onLoad();
@@ -961,6 +961,10 @@ var flagwind;
                 lnglat.lat = point.latitude;
             }
             // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
+            if (this.mapSetting.wkid === 3589) {
+                console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
+                lnglat = flagwind.MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
+            }
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
                     if (this.mapSetting.is25D) {
@@ -994,6 +998,10 @@ var flagwind;
                 lnglat.lat = item.y || lnglat.lat;
             }
             // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
+            if (this.mapSetting.wkid === 3589) {
+                console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
+                lnglat = flagwind.MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
+            }
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
                     if (this.mapSetting.is25D) {
@@ -1500,7 +1508,7 @@ var flagwind;
             _this.attributes = options.attributes ? options.attributes : {};
             _this.icon = options.icon;
             if ((!_this.icon) && _this.symbol.imageUrl) {
-                _this.icon = new esri.symbol.PictureMarkerSymbol(_this.symbol.imageUrl, 32, 48);
+                _this.icon = new esri.symbol.PictureMarkerSymbol(_this.symbol.imageUrl, _this.symbol.width, _this.symbol.height);
             }
             // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
             _this.marker = new esri.Graphic(options.point, _this.icon, options);
@@ -2144,7 +2152,9 @@ var flagwind;
                 id: item.id,
                 className: className,
                 symbol: {
-                    imageUrl: imageUrl
+                    imageUrl: imageUrl,
+                    width: this.options.symbol.width || 20,
+                    height: this.options.symbol.height || 27
                 },
                 point: this.getPoint(item),
                 // point: {
@@ -5168,6 +5178,7 @@ var flagwind;
             this.graphic.remove();
             this.map.off("mousemove", this.mouseMovePoint);
             this.businessLayer.show();
+            this.map.dragPan.enable();
             this.cursorOverPointFlag = false;
             this.draggingFlag = false;
         };
@@ -6039,7 +6050,8 @@ var flagwind;
             if (!this.layer) {
                 throw new flagwind.Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
             }
-            this.marker.addTo(this.layer.map);
+            // this.marker.addTo(this.layer.map);
+            this.addTo(this.layer.map);
             this.isShow = true;
         };
         MinemapMarkerGraphic.prototype.hide = function () {
@@ -6277,8 +6289,8 @@ var flagwind;
                     imageUrl: imageUrl
                 },
                 point: {
-                    y: item.latitude,
-                    x: item.longitude
+                    y: this.getPoint(item).y,
+                    x: this.getPoint(item).x
                 },
                 attributes: item
             });
@@ -6875,9 +6887,10 @@ var flagwind;
             if (ele)
                 ele.remove();
         };
-        MinemapSelectBox.prototype.showSelectBar = function (mapId) {
+        MinemapSelectBox.prototype.showSelectBar = function () {
             var me = this;
-            var mapEle = document.getElementById(mapId);
+            // let mapEle = document.getElementById(mapId);
+            var mapEle = this.flagwindMap.map._container;
             var container = document.createElement("div");
             container.setAttribute("id", "edit-ctrl-group");
             container.innerHTML = "<div class=\"edit-btn\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon1\"></span></div>";
@@ -6885,7 +6898,7 @@ var flagwind;
             // <div class="edit-btn" title="重复上一步操作" data-operate="redo"><span class="iconfont icon-redo"></span></div>
             // <div class="edit-btn" title="删除所选" data-operate="trash"><span class="iconfont icon-tool-trash"></span></div>`;
             mapEle.appendChild(container);
-            var operateBtns = document.querySelectorAll("#" + mapId + " .edit-btn");
+            var operateBtns = document.querySelectorAll("#edit-ctrl-group .edit-btn");
             for (var i = 0; i < operateBtns.length; i++) {
                 operateBtns[i].onclick = function () {
                     me.active(this.dataset.operate);

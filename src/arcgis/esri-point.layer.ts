@@ -90,7 +90,9 @@ namespace flagwind {
                 id: item.id,
                 className: className,
                 symbol: {
-                    imageUrl: imageUrl
+                    imageUrl: imageUrl,
+                    width: this.options.symbol.width || 20,
+                    height: this.options.symbol.height || 27
                 },
                 point: this.getPoint(item),
                 // point: {

@@ -34,7 +34,7 @@ namespace flagwind {
             this.attributes = options.attributes ? options.attributes : {};
             this.icon = options.icon;
             if ((!this.icon) && this.symbol.imageUrl) {
-                this.icon = new esri.symbol.PictureMarkerSymbol(this.symbol.imageUrl, 32, 48);
+                this.icon = new esri.symbol.PictureMarkerSymbol(this.symbol.imageUrl, this.symbol.width, this.symbol.height);
             }
             // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
             this.marker = new esri.Graphic(options.point, this.icon, options);

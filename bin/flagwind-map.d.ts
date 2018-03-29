@@ -2561,7 +2561,7 @@ declare namespace flagwind {
         onCreateRecord(me: this, e: any): void;
         addLayer(layer: FlagwindBusinessLayer): void;
         deleteSelectBar(): void;
-        showSelectBar(mapId: string): void;
+        showSelectBar(): void;
         clear(): void;
         active(mode: string): void;
     }
