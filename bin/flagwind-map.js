@@ -477,7 +477,7 @@ var flagwind;
             _this.businessLayer = businessLayer;
             _this.flagwindMap = businessLayer.flagwindMap;
             _this.options = options;
-            _this.editObj = new esri.toolbars.Edit(_this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
+            _this.editObj = new esri.toolbars.edit(_this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
             _this.flagwindMap.addFeatureLayer(_this);
             if (_this.flagwindMap.innerMap.loaded) {
                 _this.onLoad();
