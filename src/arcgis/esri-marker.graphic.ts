@@ -17,6 +17,7 @@ namespace flagwind {
         public marker: any;
         public element: any;
         public icon: any;
+        // public infoTemplate: any;
 
         public attributes: any;
         public options: any;
@@ -36,23 +37,24 @@ namespace flagwind {
             if ((!this.icon) && this.symbol.imageUrl) {
                 this.icon = new esri.symbol.PictureMarkerSymbol(this.symbol.imageUrl, this.symbol.width, this.symbol.height);
             }
+            // this.infoTemplate = new esri.InfoTemplate("", this.attributes.name);
             // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
             this.marker = new esri.Graphic(options.point, this.icon, options);
-            this.element = this.marker.getNode();
             if (options.point) {
                 this.geometry = new EsriPoint(options.point.x, options.point.y, this.spatial).point;
             }
             if (options.geometry) {
                 this.geometry = options.geometry;
             }
-            if (options && options.className) {
-                this.addClass(options.className);
-                this.symbol.className = "";
-            }
-            if (options.symbol && options.symbol.className) {
-                this.addClass(options.symbol.className);
-                this.symbol.className = "";
-            }
+            // this.element = this.marker.getNode();
+            // if (options && options.className) {
+            //     this.addClass(options.className);
+            //     this.symbol.className = "";
+            // }
+            // if (options.symbol && options.symbol.className) {
+            //     this.addClass(options.symbol.className);
+            //     this.symbol.className = "";
+            // }
         }
 
         public addClass(className: string) {
@@ -128,7 +130,8 @@ namespace flagwind {
                 throw new Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
             }
             // this.marker.addTo(this.layer.map);
-            this.layer.layer.add(this.marker);
+            // this.layer.layer.add(this.marker);
+            this.addTo(this.layer.layer);
             this.isShow = true;
         }
 
@@ -233,11 +236,19 @@ namespace flagwind {
         public addTo(layer: any) {
             this._isInsided = true;
             // this.marker.addTo(map);
+            layer.on("graphic-node-add", () => {
+                if(!this.marker.getNode()) { console.log("无法获取标注元素"); return; }
+
+                this.element = this.marker.getNode();
+                if (this.options.symbol && this.options.symbol.className) {
+                    this.addClass(this.options.symbol.className);
+                    this.symbol.className = "";
+                }
+
+                let events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
+                events.forEach(g => { this.registerEvent(this.element, g); });
+            });
             layer.add(this.marker);
-            if(!this.marker.getNode()) {
-                console.log("无法获取标注元素");
-                return;
-            }
 
             // let me = this;
             // this.marker.getNode().on("mouseover", function (args: any) {
@@ -292,28 +303,24 @@ namespace flagwind {
             //         orgion: args
             //     });
             // });
-            let events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
-            events.forEach(g => {
-                this.registerEvent(this.marker.getNode(), g);
-            });
         }
 
-        protected registerEvent(ele: HTMLElement, evt: string): void {
+        protected registerEvent(ele: any, eventName: string): void {
             let me = this;
-            ele[evt] = function(args: any) {
-                switch (evt) {
-                    case "onmouseover": evt = "onMouseOver"; break;
-                    case "onmouseout": evt = "onMouseOut"; break;
-                    case "onmouseup": evt = "onMouseUp"; break;
-                    case "onmousedown": evt = "onMouseDown"; break;
-                    case "ondblclick": evt = "onDblClick"; break;
-                    case "onclick": evt = "onClick"; break;
+            ele[eventName] = function(evt: any) {
+                switch (eventName) {
+                    case "onmouseover": eventName = "onMouseOver"; break;
+                    case "onmouseout": eventName = "onMouseOut"; break;
+                    case "onmouseup": eventName = "onMouseUp"; break;
+                    case "onmousedown": eventName = "onMouseDown"; break;
+                    case "ondblclick": eventName = "onDblClick"; break;
+                    case "onclick": eventName = "onClick"; break;
                 }
-                console.log(`fire marker ${evt}`);
-                me.fireEvent(evt, {
+                console.log(`fire marker ${eventName}`);
+                me.fireEvent(eventName, {
                     graphic: me,
                     mapPoint: me.geometry,
-                    orgion: args
+                    evt: evt
                 });
             };
         }

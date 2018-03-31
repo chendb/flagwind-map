@@ -1,4 +1,5 @@
-/// <reference path="../base/flagwind-business.layer.ts" />
+/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+
 namespace flagwind {
     /**
      * 点图层
@@ -40,7 +41,8 @@ namespace flagwind {
                     type: "html",
                     title: context.title,
                     content: context.content
-                }
+                },
+                options: {}
             });
         }
 
@@ -84,12 +86,12 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onCreatGraphicByModel(item: any): any {
-            let className = this.options.dataType || "graphic-tollgate";
+            let className = this.options.symbol.className || "graphic-tollgate";
             let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
             return new EsriMarkerGraphic({
                 id: item.id,
-                className: className,
                 symbol: {
+                    className: className,
                     imageUrl: imageUrl,
                     width: this.options.symbol.width || 20,
                     height: this.options.symbol.height || 27
@@ -131,7 +133,7 @@ namespace flagwind {
             const me = this;
             me.isLoading = true;
             me.fireEvent("showDataList", { action: "start" });
-            this.businessService.getDataList().then(dataList => {
+            return this.businessService.getDataList().then(dataList => {
                 me.isLoading = false;
                 me.saveGraphicList(dataList);
                 me.fireEvent("showDataList", { action: "end", attributes: dataList });

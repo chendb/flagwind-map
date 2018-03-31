@@ -1,4 +1,5 @@
-/// <reference path="./flagwind-feature.layer.ts" />
+/// <reference path="./flagwind-feature.layer.ts" />import { resolve } from "dns";
+
 namespace flagwind {
 
     export const BUSINESS_LAYER_OPTIONS: any = {
@@ -10,7 +11,6 @@ namespace flagwind {
         },
         onEvent: function (eventName: string, evt: any) {
             console.log("onEvent");
-
         },
         onCheck: function (evt: any) {
             console.log("onCheck");
@@ -24,8 +24,8 @@ namespace flagwind {
         enableEdit: true,      // 启用要素编辑功能
         enableSelectMode: false, // 是否启用选择模块
         selectMode: 1,           // 1为多选，2为单选
-        showTooltipOnHover: true,
-        showInfoWindow: true
+        showTooltipOnHover: false,
+        showInfoWindow: false
     };
 
     /**
@@ -224,16 +224,18 @@ namespace flagwind {
 
         protected registerEvent(): void {
             let _deviceLayer = this;
-            this.on("onClick", function (evt: EventArgs) {
+            this.on("onClick", (evt: EventArgs) => {
                 _deviceLayer.onLayerClick(_deviceLayer, evt.data);
             });
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
-                this.on("onMouseOver", function (evt: EventArgs) {
+                this.on("onMouseOver", (evt: EventArgs) => {
                     _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
+                    _deviceLayer.fireEvent("onMouseOver", evt.data);
                 });
-                this.on("onMouseOut", function (evt: EventArgs) {
+                this.on("onMouseOut", (evt: EventArgs) => {
                     _deviceLayer.flagwindMap.onHideTooltip(evt.data.graphic);
+                    _deviceLayer.fireEvent("onMouseOut", evt.data);
                 });
             }
         }

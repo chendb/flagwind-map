@@ -442,7 +442,7 @@ declare namespace flagwind {
         geometry: EsriPoint;
         setGeometry(value: EsriGeometry): void;
         addTo(layer: any): void;
-        protected registerEvent(ele: HTMLElement, evt: string): void;
+        protected registerEvent(ele: any, eventName: string): void;
         protected fireEvent(type: string, data?: any): void;
     }
 }
@@ -541,7 +541,7 @@ declare namespace flagwind {
          *
          * @memberof TollgateLayer
          */
-        showDataList(): void;
+        showDataList(): Promise<void>;
         /**
          * 开启定时器
          */
@@ -2417,7 +2417,7 @@ declare namespace flagwind {
          *
          * @memberof TollgateLayer
          */
-        showDataList(): void;
+        showDataList(): Promise<void>;
         /**
          * 开启定时器
          */

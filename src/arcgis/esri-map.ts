@@ -156,16 +156,30 @@ namespace flagwind {
                 const pt = this.getPoint(evt.graphic.attributes);
                 this.innerMap.infoWindow.setTitle(evt.context.title);
                 this.innerMap.infoWindow.setContent(evt.context.content);
-                this.innerMap.infoWindow.show(pt);
+                if(evt.options.width && evt.options.height) {
+                    this.innerMap.infoWindow.resize(evt.options.width, evt.options.height);
+                }
+                if(evt.options.offset) {
+                    let location = this.innerMap.toScreen(pt);
+                    location.x += evt.options.offset.x;
+                    location.y += evt.options.offset.y;
+                    this.innerMap.infoWindow.show(location);
+                } else {
+                    this.innerMap.infoWindow.show(pt);
+                }
+
                 // this.innerMap.infoWindow.setTitle("");
                 // this.innerMap.infoWindow.setContent("");
 
-                // this.innerMap.centerAt(pt).then(() => {
-                //     this.innerMap.infoWindow.setTitle(evt.context.title);
-                //     this.innerMap.infoWindow.setContent(evt.context.content);
-                // });
-
-                // this.innerMap.infoWindow.show();
+                // this.innerMap.infoWindow.setTitle(evt.context.title);
+                // this.innerMap.infoWindow.setContent(evt.context.content);
+                // if(evt.options.center) {
+                //     this.innerMap.centerAt(pt).then(() => {
+                //         this.innerMap.infoWindow.show(pt);
+                //     });
+                // } else {
+                //     this.innerMap.infoWindow.show(pt);
+                // }
             }
         }
 
@@ -209,8 +223,8 @@ namespace flagwind {
             let screenpt = this.innerMap.toScreen(pt);
             let title = info.name;
             (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
-            (<any>this).tooltipElement.style.left = (screenpt.x + 8) + "px";
-            (<any>this).tooltipElement.style.top = (screenpt.y + 8) + "px";
+            (<any>this).tooltipElement.style.left = (screenpt.x + 15) + "px";
+            (<any>this).tooltipElement.style.top = (screenpt.y + 15) + "px";
             (<any>this).tooltipElement.style.display = "block";
         }
         public onHideTooltip(graphic: any): void {

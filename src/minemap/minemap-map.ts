@@ -151,6 +151,7 @@ namespace flagwind {
                 }
             }
 
+            // this.onCenterAt({x: evt.graphic.geometry.x, y: evt.graphic.geometry.y});
             this.innerMap.infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
             let popup: any = document.querySelector(".minemap-map .minemap-popup");
             if (popup) {

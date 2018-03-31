@@ -1,4 +1,5 @@
-/// <reference path="../base/flagwind-business.layer.ts" />
+/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+
 namespace flagwind {
     /**
      * 点图层
@@ -83,8 +84,8 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onCreatGraphicByModel(item: any): any {
-            let className = this.options.dataType || "graphic-tollgate";
-            let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
+            let className = this.options.symbol.className || "graphic-tollgate";
+            let imageUrl = this.options.symbol.imageUrl || this.options.imageUrl;
             return new MinemapMarkerGraphic({
                 id: item.id,
                 className: className,
@@ -125,7 +126,7 @@ namespace flagwind {
             const me = this;
             me.isLoading = true;
             me.fireEvent("showDataList", { action: "start" });
-            this.businessService.getDataList().then(dataList => {
+            return this.businessService.getDataList().then(dataList => {
                 me.isLoading = false;
                 me.saveGraphicList(dataList);
                 me.fireEvent("showDataList", { action: "end", attributes: dataList });

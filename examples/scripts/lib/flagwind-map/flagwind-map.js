@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.0 
+* flagwind-map v1.0.1 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -840,9 +840,9 @@ var flagwind;
             this.heatContainer = heatObj;
             return new HeatmapLayer({
                 config: {
-                    "useLocalMaximum": true,
-                    "radius": 40,
-                    "gradient": {
+                    "useLocalMaximum": this.options.config.useLocalMaximum || true,
+                    "radius": this.options.config.radius || 40,
+                    "gradient": this.options.config.gradient || {
                         0.45: "rgb(000,000,255)",
                         0.55: "rgb(000,255,255)",
                         0.65: "rgb(000,255,000)",
@@ -1101,7 +1101,7 @@ var flagwind;
                 this.options.onMapLoad();
             }
             var me = this;
-            this.on("click", function (evt) {
+            this.on("onClick", function (evt) {
                 me.options.onMapClick(evt); // evt.data
             });
         };
@@ -1285,14 +1285,29 @@ var flagwind;
                 var pt = this.getPoint(evt.graphic.attributes);
                 this.innerMap.infoWindow.setTitle(evt.context.title);
                 this.innerMap.infoWindow.setContent(evt.context.content);
-                this.innerMap.infoWindow.show(pt);
+                if (evt.options.width && evt.options.height) {
+                    this.innerMap.infoWindow.resize(evt.options.width, evt.options.height);
+                }
+                if (evt.options.offset) {
+                    var location_1 = this.innerMap.toScreen(pt);
+                    location_1.x += evt.options.offset.x;
+                    location_1.y += evt.options.offset.y;
+                    this.innerMap.infoWindow.show(location_1);
+                }
+                else {
+                    this.innerMap.infoWindow.show(pt);
+                }
                 // this.innerMap.infoWindow.setTitle("");
                 // this.innerMap.infoWindow.setContent("");
-                // this.innerMap.centerAt(pt).then(() => {
-                //     this.innerMap.infoWindow.setTitle(evt.context.title);
-                //     this.innerMap.infoWindow.setContent(evt.context.content);
-                // });
-                // this.innerMap.infoWindow.show();
+                // this.innerMap.infoWindow.setTitle(evt.context.title);
+                // this.innerMap.infoWindow.setContent(evt.context.content);
+                // if(evt.options.center) {
+                //     this.innerMap.centerAt(pt).then(() => {
+                //         this.innerMap.infoWindow.show(pt);
+                //     });
+                // } else {
+                //     this.innerMap.infoWindow.show(pt);
+                // }
             }
         };
         EsriMap.prototype.onCloseInfoWindow = function () {
@@ -1510,24 +1525,25 @@ var flagwind;
             if ((!_this.icon) && _this.symbol.imageUrl) {
                 _this.icon = new esri.symbol.PictureMarkerSymbol(_this.symbol.imageUrl, _this.symbol.width, _this.symbol.height);
             }
+            // this.infoTemplate = new esri.InfoTemplate("", this.attributes.name);
             // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
             _this.marker = new esri.Graphic(options.point, _this.icon, options);
-            _this.element = _this.marker.getNode();
             if (options.point) {
                 _this.geometry = new flagwind.EsriPoint(options.point.x, options.point.y, _this.spatial).point;
             }
             if (options.geometry) {
                 _this.geometry = options.geometry;
             }
-            if (options && options.className) {
-                _this.addClass(options.className);
-                _this.symbol.className = "";
-            }
-            if (options.symbol && options.symbol.className) {
-                _this.addClass(options.symbol.className);
-                _this.symbol.className = "";
-            }
             return _this;
+            // this.element = this.marker.getNode();
+            // if (options && options.className) {
+            //     this.addClass(options.className);
+            //     this.symbol.className = "";
+            // }
+            // if (options.symbol && options.symbol.className) {
+            //     this.addClass(options.symbol.className);
+            //     this.symbol.className = "";
+            // }
         }
         EsriMarkerGraphic.prototype.addClass = function (className) {
             this.symbol.className = className;
@@ -1606,7 +1622,8 @@ var flagwind;
                 throw new flagwind.Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
             }
             // this.marker.addTo(this.layer.map);
-            this.layer.layer.add(this.marker);
+            // this.layer.layer.add(this.marker);
+            this.addTo(this.layer.layer);
             this.isShow = true;
         };
         EsriMarkerGraphic.prototype.hide = function () {
@@ -1705,11 +1722,20 @@ var flagwind;
             var _this = this;
             this._isInsided = true;
             // this.marker.addTo(map);
+            layer.on("graphic-node-add", function () {
+                if (!_this.marker.getNode()) {
+                    console.log("无法获取标注元素");
+                    return;
+                }
+                _this.element = _this.marker.getNode();
+                if (_this.options.symbol && _this.options.symbol.className) {
+                    _this.addClass(_this.options.symbol.className);
+                    _this.symbol.className = "";
+                }
+                var events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
+                events.forEach(function (g) { _this.registerEvent(_this.element, g); });
+            });
             layer.add(this.marker);
-            if (!this.marker.getNode()) {
-                console.log("无法获取标注元素");
-                return;
-            }
             // let me = this;
             // this.marker.getNode().on("mouseover", function (args: any) {
             //     console.log("fire marker onMouseOver");
@@ -1759,39 +1785,35 @@ var flagwind;
             //         orgion: args
             //     });
             // });
-            var events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
-            events.forEach(function (g) {
-                _this.registerEvent(_this.marker.getNode(), g);
-            });
         };
-        EsriMarkerGraphic.prototype.registerEvent = function (ele, evt) {
+        EsriMarkerGraphic.prototype.registerEvent = function (ele, eventName) {
             var me = this;
-            ele[evt] = function (args) {
-                switch (evt) {
+            ele[eventName] = function (evt) {
+                switch (eventName) {
                     case "onmouseover":
-                        evt = "onMouseOver";
+                        eventName = "onMouseOver";
                         break;
                     case "onmouseout":
-                        evt = "onMouseOut";
+                        eventName = "onMouseOut";
                         break;
                     case "onmouseup":
-                        evt = "onMouseUp";
+                        eventName = "onMouseUp";
                         break;
                     case "onmousedown":
-                        evt = "onMouseDown";
+                        eventName = "onMouseDown";
                         break;
                     case "ondblclick":
-                        evt = "onDblClick";
+                        eventName = "onDblClick";
                         break;
                     case "onclick":
-                        evt = "onClick";
+                        eventName = "onClick";
                         break;
                 }
-                console.log("fire marker " + evt);
-                me.fireEvent(evt, {
+                console.log("fire marker " + eventName);
+                me.fireEvent(eventName, {
                     graphic: me,
                     mapPoint: me.geometry,
-                    orgion: args
+                    evt: evt
                 });
             };
         };
@@ -1805,7 +1827,7 @@ var flagwind;
     }(flagwind.EventProvider));
     flagwind.EsriMarkerGraphic = EsriMarkerGraphic;
 })(flagwind || (flagwind = {}));
-/// <reference path="./flagwind-feature.layer.ts" />
+/// <reference path="./flagwind-feature.layer.ts" />import { resolve } from "dns";
 var flagwind;
 (function (flagwind) {
     flagwind.BUSINESS_LAYER_OPTIONS = {
@@ -1830,8 +1852,8 @@ var flagwind;
         enableEdit: true,
         enableSelectMode: false,
         selectMode: 1,
-        showTooltipOnHover: true,
-        showInfoWindow: true
+        showTooltipOnHover: false,
+        showInfoWindow: false
     };
     /**
      * 业务图层
@@ -2015,9 +2037,11 @@ var flagwind;
             if (this.options.showTooltipOnHover) {
                 this.on("onMouseOver", function (evt) {
                     _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
+                    _deviceLayer.fireEvent("onMouseOver", evt.data);
                 });
                 this.on("onMouseOut", function (evt) {
                     _deviceLayer.flagwindMap.onHideTooltip(evt.data.graphic);
+                    _deviceLayer.fireEvent("onMouseOut", evt.data);
                 });
             }
         };
@@ -2065,7 +2089,7 @@ var flagwind;
     }(flagwind.FlagwindFeatureLayer));
     flagwind.FlagwindBusinessLayer = FlagwindBusinessLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />
+/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
 var flagwind;
 (function (flagwind) {
     /**
@@ -2107,7 +2131,8 @@ var flagwind;
                     type: "html",
                     title: context.title,
                     content: context.content
-                }
+                },
+                options: {}
             });
         };
         /**
@@ -2146,12 +2171,12 @@ var flagwind;
          * @param item 实体信息
          */
         EsriPointLayer.prototype.onCreatGraphicByModel = function (item) {
-            var className = this.options.dataType || "graphic-tollgate";
+            var className = this.options.symbol.className || "graphic-tollgate";
             var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
             return new flagwind.EsriMarkerGraphic({
                 id: item.id,
-                className: className,
                 symbol: {
+                    className: className,
                     imageUrl: imageUrl,
                     width: this.options.symbol.width || 20,
                     height: this.options.symbol.height || 27
@@ -2191,7 +2216,7 @@ var flagwind;
             var me = this;
             me.isLoading = true;
             me.fireEvent("showDataList", { action: "start" });
-            this.businessService.getDataList().then(function (dataList) {
+            return this.businessService.getDataList().then(function (dataList) {
                 me.isLoading = false;
                 me.saveGraphicList(dataList);
                 me.fireEvent("showDataList", { action: "end", attributes: dataList });
@@ -5896,6 +5921,7 @@ var flagwind;
                         break;
                 }
             }
+            // this.onCenterAt({x: evt.graphic.geometry.x, y: evt.graphic.geometry.y});
             this.innerMap.infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
             var popup = document.querySelector(".minemap-map .minemap-popup");
             if (popup) {
@@ -6200,7 +6226,7 @@ var flagwind;
     }(flagwind.EventProvider));
     flagwind.MinemapMarkerGraphic = MinemapMarkerGraphic;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />
+/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
 var flagwind;
 (function (flagwind) {
     /**
@@ -6280,8 +6306,8 @@ var flagwind;
          * @param item 实体信息
          */
         MinemapPointLayer.prototype.onCreatGraphicByModel = function (item) {
-            var className = this.options.dataType || "graphic-tollgate";
-            var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
+            var className = this.options.symbol.className || "graphic-tollgate";
+            var imageUrl = this.options.symbol.imageUrl || this.options.imageUrl;
             return new flagwind.MinemapMarkerGraphic({
                 id: item.id,
                 className: className,
@@ -6320,7 +6346,7 @@ var flagwind;
             var me = this;
             me.isLoading = true;
             me.fireEvent("showDataList", { action: "start" });
-            this.businessService.getDataList().then(function (dataList) {
+            return this.businessService.getDataList().then(function (dataList) {
                 me.isLoading = false;
                 me.saveGraphicList(dataList);
                 me.fireEvent("showDataList", { action: "end", attributes: dataList });

@@ -224,7 +224,7 @@ namespace flagwind {
             }
 
             const me: FlagwindMap = this;
-            this.on("click", function (evt: EventArgs) {
+            this.on("onClick", function (evt: EventArgs) {
                 me.options.onMapClick(evt);// evt.data
             });
         }

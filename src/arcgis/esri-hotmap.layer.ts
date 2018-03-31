@@ -23,9 +23,9 @@ namespace flagwind {
 
             return new HeatmapLayer({
                 config: {
-                    "useLocalMaximum": true,
-                    "radius": 40,
-                    "gradient": {
+                    "useLocalMaximum": this.options.config.useLocalMaximum || true,
+                    "radius": this.options.config.radius || 40,
+                    "gradient": this.options.config.gradient || {
                         0.45: "rgb(000,000,255)",
                         0.55: "rgb(000,255,255)",
                         0.65: "rgb(000,255,000)",
