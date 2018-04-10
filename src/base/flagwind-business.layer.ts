@@ -7,7 +7,7 @@ namespace flagwind {
             console.log("onLayerClick");
         },
         onMapLoad: function () {
-            console.log("onMapLoad");
+            // console.log("onMapLoad");
         },
         onEvent: function (eventName: string, evt: any) {
             console.log("onEvent");
@@ -25,7 +25,8 @@ namespace flagwind {
         enableSelectMode: false, // 是否启用选择模块
         selectMode: 1,           // 1为多选，2为单选
         showTooltipOnHover: false,
-        showInfoWindow: false
+        showInfoWindow: false,
+        dataType: "marker"
     };
 
     /**
@@ -67,11 +68,11 @@ namespace flagwind {
         public abstract onUpdateGraphicByModel(item: any): void;
 
         public onAddLayerBefor(): void {
-            console.log("onAddLayerBefor");
+            // console.log("onAddLayerBefor");
         }
 
         public onAddLayerAfter(): void {
-            console.log("onAddLayerAfter");
+            // console.log("onAddLayerAfter");
         }
 
         public get map(): any {
@@ -172,8 +173,8 @@ namespace flagwind {
                 return;
             }
 
-            const pt = this.getPoint(item);
-            this.onUpdateGraphicByModel(item);
+            const pt = this.getPoint(graphic.attributes);
+            this.onUpdateGraphicByModel(graphic.attributes);
 
             return pt;
         }
@@ -230,6 +231,10 @@ namespace flagwind {
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
                 this.on("onMouseOver", (evt: EventArgs) => {
+                    if(evt.data.graphic.options.dataType === "polyline") {
+                        evt.data.graphic.attributes.offsetX = evt.data.evt.offsetX;
+                        evt.data.graphic.attributes.offsetY = evt.data.evt.offsetY;
+                    }
                     _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
                     _deviceLayer.fireEvent("onMouseOver", evt.data);
                 });
@@ -292,7 +297,11 @@ namespace flagwind {
         protected abstract onChangeStandardModel(item: any): any;
 
         protected onValidModel(item: any) {
-            return item.longitude && item.latitude;
+            if(this.options.dataType === "marker") {
+                return item.longitude && item.latitude;
+            } else if(this.options.dataType === "polyline") {
+                return item.id && item.polyline;
+            }
         }
     }
 

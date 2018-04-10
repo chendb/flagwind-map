@@ -32,6 +32,8 @@ namespace flagwind {
                 center: setting.center,
                 logo: setting.logo,
                 slider: setting.slider,
+                // sliderStyle: setting.sliderStyle,
+                sliderPosition: setting.sliderPosition,
                 zoom: setting.zoom,
                 minZoom: setting.minZoom,
                 maxZoom: setting.maxZoom
@@ -65,7 +67,8 @@ namespace flagwind {
 
             let div = (<any>this).tooltipElement = document.createElement("div");
             div.classList.add("flagwind-map-tooltip");
-            (<any>this).innerMap.root.parentElement.appendChild(div);
+            // (<any>this).innerMap.root.parentElement.appendChild(div);
+            (<any>this).innerMap.root.appendChild(div);
             const me = this;
 
             // #region click event
@@ -214,14 +217,30 @@ namespace flagwind {
                 baseLayers.push(layer);
             }
             this.baseLayers = baseLayers;
-            this.baseLayers.forEach(g => g.appendTo(this.innerMap));
+            this.baseLayers.forEach(g => {
+                g.appendTo(this.innerMap);
+                if(g.id !== "base_arcgis_tiled") g.hide();
+            });
+            
+            // this.getBaseLayerById("base_arcgis_zhuji").hide();
             return baseLayers;
         }
         public onShowTooltip(graphic: any): void {
+            // let pt: any;
+            // let screenpt: any;
+            // let info = graphic.attributes;
+            // let title = info.name;
+            // if(graphic.options.dataType === "marker") {
+            //     pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
+            //     screenpt = this.innerMap.toScreen(pt);
+            // } else if(graphic.options.dataType === "polyline") {
+            //     screenpt = {x: graphic.x, y: graphic.y};
+            // }
             let info = graphic.attributes;
             let pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             let screenpt = this.innerMap.toScreen(pt);
             let title = info.name;
+            if(graphic.options.dataType === "polyline") screenpt = {x: info.offsetX, y: info.offsetY};
             (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
             (<any>this).tooltipElement.style.left = (screenpt.x + 15) + "px";
             (<any>this).tooltipElement.style.top = (screenpt.y + 15) + "px";

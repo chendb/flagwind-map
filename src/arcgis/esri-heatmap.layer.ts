@@ -1,6 +1,6 @@
 namespace flagwind {
 
-    export class EsriHeatmapLayer implements IFlagwindHotmapLayer {
+    export class EsriHeatmapLayer implements IFlagwindHeatmapLayer {
         private map: any;
         
         public options: any;
@@ -8,7 +8,7 @@ namespace flagwind {
         public heatContainer: HTMLElement;
 
         public constructor(public flagwindMap: FlagwindMap, options: any) {
-            this.options = options;
+            this.options = {...{id: "heatLayer", config: {}}, ...options};
             this.map = flagwindMap;
 
             this.heatLayer = this.createHeatLayer();
@@ -17,24 +17,25 @@ namespace flagwind {
 
         public createHeatLayer() {
             let heatObj = document.createElement("div");
-            heatObj.setAttribute("id", this.options.layerId || "heatLayer");
+            heatObj.setAttribute("id", this.options.id);
             this.map.innerMap.container.appendChild(heatObj);
             this.heatContainer = heatObj;
 
             return new HeatmapLayer({
-                config: {
-                    "useLocalMaximum": this.options.config.useLocalMaximum || true,
-                    "radius": this.options.config.radius || 40,
-                    "gradient": this.options.config.gradient || {
+                config: {...{
+                    "useLocalMaximum": false,
+                    "radius": 40,
+                    "gradient": {
                         0.45: "rgb(000,000,255)",
                         0.55: "rgb(000,255,255)",
                         0.65: "rgb(000,255,000)",
                         0.95: "rgb(255,255,000)",
                         1.00: "rgb(255,000,000)"
-                    }
+                    },
+                    ...this.options.config}
                 },
                 map: this.map.innerMap,
-                domNodeId: this.options.layerId || "heatLayer",
+                domNodeId: this.options.id,
                 opacity: 0.85
             });
         }

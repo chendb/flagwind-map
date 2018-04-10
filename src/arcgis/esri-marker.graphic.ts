@@ -19,6 +19,9 @@ namespace flagwind {
         public icon: any;
         // public infoTemplate: any;
 
+        public polyline: any;
+        public lineSymbol: any;
+
         public attributes: any;
         public options: any;
         public spatial: any;
@@ -31,21 +34,29 @@ namespace flagwind {
             this.id = options.id;
             this.spatial = options.spatial;
 
-            this.symbol = options.symbol ? options.symbol : {};
             this.attributes = options.attributes ? options.attributes : {};
-            this.icon = options.icon;
-            if ((!this.icon) && this.symbol.imageUrl) {
-                this.icon = new esri.symbol.PictureMarkerSymbol(this.symbol.imageUrl, this.symbol.width, this.symbol.height);
+
+            if(this.options.dataType === "marker") {
+                this.symbol = options.symbol ? options.symbol : {};
+                this.icon = options.icon;
+                if ((!this.icon) && this.symbol.imageUrl) {
+                    this.icon = new esri.symbol.PictureMarkerSymbol(this.symbol.imageUrl, this.symbol.width, this.symbol.height);
+                }
+                // this.infoTemplate = new esri.InfoTemplate("", this.attributes.name);
+                // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
+                this.marker = new esri.Graphic(options.point, this.icon, options);
+                if (options.point) {
+                    this.geometry = new EsriPoint(options.point.x, options.point.y, this.spatial).point;
+                }
+                if (options.geometry) {
+                    this.geometry = options.geometry;
+                }
+            } else if(this.options.dataType === "polyline") {
+                this.polyline = this.toPolyline(this.attributes.polyline, this.spatial);
+                this.lineSymbol = this.getLineSymbol(this.attributes, 4, [255, 0, 0]);
+                this.marker = new esri.Graphic(this.polyline, this.lineSymbol, this.attributes);
             }
-            // this.infoTemplate = new esri.InfoTemplate("", this.attributes.name);
-            // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
-            this.marker = new esri.Graphic(options.point, this.icon, options);
-            if (options.point) {
-                this.geometry = new EsriPoint(options.point.x, options.point.y, this.spatial).point;
-            }
-            if (options.geometry) {
-                this.geometry = options.geometry;
-            }
+
             // this.element = this.marker.getNode();
             // if (options && options.className) {
             //     this.addClass(options.className);
@@ -76,6 +87,48 @@ namespace flagwind {
             for (let i = 0; i < classList.length; i++) {
                 this.element.classList.remove(classList[i]);
             }
+        }
+
+        public getPointFromPloyline() {
+            let pt: any = {};
+            pt.x = (this.marker._extent.xmax + this.marker._extent.xmin) / 2;
+            pt.y = (this.marker._extent.ymax + this.marker._extent.ymin) / 2;
+            return pt;
+        }
+
+        public toPolyline(strLine: string, spatial: any) {
+            if (!strLine) return null;
+            strLine = JSON.parse(strLine);
+            let line = new esri.geometry.Polyline(spatial);
+            for (let i = 1; i < strLine.length; i++) {
+                if(!strLine[i] || strLine[i].length < 2) continue;
+                let start = [strLine[i - 1][0], strLine[i - 1][1]];
+                let end = [strLine[i][0], strLine[i][1]];
+                line.addPath([start, end]);
+            }
+            return line;
+            // if (!strLine) return null;
+            // let line = new esri.geometry.Polyline(spatial);
+            // let xys = strLine.split(";");
+            // for (let i = 1; i < xys.length; i++) {
+            //     if ((!xys[i]) || xys[i].length <= 0) continue;
+            //     let startXy = xys[i - 1].split(",");
+            //     let endXy = xys[i].split(",");
+            //     let start = [parseFloat(startXy[0]), parseFloat(startXy[1])];
+            //     let end = [parseFloat(endXy[0]), parseFloat(endXy[1])];
+            //     line.addPath([start, end]);
+            // }
+            // return line;
+        }
+
+        public getLineSymbol(item: any, width?: number, color?: Array<number>) {
+            color = color || [38, 101, 196];
+            width = width || 4;
+            let playedLineSymbol = new esri.symbol.CartographicLineSymbol(
+                esri.symbol.CartographicLineSymbol.STYLE_DASH, new esri.Color(color), width,
+                esri.symbol.CartographicLineSymbol.CAP_ROUND,
+                esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
+            return playedLineSymbol;
         }
 
         /**
@@ -177,20 +230,33 @@ namespace flagwind {
         }
 
         public setSymbol(symbol: any): void {
-
-            if (symbol.className) {
-                // 先删除之前的样式
-                if (this.symbol && this.symbol.className) {
-                    this.removeClass(this.symbol.className);
+            if(this.options.dataType === "marker" && this.symbol) {
+                if (symbol.className) {
+                    // 先删除之前的样式
+                    if (this.symbol.className) {
+                        this.removeClass(this.symbol.className);
+                    }
+                    this.addClass(symbol.className);
                 }
-                this.addClass(symbol.className);
+                if (symbol.icon) {
+                    this.marker.setSymbol(symbol.icon);
+                }
+                if (symbol.imageUrl) {
+                    this.icon.setUrl(symbol.imageUrl);
+                }
+            } else if(this.options.dataType === "polyline" && this.lineSymbol) {
+                if(symbol.width) {
+                    this.lineSymbol.setWidth(symbol.width);
+                }
+                if(symbol.color) {
+                    this.lineSymbol.setColor(symbol.color);
+                }
+                if(symbol.miterLimit) {
+                    this.lineSymbol.setMiterLimit(symbol.miterLimit);
+                }
             }
-            if (symbol.icon) {
-                this.marker.setSymbol(symbol.icon);
-            }
-            if (symbol.imageUrl) {
-                this.icon.setUrl(symbol.imageUrl);
-            }
+
+            this.symbol = { ...this.symbol, ...symbol };
             // if (symbol.title) {
             //     this.marker.setTitle(symbol.title);
             // }
@@ -206,12 +272,11 @@ namespace flagwind {
             // if (symbol.titlePosition) {
             //     this.marker.setTitlePosition(symbol.titlePosition);
             // }
-            this.symbol = { ...this.symbol, ...symbol };
         }
 
         public draw(): void {
             this.marker.draw();
-            console.log("draw");
+            // console.log("draw-marker");
         }
 
         public get geometry(): EsriPoint {
@@ -238,9 +303,14 @@ namespace flagwind {
             // this.marker.addTo(map);
             layer.on("graphic-node-add", () => {
                 if(!this.marker.getNode()) { console.log("无法获取标注元素"); return; }
+                
+                if(this.options.dataType === "polyline") {
+                    this.attributes.longitude = this.getPointFromPloyline().x;
+                    this.attributes.latitude = this.getPointFromPloyline().y;
+                }
 
                 this.element = this.marker.getNode();
-                if (this.options.symbol && this.options.symbol.className) {
+                if (this.symbol && this.options.symbol && this.options.symbol.className) {
                     this.addClass(this.options.symbol.className);
                     this.symbol.className = "";
                 }
@@ -316,7 +386,7 @@ namespace flagwind {
                     case "ondblclick": eventName = "onDblClick"; break;
                     case "onclick": eventName = "onClick"; break;
                 }
-                console.log(`fire marker ${eventName}`);
+                // console.log(`fire marker ${eventName}`);
                 me.fireEvent(eventName, {
                     graphic: me,
                     mapPoint: me.geometry,

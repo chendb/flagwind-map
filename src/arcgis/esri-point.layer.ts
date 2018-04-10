@@ -55,17 +55,25 @@ namespace flagwind {
         }
 
         public getImageUrl(item: any): string {
-            if (item.selected == null) {
-                return this.options.imageUrl || this.options.symbol.imageUrl;
+            switch (item.status) {
+                case 0:
+                    return item.selected ? this.options.symbol.imageUrl.checkedOff : this.options.symbol.imageUrl.offline;
+                case 1:
+                    return item.selected ? this.options.symbol.imageUrl.checkedOn : this.options.symbol.imageUrl.online;
+                default:
+                    return item.selected ? this.options.symbol.imageUrl.checkedOn : this.options.symbol.imageUrl.online;
             }
+            // if (item.selected == null) {
+            //     return this.options.imageUrl || this.options.symbol.imageUrl;
+            // }
 
-            let imageUrl: String = this.options.imageUrl || this.options.symbol.imageUrl;
-            let imageParts = imageUrl.split(".");
-            if (item.selected) {
-                return imageParts[0] + "_checked." + imageParts[1];
-            } else {
-                return imageParts[0] + "_unchecked." + imageParts[1];
-            }
+            // let imageUrl: String = this.options.imageUrl || this.options.symbol.imageUrl;
+            // let imageParts = imageUrl.split(".");
+            // if (item.selected) {
+            //     return imageParts[0] + "_checked." + imageParts[1];
+            // } else {
+            //     return imageParts[0] + "_unchecked." + imageParts[1];
+            // }
         }
 
         public getClassName(item: any): string {
@@ -87,9 +95,11 @@ namespace flagwind {
          */
         public onCreatGraphicByModel(item: any): any {
             let className = this.options.symbol.className || "graphic-tollgate";
-            let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
+            // let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
+            let imageUrl = this.getImageUrl(item);
             return new EsriMarkerGraphic({
                 id: item.id,
+                dataType: this.options.dataType,
                 symbol: {
                     className: className,
                     imageUrl: imageUrl,
@@ -118,9 +128,9 @@ namespace flagwind {
             // throw new Error("Method not implemented.");
             let graphic: EsriMarkerGraphic = this.getGraphicById(item.id);
             if (graphic) {
-                graphic.geometry = new EsriPoint(item.longitude, item.latitude);
+                graphic.geometry = new EsriPoint(item.longitude, item.latitude, this.flagwindMap.spatial).point;
                 graphic.attributes = item;
-                this.setGraphicStatus(graphic);
+                this.setGraphicStatus(item);
             }
         }
 
@@ -165,10 +175,10 @@ namespace flagwind {
 
         protected setSelectStatus(item: any, selected: boolean): void {
             let graphics: Array<any> = this.layer.graphics;
-            graphics.forEach(item => {
-                if (!item.attributes.selected) {
-                    item.selected = false;
-                    this.setGraphicStatus(item);
+            graphics.forEach(g => {
+                if (!g.attributes.selected) {
+                    // g.selected = false;
+                    this.setGraphicStatus(g.attributes);
                 }
             });
             
@@ -178,12 +188,13 @@ namespace flagwind {
 
         protected setGraphicStatus(item: any): void {
             let graphic: EsriMarkerGraphic = this.getGraphicById(item.id);
-            if(typeof graphic.attributes.selected === "boolean") {
-                graphic["selected"] = graphic.attributes.selected;
-            }
+            // if(typeof graphic.attributes.selected === "boolean") {
+            //     graphic["selected"] = graphic.attributes.selected;
+            // }
+            // graphic.attributes.selected = graphic["selected"];
             graphic.setSymbol({
-                className: this.getClassName(graphic),
-                imageUrl: this.getImageUrl(graphic)
+                className: this.getClassName(item),
+                imageUrl: this.getImageUrl(item)
             });
             graphic.draw();
         }

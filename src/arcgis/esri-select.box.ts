@@ -4,7 +4,7 @@ namespace flagwind {
     export const SELECT_BOX_OPTIONS_ESRI: any = {
 
         onCheckChanged: function (evt: any) {
-            console.log("onCheckChanged");
+            // console.log("onCheckChanged");
         }
     };
     /**
@@ -48,6 +48,7 @@ namespace flagwind {
                 });
                 let checkItems = checkGrahpics.map(g => g.attributes);
                 layer.setSelectStatusByModels(checkItems, false);
+                this.options.onCheckChanged(checkItems);
             });
 
             me.clear();
@@ -64,9 +65,15 @@ namespace flagwind {
             if(ele) ele.remove();
         }
 
-        public showSelectBar(mapId: string): void {
+        public showSelectBar(): void {
+            if (document.getElementById("edit-ctrl-group")) {
+                console.log("绘制控件已经创建，不可重复创建！");
+                document.getElementById("edit-ctrl-group").style.display = "block";
+                return;
+            }
             let me = this;
-            let mapEle = document.getElementById(mapId);
+            // let mapEle = document.getElementById(mapId);
+            let mapEle = this.flagwindMap.innerMap.root;
             let container = document.createElement("div");
             container.setAttribute("id", "edit-ctrl-group");
             container.innerHTML = `<div class="edit-btn" title="画圆" data-operate="circle"><span class="iconfont icon-draw-circle"></span></div>
@@ -76,7 +83,7 @@ namespace flagwind {
                 // <div class="edit-btn" title="重复上一步操作" data-operate="redo"><span class="iconfont icon-redo"></span></div>
                 // <div class="edit-btn" title="删除所选" data-operate="trash"><span class="iconfont icon-tool-trash"></span></div>`;
             mapEle.appendChild(container);
-            let operateBtns = document.querySelectorAll(`#${mapId} .edit-btn`) as NodeListOf<HTMLElement>;
+            let operateBtns = document.querySelectorAll("#edit-ctrl-group .edit-btn") as NodeListOf<HTMLElement>;
             for (let i = 0; i < operateBtns.length; i++) {
                 operateBtns[i].onclick = function () {
                     me.active(this.dataset.operate);

@@ -160,8 +160,8 @@ namespace flagwind {
             let graphics: Array<any> = this.layer.graphics;
             graphics.forEach(item => {
                 if (!item.attributes.selected) {
-                    item.selected = false;
-                    this.setGraphicStatus(item);
+                    // item.selected = false;
+                    this.setGraphicStatus(item.attributes);
                 }
             });
             

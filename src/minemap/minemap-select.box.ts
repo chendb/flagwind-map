@@ -50,6 +50,7 @@ namespace flagwind {
                 });
                 let checkItems = checkGrahpics.map(g => g.attributes);
                 layer.setSelectStatusByModels(checkItems, false);
+                this.options.onCheckChanged(checkItems);
             });
 
             me.clear();
@@ -67,6 +68,11 @@ namespace flagwind {
         }
 
         public showSelectBar(): void {
+            if (document.getElementById("edit-ctrl-group")) {
+                console.log("绘制控件已经创建，不可重复创建！");
+                document.getElementById("edit-ctrl-group").style.display = "block";
+                return;
+            }
             let me = this;
             // let mapEle = document.getElementById(mapId);
             let mapEle = this.flagwindMap.map._container;

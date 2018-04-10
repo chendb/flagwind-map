@@ -22,5 +22,7 @@ namespace flagwind {
         zoom: number;
         logo: boolean;  // 是否显示logo
         slider: boolean; // 是否显示放大缩小按钮
+        // sliderStyle: string;
+        sliderPosition: string;
     }
 }
