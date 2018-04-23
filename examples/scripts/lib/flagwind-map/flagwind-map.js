@@ -563,6 +563,10 @@ var flagwind;
         };
         FlagwindBusinessLayer.prototype.gotoCenterById = function (key) {
             var graphic = this.getGraphicById(key);
+            if (!graphic) {
+                console.trace("-----该条数据不在图层内！id:", key);
+                return;
+            }
             var pt = this.getPoint(graphic.attributes);
             this.flagwindMap.centerAt(pt.x, pt.y);
         };
@@ -690,7 +694,7 @@ var flagwind;
             });
             if (this.options.showTooltipOnHover) {
                 this.on("onMouseOver", function (evt) {
-                    if (evt.data.graphic.options.dataType === "polyline") {
+                    if (evt.data.graphic.options.dataType === "polyline" || evt.data.graphic.options.dataType === "polygon") {
                         evt.data.graphic.attributes.offsetX = evt.data.evt.offsetX;
                         evt.data.graphic.attributes.offsetY = evt.data.evt.offsetY;
                     }
@@ -741,11 +745,10 @@ var flagwind;
             this.onUpdateGraphicByModel(item);
         };
         FlagwindBusinessLayer.prototype.onValidModel = function (item) {
-            if (this.options.dataType === "marker") {
-                return item.longitude && item.latitude;
-            }
-            else if (this.options.dataType === "polyline") {
-                return item.id && item.polyline;
+            switch (this.options.dataType) {
+                case "marker": return item.longitude && item.latitude;
+                case "polyline": return item.id && item.polyline;
+                case "polygon": return item.id && item.polygon;
             }
         };
         return FlagwindBusinessLayer;
@@ -760,170 +763,80 @@ var flagwind;
      */
     var EsriDrawLayer = /** @class */ (function () {
         function EsriDrawLayer(flagwindMap, options) {
+            var _this = this;
             this.options = {
-                id: "draw-layer",
-                autoCenter: true,
-                routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route",
+                drawTime: 75,
+                showTooltips: true,
+                tolerance: 8,
+                tooltipOffset: 15,
                 onEvent: function (eventName, evt) {
                     // console.log(eventName);
                 }
             };
-            this.routes = []; // 路径数据
             this.flagwindMap = flagwindMap;
             this.options = __assign({}, this.options, options);
-            this.createDrawLayer();
-            this.createDrawSymbol();
+            this.draw = new esri.toolbars.Draw(flagwindMap.map, this.options);
+            this.draw.on("draw-complete", function (evt) {
+                _this.onDrawComplete(evt);
+            });
         }
-        EsriDrawLayer.prototype.draw = function () {
-            // this.routeName = routeName;
-            this.createDrawRoute();
-            this.addStop();
+        EsriDrawLayer.prototype.activate = function (mode, options) {
+            if (this.draw && options) {
+                this.setSymbol(mode, options);
+            }
+            if (this.draw && mode) {
+                var tool = mode.toUpperCase().replace(/ /g, "_");
+                this.flagwindMap.map.disableMapNavigation();
+                this.draw.activate(esri.toolbars.Draw[tool]);
+            }
         };
         EsriDrawLayer.prototype.clear = function () {
-            this.clearBarriers();
-            this.clearRoutes();
-            this.clearStops();
-            this.addStop();
+            if (this.draw) {
+                this.draw.deactivate();
+                this.flagwindMap.map.enableMapNavigation();
+            }
         };
         EsriDrawLayer.prototype.finish = function () {
-            var _this = this;
-            return new Promise(function (rsolve, reject) {
-                var polyline;
-                if (_this.routes.length > 0) {
-                    polyline = _this.routes[0].geometry;
-                }
-                _this.clearDrawLayer();
-                _this.addDrawGraphic(polyline);
-                rsolve(JSON.stringify(polyline.paths[0]));
-                _this.options.onEvent("finish", polyline);
-                _this.clear();
-                _this.removeEventHandlers();
-                // let polyline: Array<any> = [];
-                // if (this.routes.length > 0) {
-                //     this.clearDrawLayer();
-                //     this.routes.forEach(g => {
-                //         this.addDrawGraphic(g.geometry);
-                //         polyline.push(g.geometry);
-                //     });
-                // }
-                // rsolve(polyline);
-                // this.options.onEvent("finish", polyline);
-                // this.clear();
-                // this.removeEventHandlers();
-            });
+            this.draw.finishDrawing();
         };
-        EsriDrawLayer.prototype.clearDrawLayer = function () {
-            this.drawLayer.clear();
-        };
-        EsriDrawLayer.prototype.addStop = function () {
-            var me = this;
-            this.removeEventHandlers();
-            this.MAPONCLICH_ADDSTOPS = this.flagwindMap.map.on("click", function (evt) {
-                var g = new esri.Graphic(evt.mapPoint, me.stopSymbol, { RouteName: "draw-route-line" });
-                me.stopsLayer.add(g);
-                me.routeParams.stops.features.push(g);
-                if (me.options.autoCenter) {
-                    me.flagwindMap.map.centerAt(evt.mapPoint).then(function () {
-                        // console.log("centerAt:" + x + "," + y);
-                    });
-                }
-                // 增加完点后自动求解
-                if (me.routeParams.stops.features.length > 1) {
-                    me.routeTask.solve(me.routeParams);
-                }
-            });
-            // this.MAPONDBLCLICH_ADDSTOPS = this.flagwindMap.map.on("dbl-click", function (evt: any) {
-            //     me.clearStops();
-            //     me.routeParams.stops.features = [];
-            // });
-        };
-        EsriDrawLayer.prototype.createDrawLayer = function () {
-            this.drawLayer = new esri.layers.GraphicsLayer({ id: this.options.id });
-            this.lineLayer = new esri.layers.GraphicsLayer({ id: "draw-lineLayer" });
-            this.stopsLayer = new esri.layers.GraphicsLayer({ id: "draw-stopsLayer" });
-            this.barriersLayer = new esri.layers.GraphicsLayer({ id: "draw-barriersLayer" });
-            this.flagwindMap.map.addLayer(this.drawLayer);
-            this.flagwindMap.map.addLayer(this.lineLayer);
-            this.flagwindMap.map.addLayer(this.stopsLayer);
-            this.flagwindMap.map.addLayer(this.barriersLayer);
-        };
-        EsriDrawLayer.prototype.createDrawSymbol = function () {
-            this.routeSymbol = new esri.symbol.SimpleLineSymbol().setColor(new esri.Color([0, 0, 255, 0.5])).setWidth(5);
-            this.stopSymbol = new esri.symbol.SimpleMarkerSymbol().setStyle(esri.symbol.SimpleMarkerSymbol.STYLE_CROSS).setSize(15);
-            this.stopSymbol.outline.setWidth(3);
-            this.barrierSymbol = new esri.symbol.SimpleMarkerSymbol().setStyle(esri.symbol.SimpleMarkerSymbol.STYLE_X).setSize(10);
-            this.barrierSymbol.outline.setWidth(3).setColor(new esri.Color([255, 0, 0]));
-        };
-        EsriDrawLayer.prototype.createDrawRoute = function () {
-            this.routeTask = new esri.tasks.RouteTask(this.options.routeUrl);
-            this.routeParams = new esri.tasks.RouteParameters();
-            this.routeParams.stops = new esri.tasks.FeatureSet();
-            this.routeParams.barriers = new esri.tasks.FeatureSet();
-            this.routeParams.outSpatialReference = this.flagwindMap.spatial;
-            var me = this;
-            this.routeTask.on("solve-complete", function (evt) {
-                me.showRoute(evt);
-            });
-            this.routeTask.on("error", function (err) {
-                me.errorHandler(err);
-            });
-        };
-        EsriDrawLayer.prototype.addDrawGraphic = function (geometry) {
-            var playedLineSymbol = new esri.symbol.CartographicLineSymbol(esri.symbol.CartographicLineSymbol.STYLE_SOLID, new esri.Color([38, 101, 196]), 2, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
-            var lineGraphic = new esri.Graphic(geometry, playedLineSymbol);
-            this.drawLayer.add(lineGraphic);
-        };
-        /**
-         * 清除障碍点
-         */
-        EsriDrawLayer.prototype.clearBarriers = function () {
-            for (var i = this.routeParams.barriers.features.length - 1; i >= 0; i--) {
-                var g = this.routeParams.barriers.features.splice(i, 1)[0];
-                this.barriersLayer.remove(g);
+        EsriDrawLayer.prototype.setSymbol = function (mode, options) {
+            this.symbolSetting = options;
+            switch (mode) {
+                case "POLYLINE":
+                    this.draw.setLineSymbol(this.lineSymbol);
+                    break;
+                case "POLYGON":
+                    this.draw.setFillSymbol(this.fillSymbol);
+                    break;
+                case "FREEHAND_POLYGON":
+                    this.draw.setFillSymbol(this.fillSymbol);
+                    break;
             }
         };
-        /**
-         * 清除停靠点
-         */
-        EsriDrawLayer.prototype.clearStops = function () {
-            for (var i = this.routeParams.stops.features.length - 1; i >= 0; i--) {
-                var g = this.routeParams.stops.features.splice(i, 1)[0];
-                this.stopsLayer.remove(g);
-            }
+        EsriDrawLayer.prototype.onDrawComplete = function (evt) {
+            this.clear();
+            this.options.onEvent("draw-complete", evt.geometry);
         };
-        /**
-         * 清除路径信息
-         */
-        EsriDrawLayer.prototype.clearRoutes = function () {
-            for (var i = this.routes.length - 1; i >= 0; i--) {
-                var r = this.routes.splice(i, 1)[0];
-                this.lineLayer.remove(r);
-            }
-            this.routes = [];
-        };
-        /**
-         * 显示路径信息
-         */
-        EsriDrawLayer.prototype.showRoute = function (evt) {
-            // this.clearRoutes();
-            for (var i = 0; i < evt.result.routeResults.length; i++) {
-                var routeResult = evt.result.routeResults[i];
-                routeResult.route.setSymbol(this.routeSymbol);
-                this.lineLayer.add(routeResult.route);
-                this.routes.push(routeResult.route);
-            }
-        };
-        EsriDrawLayer.prototype.errorHandler = function (err) {
-            // console.warn("An error occured\n" + err.message + "\n" + err.details.join("\n"));
-            console.warn("\u8DEF\u5F84\u89E3\u6790\u51FA\u9519\uFF1A\n " + err.message + "\n" + err.details);
-        };
-        EsriDrawLayer.prototype.removeEventHandlers = function () {
-            if (this.MAPONCLICH_ADDSTOPS)
-                this.MAPONCLICH_ADDSTOPS.remove();
-            if (this.MAPONCLICH_ADDBARRIERS)
-                this.MAPONCLICH_ADDBARRIERS.remove();
-            // this.options.onEventChanged("removeEventHandlers");
-        };
+        Object.defineProperty(EsriDrawLayer.prototype, "lineSymbol", {
+            get: function () {
+                var color = this.symbolSetting.color || [255, 0, 0];
+                var width = this.symbolSetting.width || 4;
+                var lineSymbol = new esri.symbol.CartographicLineSymbol(this.symbolSetting.style === "dash" ? esri.symbol.CartographicLineSymbol.STYLE_DASH : esri.symbol.CartographicLineSymbol.STYLE_SOLID, new esri.Color(color), width, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
+                return lineSymbol;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(EsriDrawLayer.prototype, "fillSymbol", {
+            get: function () {
+                var color = this.symbolSetting.color || [255, 49, 0, 0.45];
+                var width = this.symbolSetting.width || 3;
+                var polygonSymbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(this.symbolSetting.outlineStyle === "dash" ? esri.symbol.SimpleLineSymbol.STYLE_DASH : esri.symbol.SimpleLineSymbol.STYLE_SOLID, new esri.Color(this.symbolSetting.outlineColor || [255, 0, 0]), width), new esri.Color(color));
+                return polygonSymbol;
+            },
+            enumerable: true,
+            configurable: true
+        });
         return EsriDrawLayer;
     }());
     flagwind.EsriDrawLayer = EsriDrawLayer;
@@ -1810,7 +1723,7 @@ var flagwind;
             var pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             var screenpt = this.innerMap.toScreen(pt);
             var title = info.name;
-            if (graphic.options.dataType === "polyline")
+            if (graphic.options.dataType === "polyline" || graphic.options.dataType === "polygon")
                 screenpt = { x: info.offsetX, y: info.offsetY };
             this.tooltipElement.innerHTML = "<div>" + title + "</div>";
             this.tooltipElement.style.left = (screenpt.x + 15) + "px";
@@ -1985,25 +1898,19 @@ var flagwind;
             _this.spatial = options.spatial;
             _this.attributes = options.attributes ? options.attributes : {};
             if (_this.options.dataType === "marker") {
-                _this.symbol = options.symbol ? options.symbol : {};
-                _this.icon = options.icon;
-                if ((!_this.icon) && _this.symbol.imageUrl) {
-                    _this.icon = new esri.symbol.PictureMarkerSymbol(_this.symbol.imageUrl, _this.symbol.width, _this.symbol.height);
+                _this.marker = _this.createMarker();
+                if (_this.options.point) {
+                    _this.geometry = new flagwind.EsriPoint(_this.options.point.x, _this.options.point.y, _this.spatial).point;
                 }
-                // this.infoTemplate = new esri.InfoTemplate("", this.attributes.name);
-                // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
-                _this.marker = new esri.Graphic(options.point, _this.icon, options);
-                if (options.point) {
-                    _this.geometry = new flagwind.EsriPoint(options.point.x, options.point.y, _this.spatial).point;
-                }
-                if (options.geometry) {
-                    _this.geometry = options.geometry;
+                if (_this.options.geometry) {
+                    _this.geometry = _this.options.geometry;
                 }
             }
             else if (_this.options.dataType === "polyline") {
-                _this.polyline = _this.toPolyline(_this.attributes.polyline, _this.spatial);
-                _this.lineSymbol = _this.getLineSymbol(_this.attributes, 4, [255, 0, 0]);
-                _this.marker = new esri.Graphic(_this.polyline, _this.lineSymbol, _this.attributes);
+                _this.marker = _this.createPolylineMarker();
+            }
+            else if (_this.options.dataType === "polygon") {
+                _this.marker = _this.createPolygonMarker();
             }
             return _this;
             // this.element = this.marker.getNode();
@@ -2016,24 +1923,21 @@ var flagwind;
             //     this.symbol.className = "";
             // }
         }
-        EsriMarkerGraphic.prototype.addClass = function (className) {
-            this.symbol.className = className;
-            if (className === " " || className === null || className === undefined || !this.element) {
-                return;
-            }
-            var classList = className.split(" ");
-            for (var i = 0; i < classList.length; i++) {
-                this.element.classList.add(classList[i]);
-            }
+        EsriMarkerGraphic.prototype.createMarker = function () {
+            this.markerSymbol = this.getMarkerSymbol();
+            // this.infoTemplate = new esri.InfoTemplate("", this.attributes.name);
+            // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
+            return new esri.Graphic(this.options.point, this.markerSymbol, this.options);
         };
-        EsriMarkerGraphic.prototype.removeClass = function (className) {
-            if (className === " " || className === null || className === undefined || !this.element) {
-                return;
-            }
-            var classList = className.split(" ");
-            for (var i = 0; i < classList.length; i++) {
-                this.element.classList.remove(classList[i]);
-            }
+        EsriMarkerGraphic.prototype.createPolylineMarker = function () {
+            this.polyline = this.toPolyline(this.attributes.polyline, this.spatial);
+            this.polylineSymbol = this.getLineSymbol(this.options.symbol.width, this.options.symbol.color);
+            return new esri.Graphic(this.polyline, this.polylineSymbol, this.attributes);
+        };
+        EsriMarkerGraphic.prototype.createPolygonMarker = function () {
+            this.polygon = this.toPolygon(this.attributes.polygon);
+            this.polygonSymbol = this.getPolygonSymbol(this.options.symbol.width, this.options.symbol.color);
+            return new esri.Graphic(this.polygon, this.polygonSymbol, this.attributes);
         };
         EsriMarkerGraphic.prototype.getPointFromPloyline = function () {
             var pt = {};
@@ -2044,7 +1948,8 @@ var flagwind;
         EsriMarkerGraphic.prototype.toPolyline = function (strLine, spatial) {
             if (!strLine)
                 return null;
-            strLine = JSON.parse(strLine);
+            if (typeof strLine === "string")
+                strLine = JSON.parse(strLine);
             var line = new esri.geometry.Polyline(spatial);
             for (var i = 1; i < strLine.length; i++) {
                 if (!strLine[i] || strLine[i].length < 2)
@@ -2067,11 +1972,51 @@ var flagwind;
             // }
             // return line;
         };
-        EsriMarkerGraphic.prototype.getLineSymbol = function (item, width, color) {
-            color = color || [38, 101, 196];
+        EsriMarkerGraphic.prototype.toPolygon = function (strPolygon) {
+            if (!strPolygon)
+                return null;
+            if (typeof strPolygon === "string")
+                strPolygon = JSON.parse(strPolygon);
+            return new esri.geometry.Polygon(strPolygon);
+        };
+        EsriMarkerGraphic.prototype.getMarkerSymbol = function () {
+            this.symbol = this.options.symbol ? this.options.symbol : {};
+            var markerSymbol = this.options.markerSymbol;
+            if ((!markerSymbol) && this.symbol.imageUrl) {
+                markerSymbol = new esri.symbol.PictureMarkerSymbol(this.symbol.imageUrl, this.symbol.width, this.symbol.height);
+            }
+            return markerSymbol;
+        };
+        EsriMarkerGraphic.prototype.getLineSymbol = function (width, color) {
+            color = color || [255, 0, 0];
             width = width || 4;
             var playedLineSymbol = new esri.symbol.CartographicLineSymbol(esri.symbol.CartographicLineSymbol.STYLE_DASH, new esri.Color(color), width, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
             return playedLineSymbol;
+        };
+        EsriMarkerGraphic.prototype.getPolygonSymbol = function (width, color) {
+            color = color || [255, 49, 0, 0.45];
+            width = width || 3;
+            var polygonSymbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_DOT, new esri.Color([151, 249, 0, .80]), width), new esri.Color(color));
+            return polygonSymbol;
+        };
+        EsriMarkerGraphic.prototype.addClass = function (className) {
+            this.symbol.className = className;
+            if (className === " " || className === null || className === undefined || !this.element) {
+                return;
+            }
+            var classList = className.split(" ");
+            for (var i = 0; i < classList.length; i++) {
+                this.element.classList.add(classList[i]);
+            }
+        };
+        EsriMarkerGraphic.prototype.removeClass = function (className) {
+            if (className === " " || className === null || className === undefined || !this.element) {
+                return;
+            }
+            var classList = className.split(" ");
+            for (var i = 0; i < classList.length; i++) {
+                this.element.classList.remove(classList[i]);
+            }
         };
         /**
          * 复制节点
@@ -2160,7 +2105,7 @@ var flagwind;
             // }
         };
         EsriMarkerGraphic.prototype.setAngle = function (angle) {
-            this.icon.setAngle(angle);
+            this.markerSymbol.setAngle(angle);
             // this.marker.getNode().style.transform = `rotate(${angle}deg)`;
             // this.marker.getNode().style["-ms-transform"] = `rotate(${angle}deg)`;
             // this.marker.getNode().style["-moz-transform"] = `rotate(${angle}deg)`;
@@ -2175,27 +2120,37 @@ var flagwind;
             if (this.options.dataType === "marker" && this.symbol) {
                 if (symbol.className) {
                     // 先删除之前的样式
-                    if (this.symbol.className) {
+                    if (this.symbol.className)
                         this.removeClass(this.symbol.className);
-                    }
                     this.addClass(symbol.className);
                 }
                 if (symbol.icon) {
                     this.marker.setSymbol(symbol.icon);
                 }
                 if (symbol.imageUrl) {
-                    this.icon.setUrl(symbol.imageUrl);
+                    this.markerSymbol.setUrl(symbol.imageUrl);
                 }
             }
-            else if (this.options.dataType === "polyline" && this.lineSymbol) {
+            else if (this.options.dataType === "polyline" && this.polylineSymbol) {
                 if (symbol.width) {
-                    this.lineSymbol.setWidth(symbol.width);
+                    this.polylineSymbol.setWidth(symbol.width);
                 }
                 if (symbol.color) {
-                    this.lineSymbol.setColor(symbol.color);
+                    this.polylineSymbol.setColor(symbol.color);
                 }
                 if (symbol.miterLimit) {
-                    this.lineSymbol.setMiterLimit(symbol.miterLimit);
+                    this.polylineSymbol.setMiterLimit(symbol.miterLimit);
+                }
+            }
+            else if (this.options.dataType === "polygon" && this.polygonSymbol) {
+                if (symbol.style) {
+                    this.polygonSymbol.setStyle(symbol.style);
+                }
+                if (symbol.color) {
+                    this.polygonSymbol.setColor(symbol.color);
+                }
+                if (symbol.outline) {
+                    this.polygonSymbol.setOutline(symbol.outline);
                 }
             }
             this.symbol = __assign({}, this.symbol, symbol);
@@ -2249,7 +2204,7 @@ var flagwind;
                     console.log("无法获取标注元素");
                     return;
                 }
-                if (_this.options.dataType === "polyline") {
+                if (_this.options.dataType === "polyline" || _this.options.dataType === "polygon") {
                     _this.attributes.longitude = _this.getPointFromPloyline().x;
                     _this.attributes.latitude = _this.getPointFromPloyline().y;
                 }
@@ -2374,6 +2329,10 @@ var flagwind;
         };
         EsriPointLayer.prototype.openInfoWindow = function (id, context, options) {
             var graphic = this.getGraphicById(id);
+            if (!graphic) {
+                console.trace("-----该条数据不在图层内！id:", id);
+                return;
+            }
             if (context) {
                 this.flagwindMap.onShowInfoWindow({
                     graphic: graphic,
@@ -2444,7 +2403,7 @@ var flagwind;
         EsriPointLayer.prototype.onCreatGraphicByModel = function (item) {
             var className = this.options.symbol.className || "graphic-tollgate";
             // let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
-            var imageUrl = this.getImageUrl(item);
+            var imageUrl = this.options.dataType === "marker" ? this.getImageUrl(item) : "";
             return new flagwind.EsriMarkerGraphic({
                 id: item.id,
                 dataType: this.options.dataType,
@@ -2452,7 +2411,8 @@ var flagwind;
                     className: className,
                     imageUrl: imageUrl,
                     width: this.options.symbol.width || 20,
-                    height: this.options.symbol.height || 27
+                    height: this.options.symbol.height || 27,
+                    color: this.options.symbol.color
                 },
                 point: this.getPoint(item),
                 // point: {
@@ -2587,10 +2547,10 @@ var flagwind;
         }
     };
     flagwind.TRACKLINE_OPTIONS = {
-        markerUrl: "../examples/scripts/images/carTop.png",
+        markerUrl: "",
         markerLabel: "",
-        markerHeight: 48,
-        markerWidth: 48
+        markerHeight: 10,
+        markerWidth: 10
     };
     var FlagwindRouteLayer = /** @class */ (function () {
         function FlagwindRouteLayer(flagwindMap, layerName, options) {
@@ -2842,7 +2802,7 @@ var flagwind;
             var trackToolBox = document.createElement("div");
             trackToolBox.setAttribute("id", "route-ctrl-group");
             trackToolBox.innerHTML = "<div class=\"tool-btns\"><span class=\"route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                <span class=\"route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                <span class=\"route-btn icon-speedDown\" title=\"\u51CF\u901F\" data-operate=\"speedDown\"></span>\n                <span class=\"route-btn icon-speedUp\" title=\"\u52A0\u901F\" data-operate=\"speedUp\"></span>\n                <span class=\"route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span></div>\n                <div class=\"tool-text\"><span></span></div>";
-            this.flagwindMap.innerMap._container.appendChild(trackToolBox);
+            this.flagwindMap.innerMap.container.appendChild(trackToolBox);
             var playBtn = document.querySelector("#route-ctrl-group .icon-continue");
             var pauseBtn = document.querySelector("#route-ctrl-group .icon-pause");
             var speedUpBtn = document.querySelector("#route-ctrl-group .icon-speedUp");
@@ -3098,21 +3058,17 @@ var flagwind;
         //     };
         // }
         EsriRouteLayer.prototype.onSetSegmentByLine = function (options, segment) {
-            var polyline = options.polyline;
-            var length = options.length;
-            if (polyline.paths.length > 0) {
-                var paths = polyline.paths;
+            segment.polyline = options.polyline;
+            segment.length = options.length;
+            if (segment.polyline.paths && segment.polyline.paths.length > 0) {
                 // 每公里抽取的点数
-                var numsOfKilometer = segment.options.numsOfKilometer;
-                if (numsOfKilometer === undefined) {
-                    numsOfKilometer = 100;
-                }
-                segment.line = flagwind.MapUtils.vacuate([paths], length, numsOfKilometer);
+                var numsOfKilometer = segment.options.numsOfKilometer ? segment.options.numsOfKilometer : 100;
+                segment.line = flagwind.MapUtils.vacuate(segment.polyline.paths, segment.length, numsOfKilometer);
             }
         };
         EsriRouteLayer.prototype.onSetSegmentByPoint = function (options, segment) {
             var points = options.points;
-            var numsOfKilometer = segment.options.numsOfKilometer;
+            var numsOfKilometer = segment.options.numsOfKilometer ? segment.options.numsOfKilometer : 100;
             var polyline = new esri.geometry.Polyline(this.flagwindMap.spatial);
             for (var i = 0; i < points.length - 1; i++) {
                 var start = points[i], end = points[i + 1];
@@ -3123,7 +3079,7 @@ var flagwind;
             }
             segment.length = esri.geometry.geodesicLengths([polyline], esri.Units.KILOMETERS)[0];
             segment.polyline = polyline;
-            segment.line = flagwind.MapUtils.vacuate([segment.polyline.paths], segment.length, numsOfKilometer);
+            segment.line = flagwind.MapUtils.vacuate(segment.polyline.paths, segment.length, numsOfKilometer);
         };
         EsriRouteLayer.prototype.onShowSegmentLine = function (segment) {
             var playedLineSymbol = new esri.symbol.CartographicLineSymbol(esri.symbol.CartographicLineSymbol.STYLE_SOLID, new esri.Color([38, 101, 196, 0.8]), 4, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
@@ -3135,9 +3091,9 @@ var flagwind;
             this.moveLineLayer.addGraphic(segment.name, segment.lineGraphic);
         };
         EsriRouteLayer.prototype.onCreateMoveMark = function (trackline, graphic, angle) {
-            var markerUrl = trackline.options.markerUrl;
-            var markerHeight = trackline.options.markerHeight || 48;
-            var markerWidth = trackline.options.markerWidth || 48;
+            var markerUrl = trackline.options.symbol.imageUrl;
+            var markerHeight = trackline.options.symbol.height;
+            var markerWidth = trackline.options.symbol.width;
             var symbol = new esri.symbol.PictureMarkerSymbol(markerUrl, markerHeight, markerWidth);
             var marker = this.getStandardGraphic(new esri.Graphic(graphic.geometry, symbol, { type: "marker", line: trackline.name }));
             trackline.markerGraphic = marker;
@@ -3429,13 +3385,15 @@ var flagwind;
                 symbol: {
                     className: "route-point",
                     imageUrl: "",
-                    width: 10,
-                    height: 10
+                    width: 48,
+                    height: 48
                 }
             };
             return _this;
         }
         EsriVehicleRouteLayer.prototype.showTrack = function (trackLineName, stopList, options) {
+            if (this.options.symbol)
+                this.vehicleOptions.symbol = __assign({}, this.vehicleOptions.symbol, this.options.symbol);
             this.vehicleOptions = __assign({}, this.vehicleOptions, options);
             var stops = this.getStopsGraphicList(stopList);
             this.solveSegment(trackLineName, stops, this.vehicleOptions);

@@ -52,7 +52,9 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
         var flagwind = flagwindMap.default;
         var mapSetting = {};
         // mapSetting.basemap = "topo";
-        mapSetting.baseUrl = "http://27.17.34.22:6080/arcgis/rest/services/YTKFQ/MapServer",//"http://27.17.34.22:6080/arcgis/rest/services/DY/MapServer";
+        mapSetting.baseUrl = "http://192.168.101.39:6080/arcgis/rest/services/yantai_2018_04_18/MapServer";
+        //"http://27.17.34.22:6080/arcgis/rest/services/YTKFQ/MapServer",
+        //"http://27.17.34.22:6080/arcgis/rest/services/DY/MapServer";
         // mapSetting.imageUrl = "http://10.52.86.242:6080/arcgis/rest/services/2013yingxiangditu/MapServer";
         // mapSetting.zhujiImageUrl = "http://10.52.86.242:6080/arcgis/rest/services/2013yingxiangzhuji/MapServer";
         mapSetting.center = [121.2701, 37.5652];
@@ -76,14 +78,20 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
             tollList: [{
                 tollCode: "1",
                 tollName: "东西湖路口东",
-                tollLongitude: 118.678011,
-                tollLatitude: 37.433081
+                tollLongitude: 121.26644,
+                tollLatitude: 37.57334
             },
             {
                 tollCode: "2",
                 tollName: "东西湖路口西",
-                tollLongitude: 118.668011,
-                tollLatitude: 37.433081
+                tollLongitude: 121.27237,
+                tollLatitude: 37.55060
+            },
+            {
+                tollCode: "3",
+                tollName: "东西湖路口",
+                tollLongitude: 121.24237,
+                tollLatitude: 37.55860
             }],
             getDataList: function () {
                 return new Promise(function (resolve, reject) {
@@ -190,7 +198,65 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
                 width: 20,
                 height: 27,
                 className: "toll"
+            }
+        });
+
+        var polygonService = {
+            deviceList: [],
+        
+            getDataList: function() {
+                var me = this;
+                return new Promise(function (resolve, reject) {
+                    if (!me.deviceList) {
+                        resolve([]);
+                        console.warn("网格数据为空！");
+                        return;
+                    }
+                    var data = [], badData = [];
+                    me.deviceList.forEach((item, index) => {
+                        if (item.id && item.polygon) {
+                            data.push(item);
+                        } else {
+                            badData.push(item);
+                        }
+                        if (index === me.deviceList.length - 1) {
+                            resolve(data);
+                            if (badData.length > 0) console.warn("未知位置网格数据：", badData);
+                        }
+                    });
+                });
             },
+        
+            getLastStatus: function() {
+                return new Promise(function (resolve, reject) {
+                    resolve([{
+                        id: "1",
+                        name: "1234567",
+                        polyline: ""
+                    }]);
+                });
+            },
+        
+            changeStandardModel: function(item) {
+                item.id = item.id;
+                item.name = item.name;
+                item.polygon = item.polygon;
+                // item.longitude = item.lon || item.tollLongitude || (item.geometry ? item.geometry.x : null);
+                // item.latitude = item.lat || item.tollLatitude || (item.geometry ? item.geometry.y : null);
+                return item;
+            }
+        };
+
+        var polygonLayer = new flagwind.EsriPointLayer(polygonService, myMap, "polygon", {
+            dataType: "polygon",
+            symbol: {
+                imageUrl: {
+                    online: "scripts/images/pin-toll.png"
+                },
+                width: 20,
+                height: 27,
+                className: "toll"
+            }
         });
 
         var selectbox = new flagwind.EsriSelectBox(myMap);
@@ -200,10 +266,28 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
         var hotmapLayer = new flagwind.EsriHeatmapLayer(myMap, {title: "热点图",});
 
         var routeLayer = new flagwind.EsriVehicleRouteLayer(myMap, "car", {routeType: "NA", 
-        markerUrl: "scripts/images/carTop.png",
-        routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route", speed: 100, trackLevel: 2});
+        symbol: {
+            className: "route-point",
+            imageUrl: "scripts/images/carTop.png",
+            width: 48,
+            height: 48
+        },
+        routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route", trackLevel: 2});
 
-        var drawLayer = new flagwind.EsriDrawLayer(myMap, {});
+        var drawLayer = new flagwind.EsriDrawLayer(myMap, {
+            drawTime: 10,
+            tolerance: 2,
+            onEvent: function(eventName, geometry) {
+                console.log(eventName, geometry);
+                if(eventName === "draw-complete" && geometry.type === "polyline") {
+                    polylineLayer.businessService.deviceList = [{id: "12dsf3", polyline: JSON.stringify(geometry.paths[0])}];
+                    polylineLayer.showDataList();
+                } else if(eventName === "draw-complete" && geometry.type === "polygon") {
+                    polygonLayer.businessService.deviceList = [{id: "12dsf3", polygon: JSON.stringify(geometry.rings[0])}];
+                    polygonLayer.showDataList();
+                }
+            }
+        });
 
         // var editLayer = new flagwind.EsriEditLayer(tollgateLayer, {});
 
@@ -227,8 +311,10 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
         var clearRouteBtn = document.querySelector(".clearRoute");
         var showPolylineBtn = document.querySelector(".showPolyline");
         var drawPolylineBtn = document.querySelector(".drawPolyline");
-        var clearPolylineBtn = document.querySelector(".clearPolyline");
-        var finishPolylineBtn = document.querySelector(".finishPolyline");
+        var drawPolygonBtn = document.querySelector(".drawPolygon");
+        var drawFreeHandBtn = document.querySelector(".drawFreeHand");
+        // var clearPolylineBtn = document.querySelector(".clearPolyline");
+        // var finishPolylineBtn = document.querySelector(".finishPolyline");
 
         addBtn.onclick = function(){
             tollgateLayer.showDataList();
@@ -278,15 +364,15 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
             hotmapLayer.clear();
         };
         showRouteBtn.onclick = function(){
-            var dataList = [{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"203100009600201803190748072766","regionID":"370503","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"203100009600","tollName":"河口区S310省道9KM+600M处","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁E1215K","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 07:48:07","speed":"35","url":"ftp://guoche:guoche@10.52.120.15:21/guocheData/kakou/201803/Hisense/3C003A9PAJ00126/19/07/37050300000003002220180319074807938.jpg","year":"2018","month":"201803","day":"20180319","hour":"07","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"4062","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"943,582,419,302","tollLongitude":118.83786,"tollLatitude":37.94523,"brandYearName":"2012","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"1","tollTypeName":"","communityID":"0","communityName":"","reliability":"98","dataCompanyCode":"05","face":"","score":0.0,"featureData":"MSh/neOxjNr0eWNoC5yabr0syAHwhGOiyc78H1vw3Vw=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"203100000650201803190750215440","regionID":"370503","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"203100000650","tollName":"河口区S310-兴港路1卡口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁E1215K","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 07:50:21","speed":"51","url":"ftp://guoche:guoche@10.52.120.15:21/guocheData/kakou/201803/Hisense/370503000000030019/19/07/37050300000003001920180319075021166.jpg","year":"2018","month":"201803","day":"20180319","hour":"07","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"4062","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"458,468,806,726","tollLongitude":118.90509,"tollLatitude":38.02963,"brandYearName":"2012","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"1","tollTypeName":"","communityID":"0","communityName":"","reliability":"99","dataCompanyCode":"05","face":"","score":0.0,"featureData":"MSh/neexjNrVfUNIi5n6Tr0+iACQhGOyycbcF3vUnVQ=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"203100008000201803190757288793","regionID":"370503","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"203100008000","tollName":"河口区S310-兴港路2卡口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁E1215K","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 07:57:28","speed":"62","url":"ftp://guoche:guoche@10.52.120.15:21/guocheData/kakou/201803/Hisense/370503000000030020/19/07/37050300000003002020180319075728851.jpg","year":"2018","month":"201803","day":"20180319","hour":"07","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"4062","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"439,349,838,733","tollLongitude":118.90588,"tollLatitude":38.03829,"brandYearName":"2012","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"1","tollTypeName":"","communityID":"0","communityName":"","reliability":"99","dataCompanyCode":"05","face":"","score":0.0,"featureData":"ESh/neexjNqV/WNoi53STr08yAKwhGOyyc7cF3vwnVw=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"272010002800201803190800354652","regionID":"370502","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"272010002800","tollName":"东营港经济开发区东港高速2KM+800M处","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁E1215K","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 08:00:35","speed":"61","url":"ftp://guoche:guoche@10.52.120.14:21/guoche/guocheData/201803/zhongmeng/272010002800/19/08/37050000000002000520180319080035954_V1(0)V2(0)S(61)0224K.jpg","year":"2018","month":"201803","day":"20180319","hour":"08","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"4062","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"1949,1194,541,434","tollLongitude":118.95507,"tollLatitude":37.07592,"brandYearName":"2012","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"1","tollTypeName":"","communityID":"0","communityName":"","reliability":"97","dataCompanyCode":"05","face":"","score":0.0,"featureData":"ESh/nefxDN7UfUJIi5n6Tt04iACUhGOyyM7cF1v0/Uw=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"370505040031009201803190931024166","regionID":"370505","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"370505040031009","tollName":"丽港国际东门进口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"--------","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 09:31:02","speed":"0","url":"http://10.52.86.12:8106/d/1000004$1$0$0/20180319/09/1620-377438-0.jpg?streamID:63@capTime:1521422172","year":"2018","month":"201803","day":"20180319","hour":"09","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"9007","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"1145,328,460,340","tollLongitude":98.3455,"tollLatitude":25.5454,"brandYearName":"2012&2015","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"7","tollTypeName":"","communityID":"0","communityName":"","reliability":"44","dataCompanyCode":"04","face":"","score":0.0,"featureData":"CXlsnfslZhOvEordH0ROcpPAOYPWYFTY0iva2a609wM=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"370505040031009201803190934423956","regionID":"370505","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"370505040031009","tollName":"丽港国际东门进口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁E173C7","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 09:34:42","speed":"0","url":"http://10.52.86.12:8106/d/1000004$1$0$0/20180319/09/1953-377523-0.jpg?streamID:63@capTime:1521422381","year":"2018","month":"201803","day":"20180319","hour":"09","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"9007","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"1159,334,444,334","tollLongitude":98.3455,"tollLatitude":25.5454,"brandYearName":"2012&2015","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"7","tollTypeName":"","communityID":"0","communityName":"","reliability":"55","dataCompanyCode":"04","face":"","score":0.0,"featureData":"CXFtnbslZRvvFpLcV1xMcpPAGY3WYETw1mPa26608wM=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"370505040031009201803190936023963","regionID":"370505","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"370505040031009","tollName":"丽港国际东门进口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"--------","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 09:36:02","speed":"0","url":"http://10.52.86.12:8106/d/1000004$1$0$0/20180319/09/1620-377438-0.jpg?streamID:63@capTime:1521422172","year":"2018","month":"201803","day":"20180319","hour":"09","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"9007","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"1145,328,460,340","tollLongitude":98.3455,"tollLatitude":25.5454,"brandYearName":"2012&2015","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"7","tollTypeName":"","communityID":"0","communityName":"","reliability":"44","dataCompanyCode":"04","face":"","score":0.0,"featureData":"CXlsnfslZhOvEordH0ROcpPAOYPWYFTY0iva2a609wM=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"370505040031009201803190947224063","regionID":"370505","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"370505040031009","tollName":"丽港国际东门进口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"--------","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 09:47:22","speed":"0","url":"http://10.52.86.12:8106/d/1000004$1$0$0/20180319/09/3243-377825-0.jpg?streamID:63@capTime:1521423155","year":"2018","month":"201803","day":"20180319","hour":"09","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"9007","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"1145,335,452,319","tollLongitude":98.3455,"tollLatitude":25.5454,"brandYearName":"2012&2015","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"7","tollTypeName":"","communityID":"0","communityName":"","reliability":"37","dataCompanyCode":"04","face":"","score":0.0,"featureData":"CXl0nfs1YxPvEor8HkROchPIOYDXYFTQ1iLa2+6k9wM=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"370505040031009201803190951024249","regionID":"370505","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"370505040031009","tollName":"丽港国际东门进口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"--------","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 09:51:02","speed":"0","url":"http://10.52.86.12:8106/d/1000004$1$0$0/20180319/09/3243-377825-0.jpg?streamID:63@capTime:1521423155","year":"2018","month":"201803","day":"20180319","hour":"09","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"9007","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"1145,335,452,319","tollLongitude":98.3455,"tollLatitude":25.5454,"brandYearName":"2012&2015","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"7","tollTypeName":"","communityID":"0","communityName":"","reliability":"37","dataCompanyCode":"04","face":"","score":0.0,"featureData":"CXl0nfs1YxPvEor8HkROchPIOYDXYFTQ1iLa2+6k9wM=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"370505040031009201803191002224137","regionID":"370505","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"370505040031009","tollName":"丽港国际东门进口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁EM8878","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"H","vehicleColorName":"蓝色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 10:02:22","speed":"0","url":"http://10.52.86.12:8106/d/1000004$1$0$0/20180319/09/4724-378174-0.jpg?streamID:63@capTime:1521424031","year":"2018","month":"201803","day":"20180319","hour":"10","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"9007","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"1167,337,437,330","tollLongitude":98.3455,"tollLatitude":25.5454,"brandYearName":"2012&2015","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"7","tollTypeName":"","communityID":"0","communityName":"","reliability":"74","dataCompanyCode":"04","face":"","score":0.0,"featureData":"KXl9nbslZxrrFoL9BkBMcoPQGY3WYETa1iL626608wM=","imei":"","imsi":""}];
+            var dataList = [{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"203100009600201803190748072766","regionID":"370503","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"203100009600","tollName":"河口区S310省道9KM+600M处","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁E1215K","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 07:48:07","speed":"35","url":"ftp://guoche:guoche@10.52.120.15:21/guocheData/kakou/201803/Hisense/3C003A9PAJ00126/19/07/37050300000003002220180319074807938.jpg","year":"2018","month":"201803","day":"20180319","hour":"07","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"4062","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"943,582,419,302","tollLongitude":121.26644,"tollLatitude":37.57334,"brandYearName":"2012","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"1","tollTypeName":"","communityID":"0","communityName":"","reliability":"98","dataCompanyCode":"05","face":"","score":0.0,"featureData":"MSh/neOxjNr0eWNoC5yabr0syAHwhGOiyc78H1vw3Vw=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"203100000650201803190750215440","regionID":"370503","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"203100000650","tollName":"河口区S310-兴港路1卡口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁E1215K","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 07:50:21","speed":"51","url":"ftp://guoche:guoche@10.52.120.15:21/guocheData/kakou/201803/Hisense/370503000000030019/19/07/37050300000003001920180319075021166.jpg","year":"2018","month":"201803","day":"20180319","hour":"07","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"4062","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"458,468,806,726","tollLongitude":121.27237,"tollLatitude":37.55060,"brandYearName":"2012","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"1","tollTypeName":"","communityID":"0","communityName":"","reliability":"99","dataCompanyCode":"05","face":"","score":0.0,"featureData":"MSh/neexjNrVfUNIi5n6Tr0+iACQhGOyycbcF3vUnVQ=","imei":"","imsi":""},{"areaID":null,"equipmentCode":"","laneCode":null,"roadDirectionCode":null,"inOutDirectionCode":null,"segmentDirectionCode":null,"roadCode":null,"roadSegmentCode":null,"chargeStationCode":null,"serviceDistrictCode":null,"tollPointCode":null,"brandReliability":null,"plateReliability":null,"dangerousVehicle":null,"rowKey":"203100008000201803190757288793","regionID":"370503","regionName":"","directionCode":"","directionName":"","cityID":"370500","cityName":"","tollCode":"203100008000","tollName":"河口区S310-兴港路2卡口","vehiclePlate":"鲁E1215K","vehiclePlateSrc":"鲁E1215K","vehicleTypeCode":"02","vehicleTypeName":"小型汽车","vehicleColor":"J","vehicleColorName":"黑色","brandName":"大众","childBrandName":"迈腾","speciesName":"轿车","time":"2018-03-19 07:57:28","speed":"62","url":"ftp://guoche:guoche@10.52.120.15:21/guocheData/kakou/201803/Hisense/370503000000030020/19/07/37050300000003002020180319075728851.jpg","year":"2018","month":"201803","day":"20180319","hour":"07","week":"2","dataClassify":"1","plateColor":"蓝牌","brand":"0034","childBrand":"0596","brandYear":"4062","model":"K33","modelName":"小型轿车","species":"02","manufacturer":"0185","manufacturerName":"一汽大众","headOrTail":"1","vehiclePosition":"439,349,838,733","tollLongitude":121.24237,"tollLatitude":37.55860,"brandYearName":"2012","firstTimeInCity":0,"firstTimeInCounty":0,"firstTimeInCommunity":0,"tollTypeCode":"1","tollTypeName":"","communityID":"0","communityName":"","reliability":"99","dataCompanyCode":"05","face":"","score":0.0,"featureData":"ESh/neexjNqV/WNoi53STr08yAKwhGOyyc7cF3vwnVw=","imei":"","imsi":""}];
             routeLayer.showTrack("trackline", dataList, {
-                speed: 200,
-                symbol: {
-                    className: "route-point",
-                    imageUrl: "scripts/images/elliptical.png",
-                    width: 10,
-                    height: 10
-                }
+                speed: 0.05
+                // symbol: {
+                //     className: "route-point",
+                //     imageUrl: "scripts/images/carTop.png",
+                //     width: 48,
+                //     height: 48
+                // }
             });
         };
         playBtn.onclick = function(){
@@ -305,14 +391,20 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
             polylineLayer.showDataList();
         };
         drawPolylineBtn.onclick = function(){
-            drawLayer.draw("draw-line");
+            drawLayer.activate("POLYLINE", {color: [0, 255, 0]});
         };
-        clearPolylineBtn.onclick = function(){
-            drawLayer.clear();
+        drawPolygonBtn.onclick = function(){
+            drawLayer.activate("POLYGON");
         };
-        finishPolylineBtn.onclick = function(){
-            drawLayer.finish();
+        drawFreeHandBtn.onclick = function(){
+            drawLayer.activate("FREEHAND_POLYGON", {color: [147,196,44, 0.8], oulineColor: [0, 0, 255]});
         };
+        // clearPolylineBtn.onclick = function(){
+        //     drawLayer.clear();
+        // };
+        // finishPolylineBtn.onclick = function(){
+        //     drawLayer.finish();
+        // };
 
 
     }

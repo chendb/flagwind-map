@@ -240,48 +240,19 @@ declare namespace flagwind {
      * 绘制图层
      */
     class EsriDrawLayer {
+        private symbolSetting;
         flagwindMap: FlagwindMap;
+        draw: any;
+        mode: any;
         options: any;
-        drawLayer: any;
-        lineLayer: any;
-        stopsLayer: any;
-        barriersLayer: any;
-        routeSymbol: any;
-        stopSymbol: any;
-        barrierSymbol: any;
-        routes: Array<any>;
-        routeTask: any;
-        routeParams: any;
-        MAPONCLICH_ADDSTOPS: any;
-        MAPONCLICH_ADDBARRIERS: any;
         constructor(flagwindMap: FlagwindMap, options?: any);
-        draw(): void;
+        activate(mode: string, options?: any): void;
         clear(): void;
-        finish(): Promise<{}>;
-        clearDrawLayer(): void;
-        private addStop();
-        private createDrawLayer();
-        private createDrawSymbol();
-        private createDrawRoute();
-        private addDrawGraphic(geometry);
-        /**
-         * 清除障碍点
-         */
-        private clearBarriers();
-        /**
-         * 清除停靠点
-         */
-        private clearStops();
-        /**
-         * 清除路径信息
-         */
-        private clearRoutes();
-        /**
-         * 显示路径信息
-         */
-        private showRoute(evt);
-        private errorHandler(err);
-        private removeEventHandlers();
+        finish(): void;
+        private setSymbol(mode, options);
+        private onDrawComplete(evt);
+        private readonly lineSymbol;
+        private readonly fillSymbol;
     }
 }
 declare let esri: any;
@@ -509,19 +480,27 @@ declare namespace flagwind {
         symbol: any;
         marker: any;
         element: any;
-        icon: any;
+        markerSymbol: any;
         polyline: any;
-        lineSymbol: any;
+        polylineSymbol: any;
+        polygon: any;
+        polygonSymbol: any;
         attributes: any;
         options: any;
         spatial: any;
         layer: IEsriGraphicsLayer;
         constructor(options: any);
-        addClass(className: string): void;
-        removeClass(className: string): void;
+        createMarker(): any;
+        createPolylineMarker(): any;
+        createPolygonMarker(): any;
         getPointFromPloyline(): any;
         toPolyline(strLine: string, spatial: any): any;
-        getLineSymbol(item: any, width?: number, color?: Array<number>): any;
+        toPolygon(strPolygon: string): any;
+        getMarkerSymbol(): any;
+        getLineSymbol(width?: number, color?: Array<number>): any;
+        getPolygonSymbol(width?: number, color?: Array<number>): any;
+        addClass(className: string): void;
+        removeClass(className: string): void;
         /**
          * 复制节点
          * @param id 元素ID

@@ -240,7 +240,7 @@ namespace flagwind {
             let pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             let screenpt = this.innerMap.toScreen(pt);
             let title = info.name;
-            if(graphic.options.dataType === "polyline") screenpt = {x: info.offsetX, y: info.offsetY};
+            if(graphic.options.dataType === "polyline" || graphic.options.dataType === "polygon") screenpt = {x: info.offsetX, y: info.offsetY};
             (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
             (<any>this).tooltipElement.style.left = (screenpt.x + 15) + "px";
             (<any>this).tooltipElement.style.top = (screenpt.y + 15) + "px";

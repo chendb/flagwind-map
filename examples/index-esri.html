@@ -41,32 +41,42 @@
         .minemap-popup {
             max-width: 200px;
         }
+
+        .btns{
+            position: absolute;
+            top: 0;
+            z-index: 10;
+        }
     
     </style>
 </head>
 
 <body>
-    <button class="tollgate">添加卡口</button>
-    <button class="clear">清除卡口</button>
-    <button class="centerAt">定位到卡口</button>
-    <button class="activeEdit">编辑卡口</button>
-    <button class="openInfoWindow">打开信息框</button>
-    <button class="closeInfoWindow">关闭信息框</button>
-    <button class="setSelectedToll">设置选择卡口</button>
-    <button class="getSelectedToll">获取选择卡口</button>
-    <button class="clearSelectedToll">清除选择卡口</button>
-    <button class="showSelectBar">显示框选工具</button>
-    <button class="showHeatMap">显示热点图</button>
-    <button class="closeHeatMap">关闭热点图</button>
-    <button class="showRoute">显示轨迹</button>
-    <button class="play">播放</button>
-    <button class="continue">继续</button>
-    <button class="pause">暂停</button>
-    <button class="clearRoute">清除轨迹</button>
-    <button class="showPolyline">显示polyline</button>
-    <button class="drawPolyline">画polyline</button>
-    <button class="clearPolyline">清除polyline</button>
-    <button class="finishPolyline">完成polyline</button>
+    <div class="btns">
+        <button class="tollgate">添加卡口</button>
+        <button class="clear">清除卡口</button>
+        <button class="centerAt">定位到卡口</button>
+        <button class="activeEdit">编辑卡口</button>
+        <button class="openInfoWindow">打开信息框</button>
+        <button class="closeInfoWindow">关闭信息框</button>
+        <button class="setSelectedToll">设置选择卡口</button>
+        <button class="getSelectedToll">获取选择卡口</button>
+        <button class="clearSelectedToll">清除选择卡口</button>
+        <button class="showSelectBar">显示框选工具</button>
+        <button class="showHeatMap">显示热点图</button>
+        <button class="closeHeatMap">关闭热点图</button>
+        <button class="showRoute">显示轨迹</button>
+        <button class="play">播放</button>
+        <button class="continue">继续</button>
+        <button class="pause">暂停</button>
+        <button class="clearRoute">清除轨迹</button>
+        <button class="showPolyline">显示polyline</button>
+        <button class="drawPolyline">绘制polyline</button>
+        <button class="drawPolygon">绘制polygon</button>
+        <button class="drawFreeHand">绘制多边形</button>
+        <!-- <button class="clearPolyline">清除polyline</button> -->
+        <!-- <button class="finishPolyline">完成polyline</button> -->
+    </div>
     <div id="map"></div>
     
 </body>

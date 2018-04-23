@@ -22,21 +22,18 @@ namespace flagwind {
         // }
 
         public onSetSegmentByLine(options: any, segment: TrackSegment) {
-            let polyline = options.polyline;
-            let length = options.length;
-            if (polyline.paths.length > 0) {
-                let paths = polyline.paths;
+            segment.polyline = options.polyline;
+            segment.length = options.length;
+            if (segment.polyline.paths && segment.polyline.paths.length > 0) {
                 // 每公里抽取的点数
-                let numsOfKilometer = segment.options.numsOfKilometer;
-                if (numsOfKilometer === undefined) {
-                    numsOfKilometer = 100;
-                }
-                segment.line = MapUtils.vacuate([paths], length, numsOfKilometer);
+                let numsOfKilometer = segment.options.numsOfKilometer ? segment.options.numsOfKilometer : 100;
+
+                segment.line = MapUtils.vacuate(segment.polyline.paths, segment.length, numsOfKilometer);
             }
         }
         public onSetSegmentByPoint(options: any, segment: TrackSegment) {
             let points = options.points;
-            let numsOfKilometer = segment.options.numsOfKilometer;
+            let numsOfKilometer = segment.options.numsOfKilometer ? segment.options.numsOfKilometer : 100;
             const polyline = new esri.geometry.Polyline(this.flagwindMap.spatial);
             for (let i = 0; i < points.length - 1; i++) {
                 const start = points[i], end = points[i + 1];
@@ -47,7 +44,7 @@ namespace flagwind {
             }
             segment.length = esri.geometry.geodesicLengths([polyline], esri.Units.KILOMETERS)[0];
             segment.polyline = polyline;
-            segment.line = MapUtils.vacuate([segment.polyline.paths], segment.length, numsOfKilometer);
+            segment.line = MapUtils.vacuate(segment.polyline.paths, segment.length, numsOfKilometer);
         }
 
         public onShowSegmentLine(segment: TrackSegment) {
@@ -65,9 +62,9 @@ namespace flagwind {
         }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
-            let markerUrl = trackline.options.markerUrl;
-            let markerHeight = trackline.options.markerHeight || 48;
-            let markerWidth = trackline.options.markerWidth || 48;
+            let markerUrl = trackline.options.symbol.imageUrl;
+            let markerHeight = trackline.options.symbol.height;
+            let markerWidth = trackline.options.symbol.width;
             let symbol = new esri.symbol.PictureMarkerSymbol(markerUrl, markerHeight, markerWidth);
             let marker = this.getStandardGraphic(new esri.Graphic(graphic.geometry, symbol, { type: "marker", line: trackline.name }));
             trackline.markerGraphic = marker;

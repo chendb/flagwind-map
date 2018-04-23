@@ -89,6 +89,10 @@ namespace flagwind {
 
         public gotoCenterById(key: string): void {
             const graphic = this.getGraphicById(key);
+            if(!graphic) {
+                console.trace("-----该条数据不在图层内！id:", key);
+                return;
+            }
             const pt = this.getPoint(graphic.attributes);
             this.flagwindMap.centerAt(pt.x, pt.y);
         }
@@ -231,7 +235,7 @@ namespace flagwind {
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
                 this.on("onMouseOver", (evt: EventArgs) => {
-                    if(evt.data.graphic.options.dataType === "polyline") {
+                    if(evt.data.graphic.options.dataType === "polyline" || evt.data.graphic.options.dataType === "polygon") {
                         evt.data.graphic.attributes.offsetX = evt.data.evt.offsetX;
                         evt.data.graphic.attributes.offsetY = evt.data.evt.offsetY;
                     }
@@ -297,10 +301,10 @@ namespace flagwind {
         protected abstract onChangeStandardModel(item: any): any;
 
         protected onValidModel(item: any) {
-            if(this.options.dataType === "marker") {
-                return item.longitude && item.latitude;
-            } else if(this.options.dataType === "polyline") {
-                return item.id && item.polyline;
+            switch (this.options.dataType) {
+                case "marker": return item.longitude && item.latitude;
+                case "polyline": return item.id && item.polyline;
+                case "polygon": return item.id && item.polygon;
             }
         }
     }

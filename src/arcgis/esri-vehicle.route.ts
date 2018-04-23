@@ -6,12 +6,13 @@ namespace flagwind {
             symbol: {
                 className: "route-point",
                 imageUrl: "",
-                width: 10,
-                height: 10
+                width: 48,
+                height: 48
             }
         };
 
         public showTrack(trackLineName: string, stopList: Array<any>, options: any): void {
+            if(this.options.symbol) this.vehicleOptions.symbol = {...this.vehicleOptions.symbol, ...this.options.symbol};
             this.vehicleOptions = {...this.vehicleOptions, ...options};
             let stops = this.getStopsGraphicList(stopList);
             this.solveSegment(trackLineName, stops, this.vehicleOptions);

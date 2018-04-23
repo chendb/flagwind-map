@@ -20,6 +20,10 @@ namespace flagwind {
         
         public openInfoWindow(id: string, context: any, options: any) {
             let graphic = this.getGraphicById(id);
+            if(!graphic) {
+                console.trace("-----该条数据不在图层内！id:", id);
+                return;
+            }
             if (context) {
                 this.flagwindMap.onShowInfoWindow({
                     graphic: graphic,
@@ -96,7 +100,7 @@ namespace flagwind {
         public onCreatGraphicByModel(item: any): any {
             let className = this.options.symbol.className || "graphic-tollgate";
             // let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
-            let imageUrl = this.getImageUrl(item);
+            let imageUrl = this.options.dataType === "marker" ? this.getImageUrl(item) : "";
             return new EsriMarkerGraphic({
                 id: item.id,
                 dataType: this.options.dataType,
@@ -104,7 +108,8 @@ namespace flagwind {
                     className: className,
                     imageUrl: imageUrl,
                     width: this.options.symbol.width || 20,
-                    height: this.options.symbol.height || 27
+                    height: this.options.symbol.height || 27,
+                    color: this.options.symbol.color
                 },
                 point: this.getPoint(item),
                 // point: {

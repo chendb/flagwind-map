@@ -16,11 +16,14 @@ namespace flagwind {
 
         public marker: any;
         public element: any;
-        public icon: any;
+        public markerSymbol: any;
         // public infoTemplate: any;
 
         public polyline: any;
-        public lineSymbol: any;
+        public polylineSymbol: any;
+
+        public polygon: any;
+        public polygonSymbol: any;
 
         public attributes: any;
         public options: any;
@@ -37,24 +40,17 @@ namespace flagwind {
             this.attributes = options.attributes ? options.attributes : {};
 
             if(this.options.dataType === "marker") {
-                this.symbol = options.symbol ? options.symbol : {};
-                this.icon = options.icon;
-                if ((!this.icon) && this.symbol.imageUrl) {
-                    this.icon = new esri.symbol.PictureMarkerSymbol(this.symbol.imageUrl, this.symbol.width, this.symbol.height);
+                this.marker = this.createMarker();
+                if (this.options.point) {
+                    this.geometry = new EsriPoint(this.options.point.x, this.options.point.y, this.spatial).point;
                 }
-                // this.infoTemplate = new esri.InfoTemplate("", this.attributes.name);
-                // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
-                this.marker = new esri.Graphic(options.point, this.icon, options);
-                if (options.point) {
-                    this.geometry = new EsriPoint(options.point.x, options.point.y, this.spatial).point;
-                }
-                if (options.geometry) {
-                    this.geometry = options.geometry;
+                if (this.options.geometry) {
+                    this.geometry = this.options.geometry;
                 }
             } else if(this.options.dataType === "polyline") {
-                this.polyline = this.toPolyline(this.attributes.polyline, this.spatial);
-                this.lineSymbol = this.getLineSymbol(this.attributes, 4, [255, 0, 0]);
-                this.marker = new esri.Graphic(this.polyline, this.lineSymbol, this.attributes);
+                this.marker = this.createPolylineMarker();
+            } else if(this.options.dataType === "polygon") {
+                this.marker = this.createPolygonMarker();
             }
 
             // this.element = this.marker.getNode();
@@ -68,25 +64,23 @@ namespace flagwind {
             // }
         }
 
-        public addClass(className: string) {
-            this.symbol.className = className;
-            if (className === " " || className === null || className === undefined || !this.element) {
-                return;
-            }
-            let classList = className.split(" ");
-            for (let i = 0; i < classList.length; i++) {
-                this.element.classList.add(classList[i]);
-            }
+        public createMarker() {
+            this.markerSymbol = this.getMarkerSymbol();
+            // this.infoTemplate = new esri.InfoTemplate("", this.attributes.name);
+            // let pt = new esri.geometry.Point(options.point.x, options.point.y, this.spatial);
+            return new esri.Graphic(this.options.point, this.markerSymbol, this.options);
         }
 
-        public removeClass(className: string) {
-            if (className === " " || className === null || className === undefined || !this.element) {
-                return;
-            }
-            let classList = className.split(" ");
-            for (let i = 0; i < classList.length; i++) {
-                this.element.classList.remove(classList[i]);
-            }
+        public createPolylineMarker() {
+            this.polyline = this.toPolyline(this.attributes.polyline, this.spatial);
+            this.polylineSymbol = this.getLineSymbol(this.options.symbol.width, this.options.symbol.color);
+            return new esri.Graphic(this.polyline, this.polylineSymbol, this.attributes);
+        }
+
+        public createPolygonMarker() {
+            this.polygon = this.toPolygon(this.attributes.polygon);
+            this.polygonSymbol = this.getPolygonSymbol(this.options.symbol.width, this.options.symbol.color);
+            return new esri.Graphic(this.polygon, this.polygonSymbol, this.attributes);
         }
 
         public getPointFromPloyline() {
@@ -98,7 +92,7 @@ namespace flagwind {
 
         public toPolyline(strLine: string, spatial: any) {
             if (!strLine) return null;
-            strLine = JSON.parse(strLine);
+            if (typeof strLine === "string") strLine = JSON.parse(strLine);
             let line = new esri.geometry.Polyline(spatial);
             for (let i = 1; i < strLine.length; i++) {
                 if(!strLine[i] || strLine[i].length < 2) continue;
@@ -121,14 +115,65 @@ namespace flagwind {
             // return line;
         }
 
-        public getLineSymbol(item: any, width?: number, color?: Array<number>) {
-            color = color || [38, 101, 196];
+        public toPolygon(strPolygon: string) {
+            if (!strPolygon) return null;
+            if (typeof strPolygon === "string") strPolygon = JSON.parse(strPolygon);
+            return new esri.geometry.Polygon(strPolygon);
+        }
+
+        public getMarkerSymbol() {
+            this.symbol = this.options.symbol ? this.options.symbol : {};
+            let markerSymbol = this.options.markerSymbol;
+            if ((!markerSymbol) && this.symbol.imageUrl) {
+                markerSymbol = new esri.symbol.PictureMarkerSymbol(this.symbol.imageUrl, this.symbol.width, this.symbol.height);
+            }
+            return markerSymbol;
+        }
+
+        public getLineSymbol(width?: number, color?: Array<number>) {
+            color = color || [255, 0, 0];
             width = width || 4;
             let playedLineSymbol = new esri.symbol.CartographicLineSymbol(
                 esri.symbol.CartographicLineSymbol.STYLE_DASH, new esri.Color(color), width,
                 esri.symbol.CartographicLineSymbol.CAP_ROUND,
                 esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
             return playedLineSymbol;
+        }
+
+        public getPolygonSymbol(width?: number, color?: Array<number>) {
+            color = color || [255, 49, 0, 0.45];
+            width = width || 3;
+            let polygonSymbol = new esri.symbol.SimpleFillSymbol(
+                esri.symbol.SimpleFillSymbol.STYLE_SOLID,
+                new esri.symbol.SimpleLineSymbol(
+                    esri.symbol.SimpleLineSymbol.STYLE_DOT,
+                    new esri.Color([151, 249, 0, .80]),
+                    width
+                ),
+                new esri.Color(color)
+            );
+            return polygonSymbol;
+        }
+
+        public addClass(className: string) {
+            this.symbol.className = className;
+            if (className === " " || className === null || className === undefined || !this.element) {
+                return;
+            }
+            let classList = className.split(" ");
+            for (let i = 0; i < classList.length; i++) {
+                this.element.classList.add(classList[i]);
+            }
+        }
+
+        public removeClass(className: string) {
+            if (className === " " || className === null || className === undefined || !this.element) {
+                return;
+            }
+            let classList = className.split(" ");
+            for (let i = 0; i < classList.length; i++) {
+                this.element.classList.remove(classList[i]);
+            }
         }
 
         /**
@@ -216,7 +261,7 @@ namespace flagwind {
         }
 
         public setAngle(angle: number) {
-            this.icon.setAngle(angle);
+            this.markerSymbol.setAngle(angle);
             // this.marker.getNode().style.transform = `rotate(${angle}deg)`;
             // this.marker.getNode().style["-ms-transform"] = `rotate(${angle}deg)`;
             // this.marker.getNode().style["-moz-transform"] = `rotate(${angle}deg)`;
@@ -233,26 +278,34 @@ namespace flagwind {
             if(this.options.dataType === "marker" && this.symbol) {
                 if (symbol.className) {
                     // 先删除之前的样式
-                    if (this.symbol.className) {
-                        this.removeClass(this.symbol.className);
-                    }
+                    if (this.symbol.className) this.removeClass(this.symbol.className);
                     this.addClass(symbol.className);
                 }
                 if (symbol.icon) {
                     this.marker.setSymbol(symbol.icon);
                 }
                 if (symbol.imageUrl) {
-                    this.icon.setUrl(symbol.imageUrl);
+                    this.markerSymbol.setUrl(symbol.imageUrl);
                 }
-            } else if(this.options.dataType === "polyline" && this.lineSymbol) {
+            } else if(this.options.dataType === "polyline" && this.polylineSymbol) {
                 if(symbol.width) {
-                    this.lineSymbol.setWidth(symbol.width);
+                    this.polylineSymbol.setWidth(symbol.width);
                 }
                 if(symbol.color) {
-                    this.lineSymbol.setColor(symbol.color);
+                    this.polylineSymbol.setColor(symbol.color);
                 }
                 if(symbol.miterLimit) {
-                    this.lineSymbol.setMiterLimit(symbol.miterLimit);
+                    this.polylineSymbol.setMiterLimit(symbol.miterLimit);
+                }
+            } else if(this.options.dataType === "polygon" && this.polygonSymbol) {
+                if(symbol.style) {
+                    this.polygonSymbol.setStyle(symbol.style);
+                }
+                if(symbol.color) {
+                    this.polygonSymbol.setColor(symbol.color);
+                }
+                if(symbol.outline) {
+                    this.polygonSymbol.setOutline(symbol.outline);
                 }
             }
 
@@ -304,7 +357,7 @@ namespace flagwind {
             layer.on("graphic-node-add", () => {
                 if(!this.marker.getNode()) { console.log("无法获取标注元素"); return; }
                 
-                if(this.options.dataType === "polyline") {
+                if(this.options.dataType === "polyline" || this.options.dataType === "polygon") {
                     this.attributes.longitude = this.getPointFromPloyline().x;
                     this.attributes.latitude = this.getPointFromPloyline().y;
                 }
