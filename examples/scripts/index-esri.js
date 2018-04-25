@@ -1,4 +1,4 @@
-var arcgisBasePath = 'http://27.17.34.22:8081/arcgis4js/library/3.16/';
+var arcgisBasePath = 'http://27.17.34.22:8081/arcgis_js_v321_api/arcgis_js_api/library/3.21/3.21/';
 require.config({
     //By default load any module IDs from js/lib
     baseUrl: 'scripts/lib',
