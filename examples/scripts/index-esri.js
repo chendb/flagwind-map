@@ -1,4 +1,4 @@
-var arcgisBasePath = 'http://27.17.34.22:8081/arcgis_js_v321_api/arcgis_js_api/library/3.21/3.21/';
+var arcgisBasePath = 'http://27.17.34.22:8081/arcgis4js/library/3.16/';
 require.config({
     //By default load any module IDs from js/lib
     baseUrl: 'scripts/lib',
@@ -52,7 +52,7 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
         var flagwind = flagwindMap.default;
         var mapSetting = {};
         // mapSetting.basemap = "topo";
-        mapSetting.baseUrl = "http://192.168.101.39:6080/arcgis/rest/services/yantai_2018_04_18/MapServer";
+        mapSetting.baseUrl = "http://192.168.101.39:6080/arcgis/rest/services/yantai_2018_04_28/MapServer";
         //"http://27.17.34.22:6080/arcgis/rest/services/YTKFQ/MapServer",
         //"http://27.17.34.22:6080/arcgis/rest/services/DY/MapServer";
         // mapSetting.imageUrl = "http://10.52.86.242:6080/arcgis/rest/services/2013yingxiangditu/MapServer";

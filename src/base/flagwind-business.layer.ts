@@ -235,9 +235,10 @@ namespace flagwind {
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
                 this.on("onMouseOver", (evt: EventArgs) => {
-                    if(evt.data.graphic.options.dataType === "polyline" || evt.data.graphic.options.dataType === "polygon") {
-                        evt.data.graphic.attributes.offsetX = evt.data.evt.offsetX;
-                        evt.data.graphic.attributes.offsetY = evt.data.evt.offsetY;
+                    // 增加Tooltip点位避免页面出现闪烁
+                    if (evt.data.graphic.options.dataType === "polyline" || evt.data.graphic.options.dataType === "polygon") {
+                        evt.data.graphic.attributes.tooltipX = evt.data.evt.layerX;
+                        evt.data.graphic.attributes.tooltipY = evt.data.evt.layerY;
                     }
                     _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
                     _deviceLayer.fireEvent("onMouseOver", evt.data);

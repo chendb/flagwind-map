@@ -497,8 +497,12 @@ declare namespace flagwind {
         toPolyline(strLine: string, spatial: any): any;
         toPolygon(strPolygon: string): any;
         getMarkerSymbol(): any;
-        getLineSymbol(width?: number, color?: Array<number>): any;
-        getPolygonSymbol(width?: number, color?: Array<number>): any;
+        getLineSymbol(symbol?: any): any;
+        getPolygonSymbol(symbol?: any): any;
+        /**
+         * 获取中心点
+         */
+        setCenterPoint(): void;
         addClass(className: string): void;
         removeClass(className: string): void;
         /**
@@ -589,6 +593,10 @@ declare namespace flagwind {
          * 更新设备状态
          */
         private updateStatus();
+        /**
+         * 注册设备事件
+         */
+        private triggerEvent();
     }
 }
 declare namespace flagwind {
@@ -797,7 +805,7 @@ declare namespace flagwind {
         layers: Array<FlagwindBusinessLayer>;
         constructor(flagwindMap: FlagwindMap, options: any);
         onCreateRecord(me: this, e: any): void;
-        addLayer(layer: FlagwindBusinessLayer): void;
+        addLayer(layers: Array<any>): void;
         deleteSelectBar(): void;
         showSelectBar(): void;
         clear(): void;
