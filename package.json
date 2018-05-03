@@ -31,7 +31,9 @@
     "bugs": {
         "url": "https://github.com/chendb/flagwind-map/issues"
     },
-    "dependencies": {},
+    "dependencies": {
+        "esri-loader": "^2.3.0"
+    },
     "peerDependencies": {
         "iview": "^2.7.3",
         "vue-property-decorator": "^6.0.0",

@@ -184,11 +184,13 @@ namespace flagwind {
         }
 
         public getBaseLayerById(id: string): FlagwindTiledLayer | null {
-            const layers = this.baseLayers.filter(g => g.id === id);
-            if (layers && layers.length > 0) {
-                return layers[0];
-            }
-            return null;
+            let layer = (<any>this.baseLayers).find((g: any) => g.id === id);
+            return layer ? layer : null;
+            // const layers = this.baseLayers.filter(g => g.id === id);
+            // if (layers && layers.length > 0) {
+            //     return layers[0];
+            // }
+            // return null;
         }
 
         /**

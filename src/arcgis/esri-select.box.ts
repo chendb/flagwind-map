@@ -55,9 +55,11 @@ namespace flagwind {
 
         }
 
-        public addLayer(layer: FlagwindBusinessLayer): void {
-            layer.options.enableSelectMode = true;
-            this.layers.push(layer);
+        public addLayer(layers: Array<any>): void {
+            layers.forEach(g => {
+                g.options.enableSelectMode = true;
+                this.layers.push(g);
+            });
         }
 
         public deleteSelectBar(): void {

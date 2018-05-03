@@ -679,9 +679,10 @@ var flagwind;
             });
             if (this.options.showTooltipOnHover) {
                 this.on("onMouseOver", function (evt) {
+                    // 增加Tooltip点位避免页面出现闪烁
                     if (evt.data.graphic.options.dataType === "polyline" || evt.data.graphic.options.dataType === "polygon") {
-                        evt.data.graphic.attributes.offsetX = evt.data.evt.offsetX;
-                        evt.data.graphic.attributes.offsetY = evt.data.evt.offsetY;
+                        evt.data.graphic.attributes.tooltipX = evt.data.evt.layerX;
+                        evt.data.graphic.attributes.tooltipY = evt.data.evt.layerY;
                     }
                     _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
                     _deviceLayer.fireEvent("onMouseOver", evt.data);
@@ -1408,11 +1409,13 @@ var flagwind;
             }
         };
         FlagwindMap.prototype.getBaseLayerById = function (id) {
-            var layers = this.baseLayers.filter(function (g) { return g.id === id; });
-            if (layers && layers.length > 0) {
-                return layers[0];
-            }
-            return null;
+            var layer = this.baseLayers.find(function (g) { return g.id === id; });
+            return layer ? layer : null;
+            // const layers = this.baseLayers.filter(g => g.id === id);
+            // if (layers && layers.length > 0) {
+            //     return layers[0];
+            // }
+            // return null;
         };
         /**
          * 中心定位
@@ -1687,8 +1690,7 @@ var flagwind;
             this.baseLayers = baseLayers;
             this.baseLayers.forEach(function (g) {
                 g.appendTo(_this.innerMap);
-                if (g.id !== "base_arcgis_tiled")
-                    g.hide();
+                g.hide();
             });
             // this.getBaseLayerById("base_arcgis_zhuji").hide();
             return baseLayers;
@@ -1709,7 +1711,7 @@ var flagwind;
             var screenpt = this.innerMap.toScreen(pt);
             var title = info.name;
             if (graphic.options.dataType === "polyline" || graphic.options.dataType === "polygon")
-                screenpt = { x: info.offsetX, y: info.offsetY };
+                screenpt = { x: info.tooltipX, y: info.tooltipY };
             this.tooltipElement.innerHTML = "<div>" + title + "</div>";
             this.tooltipElement.style.left = (screenpt.x + 15) + "px";
             this.tooltipElement.style.top = (screenpt.y + 15) + "px";
@@ -1882,20 +1884,21 @@ var flagwind;
             _this.id = options.id;
             _this.spatial = options.spatial;
             _this.attributes = options.attributes ? options.attributes : {};
-            if (_this.options.dataType === "marker") {
-                _this.marker = _this.createMarker();
-                if (_this.options.point) {
-                    _this.geometry = new flagwind.EsriPoint(_this.options.point.x, _this.options.point.y, _this.spatial).point;
-                }
-                if (_this.options.geometry) {
-                    _this.geometry = _this.options.geometry;
-                }
+            switch (_this.options.dataType) {
+                case "marker":
+                    _this.marker = _this.createMarker();
+                    if (_this.options.point)
+                        _this.geometry = new flagwind.EsriPoint(_this.options.point.x, _this.options.point.y, _this.spatial).point;
+                    break;
+                case "polyline":
+                    _this.marker = _this.createPolylineMarker();
+                    break;
+                case "polygon":
+                    _this.marker = _this.createPolygonMarker();
+                    break;
             }
-            else if (_this.options.dataType === "polyline") {
-                _this.marker = _this.createPolylineMarker();
-            }
-            else if (_this.options.dataType === "polygon") {
-                _this.marker = _this.createPolygonMarker();
+            if (_this.options.geometry) {
+                _this.geometry = _this.options.geometry;
             }
             return _this;
             // this.element = this.marker.getNode();
@@ -1916,12 +1919,12 @@ var flagwind;
         };
         EsriMarkerGraphic.prototype.createPolylineMarker = function () {
             this.polyline = this.toPolyline(this.attributes.polyline, this.spatial);
-            this.polylineSymbol = this.getLineSymbol(this.options.symbol.width, this.options.symbol.color);
+            this.polylineSymbol = this.getLineSymbol(this.options.symbol);
             return new esri.Graphic(this.polyline, this.polylineSymbol, this.attributes);
         };
         EsriMarkerGraphic.prototype.createPolygonMarker = function () {
             this.polygon = this.toPolygon(this.attributes.polygon);
-            this.polygonSymbol = this.getPolygonSymbol(this.options.symbol.width, this.options.symbol.color);
+            this.polygonSymbol = this.getPolygonSymbol(this.options.symbol);
             return new esri.Graphic(this.polygon, this.polygonSymbol, this.attributes);
         };
         EsriMarkerGraphic.prototype.getPointFromPloyline = function () {
@@ -1972,17 +1975,28 @@ var flagwind;
             }
             return markerSymbol;
         };
-        EsriMarkerGraphic.prototype.getLineSymbol = function (width, color) {
-            color = color || [255, 0, 0];
-            width = width || 4;
-            var playedLineSymbol = new esri.symbol.CartographicLineSymbol(esri.symbol.CartographicLineSymbol.STYLE_DASH, new esri.Color(color), width, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
+        EsriMarkerGraphic.prototype.getLineSymbol = function (symbol) {
+            var lineColor = symbol.lineColor || [255, 0, 0];
+            var lineWidth = symbol.lineWidth || 4;
+            var lineSymbol = symbol.lineSymbol || "STYLE_DASH";
+            var playedLineSymbol = new esri.symbol.CartographicLineSymbol(esri.symbol.CartographicLineSymbol[lineSymbol], new esri.Color(lineColor), lineWidth, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
             return playedLineSymbol;
         };
-        EsriMarkerGraphic.prototype.getPolygonSymbol = function (width, color) {
-            color = color || [255, 49, 0, 0.45];
-            width = width || 3;
-            var polygonSymbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol.STYLE_SOLID, new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol.STYLE_DOT, new esri.Color([151, 249, 0, .80]), width), new esri.Color(color));
+        EsriMarkerGraphic.prototype.getPolygonSymbol = function (symbol) {
+            var lineColor = symbol.lineColor || [151, 249, 0, .80];
+            var lineWidth = symbol.lineWidth || 3;
+            var lineSymbol = symbol.lineSymbol || "STYLE_DOT";
+            var fillSymbol = symbol.fillSymbol || "STYLE_SOLID";
+            var fillColor = symbol.fillColor || [255, 49, 0, 0.45];
+            var polygonSymbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol[fillSymbol], new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol[lineSymbol], new esri.Color(lineColor), lineWidth), new esri.Color(fillColor));
             return polygonSymbol;
+        };
+        /**
+         * 获取中心点
+         */
+        EsriMarkerGraphic.prototype.setCenterPoint = function () {
+            this.attributes.longitude = this.getPointFromPloyline().x;
+            this.attributes.latitude = this.getPointFromPloyline().y;
         };
         EsriMarkerGraphic.prototype.addClass = function (className) {
             this.symbol.className = className;
@@ -2181,27 +2195,29 @@ var flagwind;
             }
         };
         EsriMarkerGraphic.prototype.addTo = function (layer) {
-            var _this = this;
             this._isInsided = true;
             // this.marker.addTo(map);
-            layer.on("graphic-node-add", function () {
-                if (!_this.marker.getNode()) {
-                    console.log("无法获取标注元素");
-                    return;
-                }
-                if (_this.options.dataType === "polyline" || _this.options.dataType === "polygon") {
-                    _this.attributes.longitude = _this.getPointFromPloyline().x;
-                    _this.attributes.latitude = _this.getPointFromPloyline().y;
-                }
-                _this.element = _this.marker.getNode();
-                if (_this.symbol && _this.options.symbol && _this.options.symbol.className) {
-                    _this.addClass(_this.options.symbol.className);
-                    _this.symbol.className = "";
-                }
-                var events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
-                events.forEach(function (g) { _this.registerEvent(_this.element, g); });
-            });
+            // layer.on("graphic-node-add", () => {
+            //     if(!this.marker.getNode()) { console.log("无法获取标注元素"); return; }
+            //     if(this.options.dataType === "polyline" || this.options.dataType === "polygon") {
+            //         this.attributes.longitude = this.getPointFromPloyline().x;
+            //         this.attributes.latitude = this.getPointFromPloyline().y;
+            //     }
+            //     this.element = this.marker.getNode();
+            //     if (this.symbol && this.options.symbol && this.options.symbol.className) {
+            //         this.addClass(this.options.symbol.className);
+            //         this.symbol.className = "";
+            //     }
+            //     let events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
+            //     events.forEach(g => { this.registerEvent(this.element, g); });
+            // });
             layer.add(this.marker);
+            if (this.symbol && this.options.symbol && this.options.symbol.className) {
+                this.addClass(this.options.symbol.className);
+                this.symbol.className = "";
+            }
+            if (this.options.dataType === "polyline" || this.options.dataType === "polygon")
+                this.setCenterPoint();
             // let me = this;
             // this.marker.getNode().on("mouseover", function (args: any) {
             //     console.log("fire marker onMouseOver");
@@ -2396,8 +2412,13 @@ var flagwind;
                     className: className,
                     imageUrl: imageUrl,
                     width: this.options.symbol.width || 20,
+                    lineWidth: this.options.symbol.lineWidth,
                     height: this.options.symbol.height || 27,
-                    color: this.options.symbol.color
+                    color: this.options.symbol.color,
+                    lineColor: this.options.symbol.lineColor,
+                    fillColor: this.options.symbol.fillColor,
+                    lineSymbol: this.options.symbol.lineSymbol,
+                    fillSymbol: this.options.symbol.fillSymbol
                 },
                 point: this.getPoint(item),
                 // point: {
@@ -2437,6 +2458,7 @@ var flagwind;
             return this.businessService.getDataList().then(function (dataList) {
                 me.isLoading = false;
                 me.saveGraphicList(dataList);
+                me.triggerEvent();
                 me.fireEvent("showDataList", { action: "end", attributes: dataList });
             }).catch(function (error) {
                 me.isLoading = false;
@@ -2501,6 +2523,18 @@ var flagwind;
                 console.log("加载卡口状态时发生了错误：", error);
                 me.fireEvent("updateStatus", { action: "error", attributes: error });
             });
+        };
+        /**
+         * 注册设备事件
+         */
+        EsriPointLayer.prototype.triggerEvent = function () {
+            var _this = this;
+            this.layer.layer.on("mouse-over", function (evt) { return _this.layer.dispatchEvent("onMouseOver", { "graphic": _this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }); });
+            this.layer.layer.on("mouse-out", function (evt) { return _this.layer.dispatchEvent("onMouseOut", { "graphic": _this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }); });
+            this.layer.layer.on("mouse-up", function (evt) { return _this.layer.dispatchEvent("onMouseUp", { "graphic": _this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }); });
+            this.layer.layer.on("mouse-down", function (evt) { return _this.layer.dispatchEvent("onMouseDown", { "graphic": _this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }); });
+            this.layer.layer.on("click", function (evt) { return _this.layer.dispatchEvent("onClick", { "graphic": _this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }); });
+            this.layer.layer.on("dbl-click", function (evt) { return _this.layer.dispatchEvent("onDblClick", { "graphic": _this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }); });
         };
         return EsriPointLayer;
     }(flagwind.FlagwindBusinessLayer));
@@ -3241,9 +3275,12 @@ var flagwind;
             });
             me.clear();
         };
-        EsriSelectBox.prototype.addLayer = function (layer) {
-            layer.options.enableSelectMode = true;
-            this.layers.push(layer);
+        EsriSelectBox.prototype.addLayer = function (layers) {
+            var _this = this;
+            layers.forEach(function (g) {
+                g.options.enableSelectMode = true;
+                _this.layers.push(g);
+            });
         };
         EsriSelectBox.prototype.deleteSelectBar = function () {
             var ele = document.getElementById("edit-ctrl-group");
@@ -5383,12 +5420,12 @@ var flagwind;
         MinemapEditLayer.prototype.registerEvent = function (graphic) {
             var me = this;
             graphic.on("onMouseOver", function (args) {
-                console.log("test--->onMouseOver");
+                // console.log("test--->onMouseOver");
                 me.cursorOverPointFlag = true;
-                me.map.dragPan.disable();
+                // me.map.dragPan.disable();
             });
             graphic.on("onMouseOut", function (args) {
-                console.log("test--->onMouseOut");
+                // console.log("test--->onMouseOut");
                 me.cursorOverPointFlag = false;
                 me.map.dragPan.enable();
             });
@@ -5400,6 +5437,7 @@ var flagwind;
                 window._editLayer = me;
                 console.log("test--->map.on.mousemove");
                 me.map.on("mousemove", me.mouseMovePoint);
+                me.map.dragPan.disable();
             });
             graphic.on("onMouseUp", function (args) {
                 console.log("test--->onMouseUp");
@@ -6080,7 +6118,7 @@ var flagwind;
                 minZoom: this.mapSetting.minZoom || 9 // 地图最小缩放级别限制
             });
             this.spatial = new flagwind.MinemapSpatial(minemap.solution);
-            var popup = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [-10, -35] }); // 创建全局信息框
+            var popup = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -14] }); // 创建全局信息框
             map.infoWindow = popup;
             popup.addTo(map);
             var div = this.tooltipElement = document.createElement("div");
@@ -6147,11 +6185,11 @@ var flagwind;
                 if (options.offset) {
                     params["offset"] = options.offset;
                 }
-                params = __assign({ closeOnClick: false, closeButton: true, offset: [-10, -35] }, params);
+                params = __assign({ closeOnClick: false, closeButton: true, offset: [0, -14] }, params);
                 this.innerMap.infoWindow = new minemap.Popup(params);
             }
             else {
-                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [-10, -35] });
+                this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -14] });
             }
             this.innerMap.infoWindow.addTo(this.innerMap);
             if (evt.context) {
@@ -6229,9 +6267,9 @@ var flagwind;
             _this.attributes = options.attributes ? options.attributes : {};
             _this.icon = options.icon;
             if ((!_this.icon) && _this.symbol.imageUrl) {
-                _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl });
+                _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl, imageSize: _this.symbol.imageSize, imgOffset: _this.symbol.imgOffset });
             }
-            _this.marker = new minemap.Marker(_this.icon, { offset: [-10, -14] });
+            _this.marker = new minemap.Marker(_this.icon, {});
             _this.element = _this.marker.getElement();
             if (options.point) {
                 _this.geometry = new flagwind.MinemapPoint(options.point.x, options.point.y);
@@ -6561,7 +6599,9 @@ var flagwind;
                 id: item.id,
                 className: className,
                 symbol: {
-                    imageUrl: imageUrl
+                    imageUrl: imageUrl,
+                    imageSize: this.options.symbol.imageSize || [20, 28],
+                    imgOffset: this.options.symbol.imgOffset || [-10, -14]
                 },
                 point: {
                     y: this.getPoint(item).y,

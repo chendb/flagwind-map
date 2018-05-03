@@ -108,8 +108,13 @@ namespace flagwind {
                     className: className,
                     imageUrl: imageUrl,
                     width: this.options.symbol.width || 20,
+                    lineWidth: this.options.symbol.lineWidth,
                     height: this.options.symbol.height || 27,
-                    color: this.options.symbol.color
+                    color: this.options.symbol.color,
+                    lineColor: this.options.symbol.lineColor,
+                    fillColor: this.options.symbol.fillColor,
+                    lineSymbol: this.options.symbol.lineSymbol,
+                    fillSymbol: this.options.symbol.fillSymbol
                 },
                 point: this.getPoint(item),
                 // point: {
@@ -151,6 +156,7 @@ namespace flagwind {
             return this.businessService.getDataList().then(dataList => {
                 me.isLoading = false;
                 me.saveGraphicList(dataList);
+                me.triggerEvent();
                 me.fireEvent("showDataList", { action: "end", attributes: dataList });
             }).catch(error => {
                 me.isLoading = false;
@@ -220,6 +226,18 @@ namespace flagwind {
                 console.log("加载卡口状态时发生了错误：", error);
                 me.fireEvent("updateStatus", { action: "error", attributes: error });
             });
+        }
+
+        /**
+         * 注册设备事件
+         */
+        private triggerEvent(): void {
+            this.layer.layer.on("mouse-over", (evt: any) => this.layer.dispatchEvent("onMouseOver", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("mouse-out", (evt: any) => this.layer.dispatchEvent("onMouseOut", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("mouse-up", (evt: any) => this.layer.dispatchEvent("onMouseUp", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("mouse-down", (evt: any) => this.layer.dispatchEvent("onMouseDown", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("click", (evt: any) => this.layer.dispatchEvent("onClick", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("dbl-click", (evt: any) => this.layer.dispatchEvent("onDblClick", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
         }
 
     }

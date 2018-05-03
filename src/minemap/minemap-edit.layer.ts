@@ -22,12 +22,12 @@ namespace flagwind {
         public registerEvent(graphic: MinemapMarkerGraphic): void {
             const me = this;
             graphic.on("onMouseOver", function (args: EventArgs) {
-                console.log("test--->onMouseOver");
+                // console.log("test--->onMouseOver");
                 me.cursorOverPointFlag = true;
-                me.map.dragPan.disable();
+                // me.map.dragPan.disable();
             });
             graphic.on("onMouseOut", function (args: EventArgs) {
-                console.log("test--->onMouseOut");
+                // console.log("test--->onMouseOut");
                 me.cursorOverPointFlag = false;
                 me.map.dragPan.enable();
             });
@@ -38,6 +38,7 @@ namespace flagwind {
                 (<any>window)._editLayer = me;
                 console.log("test--->map.on.mousemove");
                 me.map.on("mousemove", me.mouseMovePoint);
+                me.map.dragPan.disable();
             });
             graphic.on("onMouseUp", function (args: EventArgs) {
                 console.log("test--->onMouseUp");

@@ -39,18 +39,23 @@ namespace flagwind {
 
             this.attributes = options.attributes ? options.attributes : {};
 
-            if(this.options.dataType === "marker") {
-                this.marker = this.createMarker();
-                if (this.options.point) {
-                    this.geometry = new EsriPoint(this.options.point.x, this.options.point.y, this.spatial).point;
-                }
-                if (this.options.geometry) {
-                    this.geometry = this.options.geometry;
-                }
-            } else if(this.options.dataType === "polyline") {
-                this.marker = this.createPolylineMarker();
-            } else if(this.options.dataType === "polygon") {
-                this.marker = this.createPolygonMarker();
+            switch (this.options.dataType) {
+                case "marker":
+                    this.marker = this.createMarker();
+                    if (this.options.point) this.geometry = new EsriPoint(this.options.point.x, this.options.point.y, this.spatial).point;
+                    break;
+
+                case "polyline":
+                    this.marker = this.createPolylineMarker();
+                    break;
+
+                case "polygon":
+                    this.marker = this.createPolygonMarker();
+                    break;
+            }
+
+            if (this.options.geometry) {
+                this.geometry = this.options.geometry;
             }
 
             // this.element = this.marker.getNode();
@@ -73,13 +78,13 @@ namespace flagwind {
 
         public createPolylineMarker() {
             this.polyline = this.toPolyline(this.attributes.polyline, this.spatial);
-            this.polylineSymbol = this.getLineSymbol(this.options.symbol.width, this.options.symbol.color);
+            this.polylineSymbol = this.getLineSymbol(this.options.symbol);
             return new esri.Graphic(this.polyline, this.polylineSymbol, this.attributes);
         }
 
         public createPolygonMarker() {
             this.polygon = this.toPolygon(this.attributes.polygon);
-            this.polygonSymbol = this.getPolygonSymbol(this.options.symbol.width, this.options.symbol.color);
+            this.polygonSymbol = this.getPolygonSymbol(this.options.symbol);
             return new esri.Graphic(this.polygon, this.polygonSymbol, this.attributes);
         }
 
@@ -130,29 +135,41 @@ namespace flagwind {
             return markerSymbol;
         }
 
-        public getLineSymbol(width?: number, color?: Array<number>) {
-            color = color || [255, 0, 0];
-            width = width || 4;
+        public getLineSymbol(symbol?: any) {
+            let lineColor = symbol.lineColor || [255, 0, 0];
+            let lineWidth = symbol.lineWidth || 4;
+            let lineSymbol = symbol.lineSymbol || "STYLE_DASH";
             let playedLineSymbol = new esri.symbol.CartographicLineSymbol(
-                esri.symbol.CartographicLineSymbol.STYLE_DASH, new esri.Color(color), width,
+                esri.symbol.CartographicLineSymbol[lineSymbol], new esri.Color(lineColor), lineWidth,
                 esri.symbol.CartographicLineSymbol.CAP_ROUND,
                 esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
             return playedLineSymbol;
         }
 
-        public getPolygonSymbol(width?: number, color?: Array<number>) {
-            color = color || [255, 49, 0, 0.45];
-            width = width || 3;
+        public getPolygonSymbol(symbol?: any) {
+            let lineColor = symbol.lineColor || [151, 249, 0, .80];
+            let lineWidth = symbol.lineWidth || 3;
+            let lineSymbol = symbol.lineSymbol || "STYLE_DOT";
+            let fillSymbol = symbol.fillSymbol || "STYLE_SOLID";
+            let fillColor = symbol.fillColor || [255, 49, 0, 0.45];
             let polygonSymbol = new esri.symbol.SimpleFillSymbol(
-                esri.symbol.SimpleFillSymbol.STYLE_SOLID,
+                esri.symbol.SimpleFillSymbol[fillSymbol],
                 new esri.symbol.SimpleLineSymbol(
-                    esri.symbol.SimpleLineSymbol.STYLE_DOT,
-                    new esri.Color([151, 249, 0, .80]),
-                    width
+                    esri.symbol.SimpleLineSymbol[lineSymbol],
+                    new esri.Color(lineColor),
+                    lineWidth
                 ),
-                new esri.Color(color)
+                new esri.Color(fillColor)
             );
             return polygonSymbol;
+        }
+
+        /**
+         * 获取中心点
+         */
+        public setCenterPoint(): void {
+            this.attributes.longitude = this.getPointFromPloyline().x;
+            this.attributes.latitude = this.getPointFromPloyline().y;
         }
 
         public addClass(className: string) {
@@ -354,24 +371,32 @@ namespace flagwind {
         public addTo(layer: any) {
             this._isInsided = true;
             // this.marker.addTo(map);
-            layer.on("graphic-node-add", () => {
-                if(!this.marker.getNode()) { console.log("无法获取标注元素"); return; }
+            // layer.on("graphic-node-add", () => {
+            //     if(!this.marker.getNode()) { console.log("无法获取标注元素"); return; }
                 
-                if(this.options.dataType === "polyline" || this.options.dataType === "polygon") {
-                    this.attributes.longitude = this.getPointFromPloyline().x;
-                    this.attributes.latitude = this.getPointFromPloyline().y;
-                }
+            //     if(this.options.dataType === "polyline" || this.options.dataType === "polygon") {
+            //         this.attributes.longitude = this.getPointFromPloyline().x;
+            //         this.attributes.latitude = this.getPointFromPloyline().y;
+            //     }
 
-                this.element = this.marker.getNode();
-                if (this.symbol && this.options.symbol && this.options.symbol.className) {
-                    this.addClass(this.options.symbol.className);
-                    this.symbol.className = "";
-                }
+            //     this.element = this.marker.getNode();
+            //     if (this.symbol && this.options.symbol && this.options.symbol.className) {
+            //         this.addClass(this.options.symbol.className);
+            //         this.symbol.className = "";
+            //     }
 
-                let events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
-                events.forEach(g => { this.registerEvent(this.element, g); });
-            });
+            //     let events = ["onmouseover", "onmouseout", "onmouseup", "onmousedown", "ondblclick", "onclick"];
+            //     events.forEach(g => { this.registerEvent(this.element, g); });
+            // });
+
             layer.add(this.marker);
+
+            if (this.symbol && this.options.symbol && this.options.symbol.className) {
+                this.addClass(this.options.symbol.className);
+                this.symbol.className = "";
+            }
+
+            if (this.options.dataType === "polyline" || this.options.dataType === "polygon")  this.setCenterPoint();
 
             // let me = this;
             // this.marker.getNode().on("mouseover", function (args: any) {
