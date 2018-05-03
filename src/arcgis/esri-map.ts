@@ -225,17 +225,8 @@ namespace flagwind {
             // this.getBaseLayerById("base_arcgis_zhuji").hide();
             return baseLayers;
         }
+
         public onShowTooltip(graphic: any): void {
-            // let pt: any;
-            // let screenpt: any;
-            // let info = graphic.attributes;
-            // let title = info.name;
-            // if(graphic.options.dataType === "marker") {
-            //     pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
-            //     screenpt = this.innerMap.toScreen(pt);
-            // } else if(graphic.options.dataType === "polyline") {
-            //     screenpt = {x: graphic.x, y: graphic.y};
-            // }
             let info = graphic.attributes;
             let pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             let screenpt = this.innerMap.toScreen(pt);
@@ -246,9 +237,11 @@ namespace flagwind {
             (<any>this).tooltipElement.style.top = (screenpt.y + 15) + "px";
             (<any>this).tooltipElement.style.display = "block";
         }
+
         public onHideTooltip(graphic: any): void {
             (<any>this).tooltipElement.style.display = "none";
         }
+        
         public onCreateContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {
             const menus = options.contextMenu;
             let ctxMenu = (<any>this).ctxMenuForMap = new dijit.Menu({
