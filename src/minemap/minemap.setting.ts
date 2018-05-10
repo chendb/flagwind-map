@@ -25,6 +25,8 @@ namespace flagwind {
         public zoom: number = 16;
         public logo: boolean = false;
         public slider: boolean = true;
+        // public sliderStyle: string = "small";
+        public sliderPosition: string = "bottom-left";
 
     }
 }

@@ -1,4 +1,5 @@
-/// <reference path="../base/flagwind-business.layer.ts" />
+/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+
 namespace flagwind {
     /**
      * 点图层
@@ -19,6 +20,10 @@ namespace flagwind {
         
         public openInfoWindow(id: string, context: any, options: any) {
             let graphic = this.getGraphicById(id);
+            if(!graphic) {
+                console.trace("-----该条数据不在图层内！id:", id);
+                return;
+            }
             if (context) {
                 this.flagwindMap.onShowInfoWindow({
                     graphic: graphic,
@@ -40,7 +45,8 @@ namespace flagwind {
                     type: "html",
                     title: context.title,
                     content: context.content
-                }
+                },
+                options: {}
             });
         }
 
@@ -53,17 +59,25 @@ namespace flagwind {
         }
 
         public getImageUrl(item: any): string {
-            if (item.selected == null) {
-                return this.options.imageUrl || this.options.symbol.imageUrl;
+            switch (item.status) {
+                case 0:
+                    return item.selected ? this.options.symbol.imageUrl.checkedOff : this.options.symbol.imageUrl.offline;
+                case 1:
+                    return item.selected ? this.options.symbol.imageUrl.checkedOn : this.options.symbol.imageUrl.online;
+                default:
+                    return item.selected ? this.options.symbol.imageUrl.checkedOn : this.options.symbol.imageUrl.online;
             }
+            // if (item.selected == null) {
+            //     return this.options.imageUrl || this.options.symbol.imageUrl;
+            // }
 
-            let imageUrl: String = this.options.imageUrl || this.options.symbol.imageUrl;
-            let imageParts = imageUrl.split(".");
-            if (item.selected) {
-                return imageParts[0] + "_checked." + imageParts[1];
-            } else {
-                return imageParts[0] + "_unchecked." + imageParts[1];
-            }
+            // let imageUrl: String = this.options.imageUrl || this.options.symbol.imageUrl;
+            // let imageParts = imageUrl.split(".");
+            // if (item.selected) {
+            //     return imageParts[0] + "_checked." + imageParts[1];
+            // } else {
+            //     return imageParts[0] + "_unchecked." + imageParts[1];
+            // }
         }
 
         public getClassName(item: any): string {
@@ -84,13 +98,23 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onCreatGraphicByModel(item: any): any {
-            let className = this.options.dataType || "graphic-tollgate";
-            let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
+            let className = this.options.symbol.className || "graphic-tollgate";
+            // let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
+            let imageUrl = this.options.dataType === "marker" ? this.getImageUrl(item) : "";
             return new EsriMarkerGraphic({
                 id: item.id,
-                className: className,
+                dataType: this.options.dataType,
                 symbol: {
-                    imageUrl: imageUrl
+                    className: className,
+                    imageUrl: imageUrl,
+                    width: this.options.symbol.width || 20,
+                    lineWidth: this.options.symbol.lineWidth,
+                    height: this.options.symbol.height || 27,
+                    color: this.options.symbol.color,
+                    lineColor: this.options.symbol.lineColor,
+                    fillColor: this.options.symbol.fillColor,
+                    lineSymbol: this.options.symbol.lineSymbol,
+                    fillSymbol: this.options.symbol.fillSymbol
                 },
                 point: this.getPoint(item),
                 // point: {
@@ -114,9 +138,9 @@ namespace flagwind {
             // throw new Error("Method not implemented.");
             let graphic: EsriMarkerGraphic = this.getGraphicById(item.id);
             if (graphic) {
-                graphic.geometry = new EsriPoint(item.longitude, item.latitude);
+                graphic.geometry = new EsriPoint(item.longitude, item.latitude, this.flagwindMap.spatial).point;
                 graphic.attributes = item;
-                this.setGraphicStatus(graphic);
+                this.setGraphicStatus(item);
             }
         }
 
@@ -129,9 +153,10 @@ namespace flagwind {
             const me = this;
             me.isLoading = true;
             me.fireEvent("showDataList", { action: "start" });
-            this.businessService.getDataList().then(dataList => {
+            return this.businessService.getDataList().then(dataList => {
                 me.isLoading = false;
                 me.saveGraphicList(dataList);
+                me.triggerEvent();
                 me.fireEvent("showDataList", { action: "end", attributes: dataList });
             }).catch(error => {
                 me.isLoading = false;
@@ -161,10 +186,10 @@ namespace flagwind {
 
         protected setSelectStatus(item: any, selected: boolean): void {
             let graphics: Array<any> = this.layer.graphics;
-            graphics.forEach(item => {
-                if (!item.attributes.selected) {
-                    item.selected = false;
-                    this.setGraphicStatus(item);
+            graphics.forEach(g => {
+                if (!g.attributes.selected) {
+                    // g.selected = false;
+                    this.setGraphicStatus(g.attributes);
                 }
             });
             
@@ -174,12 +199,13 @@ namespace flagwind {
 
         protected setGraphicStatus(item: any): void {
             let graphic: EsriMarkerGraphic = this.getGraphicById(item.id);
-            if(typeof graphic.attributes.selected === "boolean") {
-                graphic["selected"] = graphic.attributes.selected;
-            }
+            // if(typeof graphic.attributes.selected === "boolean") {
+            //     graphic["selected"] = graphic.attributes.selected;
+            // }
+            // graphic.attributes.selected = graphic["selected"];
             graphic.setSymbol({
-                className: this.getClassName(graphic),
-                imageUrl: this.getImageUrl(graphic)
+                className: this.getClassName(item),
+                imageUrl: this.getImageUrl(item)
             });
             graphic.draw();
         }
@@ -200,6 +226,18 @@ namespace flagwind {
                 console.log("加载卡口状态时发生了错误：", error);
                 me.fireEvent("updateStatus", { action: "error", attributes: error });
             });
+        }
+
+        /**
+         * 注册设备事件
+         */
+        private triggerEvent(): void {
+            this.layer.layer.on("mouse-over", (evt: any) => this.layer.dispatchEvent("onMouseOver", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("mouse-out", (evt: any) => this.layer.dispatchEvent("onMouseOut", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("mouse-up", (evt: any) => this.layer.dispatchEvent("onMouseUp", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("mouse-down", (evt: any) => this.layer.dispatchEvent("onMouseDown", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("click", (evt: any) => this.layer.dispatchEvent("onClick", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
+            this.layer.layer.on("dbl-click", (evt: any) => this.layer.dispatchEvent("onDblClick", { "graphic": this.getGraphicById(evt.graphic.attributes.id), "mapPoint": evt.graphic.geometry, "evt": evt }));
         }
 
     }

@@ -173,6 +173,88 @@ declare namespace flagwind {
         abstract onCreateGraphicsLayer(args: any): any;
     }
 }
+declare namespace flagwind {
+    const BUSINESS_LAYER_OPTIONS: any;
+    /**
+     * 业务图层
+     */
+    abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
+        flagwindMap: FlagwindMap;
+        id: string;
+        options: any;
+        constructor(flagwindMap: FlagwindMap, id: string, options: any);
+        onInit(): void;
+        abstract onShowInfoWindow(evt: any): void;
+        abstract onCreatGraphicByModel(item: any): any;
+        abstract onUpdateGraphicByModel(item: any): void;
+        onAddLayerBefor(): void;
+        onAddLayerAfter(): void;
+        readonly map: any;
+        readonly spatial: any;
+        closeInfoWindow(): void;
+        gotoCenterById(key: string): void;
+        saveGraphicList(dataList: Array<any>): void;
+        updateGraphicList(dataList: Array<any>): void;
+        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
+        /**
+         * 保存要素（如果存在，则修改，否则添加）
+         */
+        saveGraphicByModel(item: any): void;
+        addGraphicByModel(item: any): void;
+        creatGraphicByModel(item: any): any;
+        /**
+         * 修改要素
+         */
+        updateGraphicByModel(item: any, graphic?: any | null): void;
+        clearSelectStatus(): void;
+        getSelectedGraphics(): Array<any>;
+        /**
+         * 创建点要素（把业务数据的坐标转换成地图上的点）
+         */
+        getPoint(item: any): any;
+        /**
+         * 把地图上的点转换成业务的坐标
+         * @param {*} point
+         */
+        formPoint(point: any): any;
+        protected onLoad(): void;
+        protected onMapLoad(): void;
+        protected registerEvent(): void;
+        protected onLayerClick(deviceLayer: this, evt: any): void;
+        protected fireEvent(eventName: string, event: any): void;
+        protected setSelectStatus(item: any, selected: boolean): void;
+        /**
+         * 变换成标准实体（最好子类重写）
+         *
+         * @protected
+         * @param {*} item
+         * @returns {{ id: String, name: String, longitude: number, latitude: number }}
+         * @memberof FlagwindBusinessLayer
+         */
+        protected abstract onChangeStandardModel(item: any): any;
+        protected onValidModel(item: any): any;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 绘制图层
+     */
+    class EsriDrawLayer {
+        private symbolSetting;
+        flagwindMap: FlagwindMap;
+        draw: any;
+        mode: any;
+        options: any;
+        constructor(flagwindMap: FlagwindMap, options?: any);
+        activate(mode: string, options?: any): void;
+        clear(): void;
+        finish(): void;
+        private setSymbol(mode, options);
+        private onDrawComplete(evt);
+        private readonly lineSymbol;
+        private readonly fillSymbol;
+    }
+}
 declare let esri: any;
 declare let dojo: any;
 declare let dijit: any;
@@ -264,7 +346,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    class EsriHeatmapLayer implements IFlagwindHotmapLayer {
+    class EsriHeatmapLayer implements IFlagwindHeatmapLayer {
         flagwindMap: FlagwindMap;
         private map;
         options: any;
@@ -398,12 +480,29 @@ declare namespace flagwind {
         symbol: any;
         marker: any;
         element: any;
-        icon: any;
+        markerSymbol: any;
+        polyline: any;
+        polylineSymbol: any;
+        polygon: any;
+        polygonSymbol: any;
         attributes: any;
         options: any;
         spatial: any;
         layer: IEsriGraphicsLayer;
         constructor(options: any);
+        createMarker(): any;
+        createPolylineMarker(): any;
+        createPolygonMarker(): any;
+        getPointFromPloyline(): any;
+        toPolyline(strLine: string, spatial: any): any;
+        toPolygon(strPolygon: string): any;
+        getMarkerSymbol(): any;
+        getLineSymbol(symbol?: any): any;
+        getPolygonSymbol(symbol?: any): any;
+        /**
+         * 获取中心点
+         */
+        setCenterPoint(): void;
         addClass(className: string): void;
         removeClass(className: string): void;
         /**
@@ -442,70 +541,8 @@ declare namespace flagwind {
         geometry: EsriPoint;
         setGeometry(value: EsriGeometry): void;
         addTo(layer: any): void;
-        protected registerEvent(ele: HTMLElement, evt: string): void;
+        protected registerEvent(ele: any, eventName: string): void;
         protected fireEvent(type: string, data?: any): void;
-    }
-}
-declare namespace flagwind {
-    const BUSINESS_LAYER_OPTIONS: any;
-    /**
-     * 业务图层
-     */
-    abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
-        flagwindMap: FlagwindMap;
-        id: string;
-        options: any;
-        constructor(flagwindMap: FlagwindMap, id: string, options: any);
-        onInit(): void;
-        abstract onShowInfoWindow(evt: any): void;
-        abstract onCreatGraphicByModel(item: any): any;
-        abstract onUpdateGraphicByModel(item: any): void;
-        onAddLayerBefor(): void;
-        onAddLayerAfter(): void;
-        readonly map: any;
-        readonly spatial: any;
-        closeInfoWindow(): void;
-        gotoCenterById(key: string): void;
-        saveGraphicList(dataList: Array<any>): void;
-        updateGraphicList(dataList: Array<any>): void;
-        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
-        /**
-         * 保存要素（如果存在，则修改，否则添加）
-         */
-        saveGraphicByModel(item: any): void;
-        addGraphicByModel(item: any): void;
-        creatGraphicByModel(item: any): any;
-        /**
-         * 修改要素
-         */
-        updateGraphicByModel(item: any, graphic?: any | null): void;
-        clearSelectStatus(): void;
-        getSelectedGraphics(): Array<any>;
-        /**
-         * 创建点要素（把业务数据的坐标转换成地图上的点）
-         */
-        getPoint(item: any): any;
-        /**
-         * 把地图上的点转换成业务的坐标
-         * @param {*} point
-         */
-        formPoint(point: any): any;
-        protected onLoad(): void;
-        protected onMapLoad(): void;
-        protected registerEvent(): void;
-        protected onLayerClick(deviceLayer: this, evt: any): void;
-        protected fireEvent(eventName: string, event: any): void;
-        protected setSelectStatus(item: any, selected: boolean): void;
-        /**
-         * 变换成标准实体（最好子类重写）
-         *
-         * @protected
-         * @param {*} item
-         * @returns {{ id: String, name: String, longitude: number, latitude: number }}
-         * @memberof FlagwindBusinessLayer
-         */
-        protected abstract onChangeStandardModel(item: any): any;
-        protected onValidModel(item: any): any;
     }
 }
 declare namespace flagwind {
@@ -541,7 +578,7 @@ declare namespace flagwind {
          *
          * @memberof TollgateLayer
          */
-        showDataList(): void;
+        showDataList(): Promise<void>;
         /**
          * 开启定时器
          */
@@ -556,6 +593,10 @@ declare namespace flagwind {
          * 更新设备状态
          */
         private updateStatus();
+        /**
+         * 注册设备事件
+         */
+        private triggerEvent();
     }
 }
 declare namespace flagwind {
@@ -764,9 +805,9 @@ declare namespace flagwind {
         layers: Array<FlagwindBusinessLayer>;
         constructor(flagwindMap: FlagwindMap, options: any);
         onCreateRecord(me: this, e: any): void;
-        addLayer(layer: FlagwindBusinessLayer): void;
+        addLayer(layers: Array<any>): void;
         deleteSelectBar(): void;
-        showSelectBar(mapId: string): void;
+        showSelectBar(): void;
         clear(): void;
         active(mode: string): void;
     }
@@ -800,8 +841,10 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     class EsriVehicleRouteLayer extends EsriRouteLayer {
+        private vehicleOptions;
         showTrack(trackLineName: string, stopList: Array<any>, options: any): void;
         getStopsGraphicList(stopList: Array<any>): any[];
+        private changeStandardModel(item);
     }
 }
 declare namespace flagwind {
@@ -811,14 +854,31 @@ declare namespace flagwind {
     abstract class EsriGeometry {
         type: string;
         spatial: EsriSpatial;
-        point: any;
         attributes: any;
-        constructor(type: string, evt: any, spatial: EsriSpatial);
+        constructor(type: string, spatial: EsriSpatial);
         abstract toJson(): any;
     }
     /**
      * 线
      */
+    class EsriPolyline extends EsriGeometry {
+        path: Array<Array<number>>;
+        constructor(spatial?: EsriSpatial);
+        getPoint(pointIndex: number): number[];
+        insertPoint(pointIndex: number, point: Array<number>): void;
+        removePoint(pointIndex: number): void;
+        toJson(): {
+            "type": string;
+            "data": {
+                "type": string;
+                "properties": any;
+                "geometry": {
+                    "type": string;
+                    "coordinates": number[][];
+                };
+            };
+        };
+    }
     /**
      * 面
      */
@@ -832,6 +892,7 @@ declare namespace flagwind {
         x: number;
         y: number;
         spatial: EsriSpatial;
+        point: any;
         constructor(x: number, y: number, spatial?: EsriSpatial);
         toJson(): {
             "type": string;
@@ -943,6 +1004,7 @@ declare namespace flagwind {
         zoom: number;
         logo: boolean;
         slider: boolean;
+        sliderPosition: string;
     }
 }
 declare namespace flagwind {
@@ -984,7 +1046,7 @@ declare namespace flagwind {
     /**
      * 热力图
      */
-    interface IFlagwindHotmapLayer {
+    interface IFlagwindHeatmapLayer {
         clear(): void;
         show(): void;
         hide(): void;
@@ -1188,6 +1250,7 @@ declare namespace flagwind {
         zoom: number;
         logo: boolean;
         slider: boolean;
+        sliderPosition: string;
     }
 }
 declare namespace flagwind {
@@ -2067,7 +2130,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    class MinemapHotmapLayer implements IFlagwindHotmapLayer {
+    class MinemapHeatmapLayer implements IFlagwindHeatmapLayer {
         flagwindMap: FlagwindMap;
         private _echartslayer;
         isShow: boolean;
@@ -2417,7 +2480,7 @@ declare namespace flagwind {
          *
          * @memberof TollgateLayer
          */
-        showDataList(): void;
+        showDataList(): Promise<void>;
         /**
          * 开启定时器
          */
@@ -2561,7 +2624,7 @@ declare namespace flagwind {
         onCreateRecord(me: this, e: any): void;
         addLayer(layer: FlagwindBusinessLayer): void;
         deleteSelectBar(): void;
-        showSelectBar(mapId: string): void;
+        showSelectBar(): void;
         clear(): void;
         active(mode: string): void;
     }
@@ -2597,6 +2660,7 @@ declare namespace flagwind {
         zoom: number;
         logo: boolean;
         slider: boolean;
+        sliderPosition: string;
     }
 }
 declare namespace flagwind {

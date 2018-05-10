@@ -31,10 +31,10 @@ namespace flagwind {
     };
 
     export const TRACKLINE_OPTIONS: any = {
-        markerUrl: "../examples/scripts/images/carTop.png",
+        markerUrl: "",
         markerLabel: "",
-        markerHeight: 48,
-        markerWidth: 48
+        markerHeight: 10,
+        markerWidth: 10
     };
 
     export abstract class FlagwindRouteLayer {
@@ -348,7 +348,7 @@ namespace flagwind {
                 <span class="route-btn icon-speedUp" title="加速" data-operate="speedUp"></span>
                 <span class="route-btn icon-clear" title="清除轨迹" data-operate="clear"></span></div>
                 <div class="tool-text"><span></span></div>`;
-            this.flagwindMap.innerMap._container.appendChild(trackToolBox);
+            this.flagwindMap.innerMap.container.appendChild(trackToolBox);
 
             let playBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-continue");
             let pauseBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-pause");

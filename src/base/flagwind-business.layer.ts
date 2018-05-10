@@ -1,4 +1,5 @@
-/// <reference path="./flagwind-feature.layer.ts" />
+/// <reference path="./flagwind-feature.layer.ts" />import { resolve } from "dns";
+
 namespace flagwind {
 
     export const BUSINESS_LAYER_OPTIONS: any = {
@@ -6,11 +7,10 @@ namespace flagwind {
             console.log("onLayerClick");
         },
         onMapLoad: function () {
-            console.log("onMapLoad");
+            // console.log("onMapLoad");
         },
         onEvent: function (eventName: string, evt: any) {
             console.log("onEvent");
-
         },
         onCheck: function (evt: any) {
             console.log("onCheck");
@@ -24,8 +24,9 @@ namespace flagwind {
         enableEdit: true,      // 启用要素编辑功能
         enableSelectMode: false, // 是否启用选择模块
         selectMode: 1,           // 1为多选，2为单选
-        showTooltipOnHover: true,
-        showInfoWindow: true
+        showTooltipOnHover: false,
+        showInfoWindow: false,
+        dataType: "marker"
     };
 
     /**
@@ -67,11 +68,11 @@ namespace flagwind {
         public abstract onUpdateGraphicByModel(item: any): void;
 
         public onAddLayerBefor(): void {
-            console.log("onAddLayerBefor");
+            // console.log("onAddLayerBefor");
         }
 
         public onAddLayerAfter(): void {
-            console.log("onAddLayerAfter");
+            // console.log("onAddLayerAfter");
         }
 
         public get map(): any {
@@ -88,6 +89,10 @@ namespace flagwind {
 
         public gotoCenterById(key: string): void {
             const graphic = this.getGraphicById(key);
+            if(!graphic) {
+                console.trace("-----该条数据不在图层内！id:", key);
+                return;
+            }
             const pt = this.getPoint(graphic.attributes);
             this.flagwindMap.centerAt(pt.x, pt.y);
         }
@@ -172,8 +177,8 @@ namespace flagwind {
                 return;
             }
 
-            const pt = this.getPoint(item);
-            this.onUpdateGraphicByModel(item);
+            const pt = this.getPoint(graphic.attributes);
+            this.onUpdateGraphicByModel(graphic.attributes);
 
             return pt;
         }
@@ -224,16 +229,23 @@ namespace flagwind {
 
         protected registerEvent(): void {
             let _deviceLayer = this;
-            this.on("onClick", function (evt: EventArgs) {
+            this.on("onClick", (evt: EventArgs) => {
                 _deviceLayer.onLayerClick(_deviceLayer, evt.data);
             });
 
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
-                this.on("onMouseOver", function (evt: EventArgs) {
+                this.on("onMouseOver", (evt: EventArgs) => {
+                    // 增加Tooltip点位避免页面出现闪烁
+                    if (evt.data.graphic.options.dataType === "polyline" || evt.data.graphic.options.dataType === "polygon") {
+                        evt.data.graphic.attributes.tooltipX = evt.data.evt.layerX;
+                        evt.data.graphic.attributes.tooltipY = evt.data.evt.layerY;
+                    }
                     _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
+                    _deviceLayer.fireEvent("onMouseOver", evt.data);
                 });
-                this.on("onMouseOut", function (evt: EventArgs) {
+                this.on("onMouseOut", (evt: EventArgs) => {
                     _deviceLayer.flagwindMap.onHideTooltip(evt.data.graphic);
+                    _deviceLayer.fireEvent("onMouseOut", evt.data);
                 });
             }
         }
@@ -290,7 +302,11 @@ namespace flagwind {
         protected abstract onChangeStandardModel(item: any): any;
 
         protected onValidModel(item: any) {
-            return item.longitude && item.latitude;
+            switch (this.options.dataType) {
+                case "marker": return item.longitude && item.latitude;
+                case "polyline": return item.id && item.polyline;
+                case "polygon": return item.id && item.polygon;
+            }
         }
     }
 

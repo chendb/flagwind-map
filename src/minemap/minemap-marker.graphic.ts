@@ -29,9 +29,9 @@ namespace flagwind {
             this.attributes = options.attributes ? options.attributes : {};
             this.icon = options.icon;
             if ((!this.icon) && this.symbol.imageUrl) {
-                this.icon = new minemap.Icon({ imageUrl: this.symbol.imageUrl });
+                this.icon = new minemap.Icon({ imageUrl: this.symbol.imageUrl, imageSize: this.symbol.imageSize, imgOffset: this.symbol.imgOffset });
             }
-            this.marker = new minemap.Marker(this.icon, { offset: [-10, -14] });
+            this.marker = new minemap.Marker(this.icon, { /* offset: [-10, -14] */ });
             this.element = this.marker.getElement();
             if (options.point) {
                 this.geometry = new MinemapPoint(options.point.x, options.point.y);
@@ -121,7 +121,8 @@ namespace flagwind {
             if (!this.layer) {
                 throw new Exception("该要素没有添加到图层上，若想显示该要素请调用addToMap方法");
             }
-            this.marker.addTo(this.layer.map);
+            // this.marker.addTo(this.layer.map);
+            this.addTo(this.layer.map);
             this.isShow = true;
         }
 

@@ -6,13 +6,9 @@ namespace flagwind {
      */
     export abstract class EsriGeometry {
 
-        public point: any;
         public attributes: any;
 
-        public constructor(public type: string, evt: any, public spatial: EsriSpatial) {
-            if(type === "Point") {
-                this.point = new esri.geometry.Point(evt.x, evt.y, this.spatial);
-            }
+        public constructor(public type: string, public spatial: EsriSpatial) {
         }
 
         public abstract toJson(): any;
@@ -21,41 +17,41 @@ namespace flagwind {
     /**
      * 线
      */
-    // export class MinemapPolyline extends EsriGeometry {
+    export class EsriPolyline extends EsriGeometry {
 
-    //     public path: Array<Array<number>> = [];
-    //     public constructor(spatial: EsriSpatial = null) {
-    //         super("Polyline", spatial);
-    //     }
+        public path: Array<Array<number>> = [];
+        public constructor(spatial: EsriSpatial = null) {
+            super("Polyline", spatial);
+        }
 
-    //     public getPoint(pointIndex: number) {
+        public getPoint(pointIndex: number) {
 
-    //         return this.path[pointIndex];
-    //     }
+            return this.path[pointIndex];
+        }
 
-    //     public insertPoint(pointIndex: number, point: Array<number>) {
-    //         this.path.splice(pointIndex, 0, point);
-    //     }
+        public insertPoint(pointIndex: number, point: Array<number>) {
+            this.path.splice(pointIndex, 0, point);
+        }
 
-    //     public removePoint(pointIndex: number) {
-    //         this.path.splice(pointIndex, 1);
-    //     }
+        public removePoint(pointIndex: number) {
+            this.path.splice(pointIndex, 1);
+        }
 
-    //     public toJson() {
+        public toJson() {
 
-    //         return {
-    //             "type": "geojson",
-    //             "data": {
-    //                 "type": "Feature",
-    //                 "properties": this.attributes || {},
-    //                 "geometry": {
-    //                     "type": "LineString",
-    //                     "coordinates": this.path
-    //                 }
-    //             }
-    //         };
-    //     }
-    // }
+            return {
+                "type": "geojson",
+                "data": {
+                    "type": "Feature",
+                    "properties": this.attributes || {},
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": this.path
+                    }
+                }
+            };
+        }
+    }
     /**
      * 面
      */
@@ -192,13 +188,12 @@ namespace flagwind {
      * 坐标点
      */
     export class EsriPoint extends EsriGeometry {
+        public point: any;
 
-        public constructor(
-            public x: number,
-            public y: number,
-            public spatial: EsriSpatial = null
-        ) {
-            super("Point", {"x": x, "y": y}, spatial);
+        public constructor(public x: number, public y: number, public spatial: EsriSpatial = null) {
+            super("Point", spatial);
+            
+            this.point = new esri.geometry.Point(x, y, this.spatial);
         }
 
         public toJson() {

@@ -67,6 +67,10 @@ namespace flagwind {
                 lnglat.lat = point.latitude;
             }
             // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
+            if (this.mapSetting.wkid === 3589) {
+                console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
+                lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
+            }
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
                     if (this.mapSetting.is25D) {
@@ -75,7 +79,6 @@ namespace flagwind {
                         console.log("高德坐标：" + lnglat.lon + "," + lnglat.lat);
                         lnglat = MapUtils.gcj_decrypt(lnglat.lat, lnglat.lon);
                         console.log("原始坐标：" + lnglat.lon + "," + lnglat.lat);
-
                     } else {
                         lnglat = MapUtils.mercator2lonlat(lnglat.lat, lnglat.lon);
                     }
@@ -99,6 +102,10 @@ namespace flagwind {
                 lnglat.lat = item.y || lnglat.lat;
             }
             // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
+            if (this.mapSetting.wkid === 3589) {
+                console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
+                lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
+            }
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
                     if (this.mapSetting.is25D) {
@@ -177,11 +184,13 @@ namespace flagwind {
         }
 
         public getBaseLayerById(id: string): FlagwindTiledLayer | null {
-            const layers = this.baseLayers.filter(g => g.id === id);
-            if (layers && layers.length > 0) {
-                return layers[0];
-            }
-            return null;
+            let layer = (<any>this.baseLayers).find((g: any) => g.id === id);
+            return layer ? layer : null;
+            // const layers = this.baseLayers.filter(g => g.id === id);
+            // if (layers && layers.length > 0) {
+            //     return layers[0];
+            // }
+            // return null;
         }
 
         /**
@@ -217,7 +226,7 @@ namespace flagwind {
             }
 
             const me: FlagwindMap = this;
-            this.on("click", function (evt: EventArgs) {
+            this.on("onClick", function (evt: EventArgs) {
                 me.options.onMapClick(evt);// evt.data
             });
         }
