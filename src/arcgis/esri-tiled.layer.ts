@@ -3,7 +3,7 @@ namespace flagwind {
     export class EsriTiledLayer extends FlagwindTiledLayer {
         public onCreateTiledLayer(args: any) {
             // let layer = new esri.layers.GraphicsLayer(args);
-            let layer = new esri.layers.ArcGISTiledMapServiceLayer(args.url, {id: args.id, 	SpatialReference: args.spatial});
+            let layer = new esri.layers.ArcGISTiledMapServiceLayer(args.url, {id: args.id});
             layer.addToMap = function (map: any) {
                 map.addLayer(this);
             };

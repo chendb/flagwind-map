@@ -34,6 +34,8 @@ namespace flagwind {
      */
     export abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
 
+        public layerType: string = "point";// point polyline polygon
+
         public constructor(
             public flagwindMap: FlagwindMap,
             public id: string,
@@ -41,23 +43,18 @@ namespace flagwind {
 
             super(id, options.title || "设备图层");
             options = { ...BUSINESS_LAYER_OPTIONS, ...options };
-
+            this.layerType = options.layerType;
             this.flagwindMap = flagwindMap;
             this.options = options;
         }
 
         public onInit(): void {
-            this.onAddLayerBefor();
-            this.flagwindMap.addFeatureLayer(this);
-            this.onAddLayerAfter();
+            this.addToMap();
 
             if (this.flagwindMap.loaded) {
                 this.onLoad();
             } else {
-                const me = this;
-                this.flagwindMap.on("onLoad", function () {
-                    me.onLoad();
-                });
+                this.flagwindMap.on("onLoad", () => this.onLoad());
             }
         }
 
@@ -89,7 +86,7 @@ namespace flagwind {
 
         public gotoCenterById(key: string): void {
             const graphic = this.getGraphicById(key);
-            if(!graphic) {
+            if (!graphic) {
                 console.trace("-----该条数据不在图层内！id:", key);
                 return;
             }
@@ -146,12 +143,15 @@ namespace flagwind {
 
         public addGraphicByModel(item: any): void {
             const graphic = this.creatGraphicByModel(item);
-            this.layer.add(graphic);
+            if (graphic) {
+                this.layer.add(graphic);
+            }
         }
 
         public creatGraphicByModel(item: any): any {
             item = this.onChangeStandardModel(item);
             if (!this.onValidModel(item)) {
+                console.warn("无效的要素：" + item);
                 return null;
             }
             // select属性为true表示当前选中，false表示未选中
@@ -176,10 +176,9 @@ namespace flagwind {
             if (graphic == null) {
                 return;
             }
-
+            item = { ...graphic.attributes, ...item };
             const pt = this.getPoint(graphic.attributes);
-            this.onUpdateGraphicByModel(graphic.attributes);
-
+            this.onUpdateGraphicByModel(item);
             return pt;
         }
 
@@ -215,12 +214,26 @@ namespace flagwind {
             return this.flagwindMap.onFormPoint(point);
         }
 
+        public addToMap(): void {
+            this.onAddLayerBefor();
+            this.flagwindMap.addFeatureLayer(this);
+            this.onAddLayerAfter();
+        }
+
+        public removeFormMap(): void {
+            this.flagwindMap.removeFeatureLayer(this.id);
+        }
+
         protected onLoad() {
-            if (!this.layer._map) {
-                this.layer._map = this.flagwindMap.innerMap;
+            try {
+                if (!this.layer._map) {
+                    this.layer._map = this.flagwindMap.innerMap;
+                }
+                this.registerEvent();
+                this.onMapLoad();
+            } catch (error) {
+                console.error(error);
             }
-            this.registerEvent();
-            this.onMapLoad();
         }
 
         protected onMapLoad() {
@@ -236,9 +249,10 @@ namespace flagwind {
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
                 this.on("onMouseOver", (evt: EventArgs) => {
                     // 增加Tooltip点位避免页面出现闪烁
-                    if (evt.data.graphic.options.dataType === "polyline" || evt.data.graphic.options.dataType === "polygon") {
-                        evt.data.graphic.attributes.tooltipX = evt.data.evt.layerX;
-                        evt.data.graphic.attributes.tooltipY = evt.data.evt.layerY;
+                    if (_deviceLayer.layerType === "polyline" || _deviceLayer.layerType === "polygon") {
+                        // TODO:不清楚此处作用
+                        evt.data.graphic.attributes.tooltipX = evt.data.args.layerX;
+                        evt.data.graphic.attributes.tooltipY = evt.data.args.layerY;
                     }
                     _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
                     _deviceLayer.fireEvent("onMouseOver", evt.data);
@@ -302,10 +316,12 @@ namespace flagwind {
         protected abstract onChangeStandardModel(item: any): any;
 
         protected onValidModel(item: any) {
-            switch (this.options.dataType) {
-                case "marker": return item.longitude && item.latitude;
+            switch (this.layerType) {
+                case "marker": return item.id && item.longitude && item.latitude;
                 case "polyline": return item.id && item.polyline;
                 case "polygon": return item.id && item.polygon;
+                default:
+                    return item.id && item.longitude && item.latitude;
             }
         }
     }
