@@ -27,7 +27,7 @@ requirejs(['flagwindMap'],
         mapSetting.accessToken="658e22d73c60405a8a7c82f69f298c2b";
         mapSetting.center = [116.46, 39.92];
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
-            onLoad: function () {
+            onMapLoad: function () {
 
             }
         });
@@ -88,17 +88,17 @@ requirejs(['flagwindMap'],
 
 
 
-        var tollgateLayer = new flagwind.MinemapPointLayer(businessService, myMap, "tollgateLayer", {
+        var tollgateLayer = new flagwind.MinemapPointLayer(myMap, "tollgateLayer", {
             kind: "marker",
             showTooltipOnHover: true,
             dataType: "tollgate",
             symbol:{
                 imageUrl:"http://113.106.54.47:1180/minemapapi/demo/images/police.png"
             },
-            onLoad: function () {
+            onMapLoad: function () {
                 alert("测试");
             }
-        });
+        },businessService);
 
 
         tollgateLayer.showDataList();

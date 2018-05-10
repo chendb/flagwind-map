@@ -27,7 +27,7 @@ requirejs(['flagwindMap'],
         mapSetting.accessToken="658e22d73c60405a8a7c82f69f298c2b";
         mapSetting.center = [116.46, 39.92];
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
-            onLoad: function () {
+            onMapLoad: function () {
 
             }
         });
@@ -88,7 +88,7 @@ requirejs(['flagwindMap'],
 
 
 
-        var tollgateLayer = new flagwind.MinemapPointLayer(businessService, myMap, "tollgateLayer", {
+        var tollgateLayer = new flagwind.MinemapPointLayer( myMap, "tollgateLayer", {
             kind: "marker",
             dataType: "tollgate",
             symbol:{
@@ -97,7 +97,7 @@ requirejs(['flagwindMap'],
             onLoad: function () {
                 alert("测试");
             }
-        });
+        },businessService);
 
 
         tollgateLayer.showDataList();

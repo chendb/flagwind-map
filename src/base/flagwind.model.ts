@@ -237,7 +237,6 @@ namespace flagwind {
             if (this.isMovingGraphicHide) {
                 this.isMovingGraphicHide = false;
                 this.markerGraphic.show();
-                // this.flagwindMap.onShowGraphic(this.markerGraphic);
             }
         }
 

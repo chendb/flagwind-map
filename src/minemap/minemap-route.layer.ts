@@ -133,10 +133,11 @@ namespace flagwind {
         }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
+            let markerUrl = trackline.options.symbol.imageUrl || trackline.options.markerUrl || this.options.markerUrl || this.options.movingImageUrl;
             let marker = new MinemapMarkerGraphic({
                 id: trackline.name,
                 symbol: {
-                    imageUrl: this.options.movingImageUrl,
+                    imageUrl: markerUrl,
                     className: "graphic-moving"
                 },
                 point: graphic.geometry,

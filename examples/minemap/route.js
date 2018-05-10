@@ -29,64 +29,10 @@ requirejs(['flagwindMap'],
         mapSetting.wkid = 3591
 
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
-            onLoad: function () {
+            onMapLoad: function () {
 
             }
         });
-
-
-        var businessService = {
-            getDataList: function () {
-                return new Promise(function (resolve, reject) {
-                    resolve([{
-                        tollCode: "1",
-                        tollName: "关山大道卡口",
-                        lon: 116.461,
-                        lat: 39.929
-                    }, {
-                        tollCode: "2",
-                        tollName: "北京路卡口",
-                        lon: 116.465,
-                        lat: 39.922
-                    }, {
-                        tollCode: "3",
-                        tollName: "天津路卡口",
-                        lon: 116.465,
-                        lat: 39.922
-                    }]);
-                });
-            },
-            getLastStatus: function () {
-                return new Promise(function (resolve, reject) {
-                    resolve([{
-                        tollCode: "1",
-                        tollName: "关山大道卡口",
-                        lon: 116.461,
-                        lat: 39.929,
-                        satus: Math.random()
-                    }, {
-                        tollCode: "2",
-                        tollName: "北京路卡口",
-                        lon: 116.465,
-                        lat: 39.922,
-                        satus: Math.random()
-                    }]);
-                });
-            },
-            changeStandardModel: function (item) {
-                item.id = item.tollCode;
-                item.name = item.tollName;
-                item.longitude = item.lon;
-                item.latitude = item.lat;
-                return item;
-            },
-            getInfoWindowContext: function (item) {
-                return {
-                    title: item.name,
-                    content: "这是一个测试" + item.name
-                };
-            }
-        }
 
         var routeLayer = new flagwind.MinemapRouteLayer(myMap, "car", {
             routeType: "NA"

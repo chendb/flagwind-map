@@ -28,7 +28,7 @@ requirejs(['flagwindMap'],
         mapSetting.center = [116.46, 39.92];
         mapSetting.wkid = 3591
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
-            onLoad: function () {
+            onMapLoad: function () {
 
             }
         });

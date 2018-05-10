@@ -3,23 +3,28 @@
 namespace flagwind {
     export const ROUTE_LAYER_OPTIONS: any = {
 
+        // 路由方式（Line:连线，NA:网络路径分析）
         routeType: "Line",
-        movingImageUrl: "",
+        // 路由服务地址(当routeType为NA时设置)
         routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route",
-        // showPlayTrackToolBar: false, //是否显示轨迹回放工具栏
+        // 行驶速度
         speed: 100,
         minSpeedRatio: 0.25,
         maxSpeedRatio: 4,
+        // 轨迹播放图层显示层级
         trackLevel: 2,
-
+        onMessageEvent(name: string, message: string) {
+            console.log(name + " " + message);
+        },
+        onCreateSegmentCompleteEvent(segment: TrackSegment) {
+            console.log("onCreateSegmentCompleteEvent");
+        },
         onLineStartEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
             console.log("onLineStartEvent");
         },
-
         onLineEndEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
             console.log("onLineEndEvent");
         },
-
         onMoveEvent(lineName: string, segmentIndex: number, xy: Array<any>, angle: number) {
             console.log("onMoveEvent");
         },
@@ -31,9 +36,20 @@ namespace flagwind {
     };
 
     export const TRACKLINE_OPTIONS: any = {
+        // 是否自动显示路段
+        autoShowSegmentLine: true,
+        symbol: {
+            imageUrl: "",
+            height: 10,
+            width: 10
+        },
+        // 移动要素图片地址
         markerUrl: "",
+        // 移动要素文本
         markerLabel: "",
+        // 移动要不高度
         markerHeight: 10,
+        // 移动要不宽度
         markerWidth: 10
     };
 
@@ -44,11 +60,10 @@ namespace flagwind {
         // public moveMarkLayer: { graphics: any; remove: (arg0: any) => void; _map: null; clear: () => void; id: any; add: (arg0: any) => void; show: () => void; hide: () => void; };
 
         public trackLines: Array<TrackLine> = [];
-        public activedtrackLineName: string = "";
+        public activedTrackLineName: string;
 
         public constructor(public flagwindMap: FlagwindMap, public layerName: string, public options: any) {
             this.options = { ...ROUTE_LAYER_OPTIONS, ...options };
-            // this.mapService = flagwindMap.mapService;
 
             this.moveLineLayer = this.onCreateLineLayer(layerName + "LineLayer");
 
@@ -59,15 +74,12 @@ namespace flagwind {
             this.moveLineLayer.appendTo(this.flagwindMap.innerMap);
             this.moveMarkLayer.appendTo(this.flagwindMap.innerMap);
             this.onAddLayerAfter();
-            const me = this;
-            // 当地图已经加载时直接执行_onLoad方法
 
+            // 当地图已经加载时直接执行_onLoad方法
             if (this.flagwindMap.loaded) {
-                me.onLoad();
+                this.onLoad();
             } else {
-                this.flagwindMap.on("load", function () {
-                    me.onLoad();
-                }, this);
+                this.flagwindMap.on("load", () => this.onLoad(), this);
             }
         }
 
@@ -83,7 +95,6 @@ namespace flagwind {
 
         public abstract onSetSegmentByLine(options: any, segment: TrackSegment): any;
 
-        // public mapService: IMapService;
         public abstract onSetSegmentByPoint(options: any, segment: TrackSegment): any;
 
         /**
@@ -102,8 +113,6 @@ namespace flagwind {
          * @param segment
          */
         public abstract onSolveByJoinPoint(segment: TrackSegment): void;
-
-        // public abstract onAddEventListener(moveMarkLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
 
         /**
          * 创建移动要素
@@ -211,18 +220,36 @@ namespace flagwind {
 
         /*********************播放控制**************************/
 
-        public stop(name: string) {
+        public stop(name?: string) {
             let trackline = this.getTrackLine(name);
             if (trackline != null) {
                 trackline.stop();
+            } else {
+                console.warn("无效的路径：" + name);
             }
         }
+
+        public stopAll() {
+            if (this.trackLines) {
+                this.trackLines.forEach(line => {
+                    this.stop(line.name);
+                });
+            } else {
+                console.warn("没有路径信息");
+            }
+        }
+
         /**
          * 启动线路播放（起点为上次播放的终点）
          */
         public move(name: string) {
             let trackline = this.getTrackLine(name);
-            if (trackline) trackline.move();
+            if (trackline) {
+                trackline.move();
+            }
+            else {
+                console.warn("无效的路径：" + name);
+            }
         }
         /**
          * 启动线路播放（起点为线路的始点）
@@ -232,6 +259,8 @@ namespace flagwind {
             if (trackline) {
                 trackline.stop();
                 trackline.start();
+            } else {
+                console.warn("无效的路径：" + name);
             }
         }
         /**
@@ -241,6 +270,8 @@ namespace flagwind {
             let trackline = this.getTrackLine(name);
             if (trackline) {
                 trackline.pause();
+            } else {
+                console.warn("无效的路径：" + name);
             }
         }
 
@@ -251,6 +282,8 @@ namespace flagwind {
             let trackline = this.getTrackLine(name);
             if (trackline) {
                 trackline.continue();
+            } else {
+                console.warn("无效的路径：" + name);
             }
         }
         /**
@@ -260,6 +293,8 @@ namespace flagwind {
             let trackline = this.getTrackLine(name);
             if (trackline) {
                 trackline.changeSpeed(speed);
+            } else {
+                console.warn("无效的路径：" + name);
             }
         }
         public speedUp(name: string) {
@@ -267,6 +302,7 @@ namespace flagwind {
             if (trackline) {
                 return trackline.speedUp();
             } else {
+                console.warn("无效的路径：" + name);
                 return "当前路线为空！";
             }
         }
@@ -275,13 +311,18 @@ namespace flagwind {
             if (trackline) {
                 return trackline.speedDown();
             } else {
+                console.warn("无效的路径：" + name);
                 return "当前路线为空！";
             }
         }
-        public clear(name: string) {
+
+        public clear(name?: string) {
             if (name) {
                 let trackline = this.getTrackLine(name);
-                if (trackline == null) return;
+                if (trackline == null) {
+                    console.warn("无效的路径：" + name);
+                    return;
+                }
                 trackline.stop();
                 this.moveMarkLayer.removeGraphicByName(name);
                 this.moveLineLayer.removeGraphicByName(name);
@@ -291,8 +332,14 @@ namespace flagwind {
                     this.trackLines.splice(index, 1);
                 }
             } else {
-                this.moveMarkLayer.clear();
-                this.moveLineLayer.clear();
+                this.stopAll();
+                if (this.moveMarkLayer) {
+                    this.moveMarkLayer.clear();
+                }
+
+                if (this.moveLineLayer) {
+                    this.moveLineLayer.clear();
+                }
                 this.trackLines = [];
             }
         }
@@ -305,20 +352,14 @@ namespace flagwind {
             this.moveLineLayer.removeGraphicByName(name);
 
         }
+
         /**
          * 清除所有
          */
         public clearAll() {
-            window.stop();
-
             this.checkMapSetting();
-            for (let i = 0; i < this.trackLines.length; i++) {
-                let trackline = this.trackLines[i];
-                trackline.stop();
-                trackline.reset();
-            }
-            this.trackLines = [];
 
+            this.stopAll();
             if (this.moveMarkLayer) {
                 this.moveMarkLayer.clear();
             }
@@ -326,6 +367,7 @@ namespace flagwind {
             if (this.moveLineLayer) {
                 this.moveLineLayer.clear();
             }
+            this.trackLines = [];
         }
 
         public deleteTrackToolBox(): void {
@@ -357,22 +399,22 @@ namespace flagwind {
             let clearBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-clear");
             let toolBoxTextEle: HTMLElement = document.querySelector("#route-ctrl-group .tool-text span");
             playBtn.onclick = function () {
-                me.continue(me.activedtrackLineName);
+                me.continue(me.activedTrackLineName);
                 playBtn.style.display = "none";
                 pauseBtn.style.display = "block";
                 toolBoxTextEle.innerHTML = "当前状态：正在播放";
             };
             pauseBtn.onclick = function () {
-                me.pause(me.activedtrackLineName);
+                me.pause(me.activedTrackLineName);
                 playBtn.style.display = "block";
                 pauseBtn.style.display = "none";
                 toolBoxTextEle.innerHTML = "当前状态：已暂停";
             };
             speedUpBtn.onclick = function () {
-                toolBoxTextEle.innerHTML = me.speedUp(me.activedtrackLineName);
+                toolBoxTextEle.innerHTML = me.speedUp(me.activedTrackLineName);
             };
             speedDownBtn.onclick = function () {
-                toolBoxTextEle.innerHTML = me.speedDown(me.activedtrackLineName);
+                toolBoxTextEle.innerHTML = me.speedDown(me.activedTrackLineName);
             };
             clearBtn.onclick = function () {
                 me.clearAll();
@@ -384,7 +426,7 @@ namespace flagwind {
         /*********************播放控制**************************/
 
         /**
-         * 求解最短路径（与solve不同，它求解的是一个路段，该路段起点为stops[0],终点为stops[stops.length-1]
+         * 求解最短路径（与solveLine不同，它求解的是一个路段，该路段起点为stops[0],终点为stops[stops.length-1]
          *
          * @param {any} name  线路名称
          * @param {any} stops 经过的站点
@@ -394,16 +436,31 @@ namespace flagwind {
             options = { ...TRACKLINE_OPTIONS, ...options };
             this.checkMapSetting();
 
-            if (stops.length < 1) {
-                throw Error("站点不能少于2");
-            }
-            
-            this.activedtrackLineName = name;
+            let stopList: Array<any> = [];
 
-            const stopGraphics = this.onGetStandardStops(name, stops);
+            stops.forEach(g => {
+                g = this.changeStandardModel(g);
+
+                if (this.validGeometryModel(g)) {
+                    stopList.push(g);
+                }
+            });
+
+            if (stopList.length < 1) {
+                throw Error("依靠点不能少于2");
+            }
+
+            this.activedTrackLineName = name;
 
             const segment = this.getLastSegment(name);
             let startLineIndex = segment ? segment.index + 1 : 0;
+
+            if ((startLineIndex + stopList.length) <= 2) {
+                throw Error("停靠点不能少于2");
+            }
+
+            const stopGraphics = this.onGetStandardStops(name, stopList);
+
             if (segment) {
                 const isEqual = this.onEqualGraphic(segment.endGraphic, stopGraphics[0]);
                 const isNA = this.options.routeType === "NA";
@@ -413,14 +470,63 @@ namespace flagwind {
                     startLineIndex += 1;
                 }
             }
-            // const start = stopGraphics.splice(0, 1)[0];// 从数组中取出第一个
-            // const end = stopGraphics.splice(stopGraphics.length - 1, 1)[0];// 从数组中取出最后一个
-            // const waypoints = stopGraphics; //
-            // this.post(startLineIndex, name, start, end, options, waypoints);
+            if (stopGraphics.length >= 2) {
+                const start = stopGraphics.splice(0, 1)[0];// 从数组中取出第一个
+                const end = stopGraphics.splice(stopGraphics.length - 1, 1)[0];// 从数组中取出最后一个
+                const waypoints = stopGraphics; //
+                this.post(startLineIndex, name, start, end, options, waypoints);
+            }
+        }
+
+        /**
+         * 求解最短路径(根据stops数量设置多个多个路段，相连的两点组成一个路段)
+         *
+         * @param {any} name  线路名称
+         * @param {any} stops 经过的站点
+         * @param {any} options 可选参数
+         */
+        public solveLine(name: string, stops: Array<any>, options: any) {
+            let trackLineOptions = { ...TRACKLINE_OPTIONS, ...options };
+            this.checkMapSetting();
+
+            let stopList: Array<any> = [];
+
+            stops.forEach(g => {
+                g = this.changeStandardModel(g);
+
+                if (this.validGeometryModel(g)) {
+                    stopList.push(g);
+                }
+            });
+
+            if (stopList.length < 1) {
+                throw Error("停靠点不能少于2");
+            }
+
+            this.activedTrackLineName = name;
+            const segment = this.getLastSegment(name);
+            let startLineIndex = segment ? segment.index + 1 : 0;
+
+            if ((startLineIndex + stopList.length) <= 2) {
+                throw Error("停靠点不能少于2");
+            }
+
+            const stopGraphics = this.onGetStandardStops(name, stopList);
+
+            if (segment) {
+                const isEqual = this.onEqualGraphic(segment.endGraphic, stopGraphics[0]);
+                const isNA = this.options.routeType === "NA";
+                // 若是网络分析服务且新增的路段与前一路段没有对接上，则增加一个路段用于连接他们
+                if (isNA && !isEqual) {
+                    this.post(startLineIndex, name, segment.endGraphic, stopGraphics[0], trackLineOptions);
+                    startLineIndex += 1;
+                }
+            }
+
             for (let i = 0; i < stopGraphics.length - 1; i++) {
                 let start = stopGraphics[i];
                 let end = stopGraphics[i + 1];
-                this.post(startLineIndex + i, name, start, end, options);
+                this.post(startLineIndex + i, name, start, end, trackLineOptions);
             }
         }
 
@@ -440,7 +546,7 @@ namespace flagwind {
             const trackSegmentOptions = lineOptions;
 
             trackSegmentOptions.onShowSegmentLineEvent = function (segment: TrackSegment) {
-                flagwindRoute.onShowSegmentLineEvent(flagwindRoute, segment, lineOptions);
+                flagwindRoute.onShowSegmentLineEvent(flagwindRoute, segment, trackSegmentOptions);
             };
             trackSegmentOptions.onMoveStartEvent = function (segment: TrackSegment, graphic: any, angle: number) {
                 flagwindRoute.onMoveStartEvent(flagwindRoute, segment, graphic, angle);
@@ -458,7 +564,7 @@ namespace flagwind {
                 segment.waypoints = waypoints;
             }
 
-            this.addTrackSegment(name, segment, lineOptions);
+            this.addTrackSegment(name, segment, trackSegmentOptions);
 
             if (this.options.routeType === "NA") {
                 this.onSolveByService(segment, start, end, waypoints);
@@ -477,7 +583,7 @@ namespace flagwind {
             const length = options.length;
             // 设置路段播放线路信息
             segment.setPolyLine(polyline, length);
-            this.onCreateSegmentLineComplete(segment);
+            this.onCreateSegmentComplete(segment);
         }
 
         /**
@@ -495,22 +601,15 @@ namespace flagwind {
             points.push(segment.endGraphic.geometry);
             // 当路由分析出错时，两点之间的最短路径以直线代替
             segment.setMultPoints(points);
-            this.onCreateSegmentLineComplete(segment);
+            this.onCreateSegmentComplete(segment);
         }
 
         /**
          * 线段创建完成事件回调
          * @param {*} segment 
          */
-        protected onCreateSegmentLineComplete(segment: TrackSegment): void {
-            console.log();
-        }
-
-        // 检测地图设置，防止图层未加载到地图上
-        protected checkMapSetting() {
-            // if (this.moveMarkLayer._map == null) {
-            //     this.moveMarkLayer = this.flagwindMap.innerMap.getLayer(this.moveMarkLayer.id);
-            // }
+        protected onCreateSegmentComplete(segment: TrackSegment): void {
+            this.options.onCreateSegmentCompleteEvent(segment);
         }
 
         /**
@@ -520,14 +619,11 @@ namespace flagwind {
          * @protected
          * @memberof flagwindRoute
          */
-        protected onShowSegmentLineEvent(flagwindRoute: this, segment: TrackSegment, lineOptions: any) {
+        protected onShowSegmentLineEvent(flagwindRoute: this, segment: TrackSegment, trackSegmentOptions: any) {
             // 是否自动显示轨迹
-            // if (lineOptions.autoShowSegmentLine) {
-            flagwindRoute.onShowSegmentLine(segment);
-            // }
-            // if (lineOptions.onShowSegmentLineEvent) {
-            //     lineOptions.onShowSegmentLineEvent(segment);
-            // }
+            if (trackSegmentOptions.autoShowSegmentLine) {
+                flagwindRoute.onShowSegmentLine(segment);
+            }
         }
 
         /**
@@ -543,6 +639,7 @@ namespace flagwind {
             if (!trackline.markerGraphic) {
                 flagwindRoute.onCreateMoveMark(trackline, graphic, angle);
             }
+
             flagwindRoute.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
 
             if (!segment.lineGraphic) {
@@ -605,6 +702,25 @@ namespace flagwind {
                     me.options.onMovingClick(evt);
                 }
             }, this);
+        }
+
+        // 检测地图设置，防止图层未加载到地图上
+        protected checkMapSetting() {
+            // if (this.moveMarkLayer._map == null) {
+            //     this.moveMarkLayer = this.flagwindMap.innerMap.getLayer(this.moveMarkLayer.id);
+            // }
+        }
+
+        protected changeStandardModel(item: any): any {
+            if (this.options.changeStandardModel) {
+                return this.options.changeStandardModel(item);
+            } else {
+                return item;
+            }
+        }
+
+        protected validGeometryModel(item: any) {
+            return MapUtils.validGeometryModel(item);
         }
 
         protected abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;

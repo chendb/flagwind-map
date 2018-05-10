@@ -28,7 +28,7 @@ requirejs(['flagwindMap'],
         mapSetting.center = [116.46, 39.92];
         mapSetting.wkid = 3591
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
-            onLoad: function () {
+            onMapLoad: function () {
 
             }
         });
@@ -89,7 +89,7 @@ requirejs(['flagwindMap'],
 
 
 
-        var tollgateLayer = new flagwind.MinemapPointLayer(businessService, myMap, "tollgateLayer", {
+        var tollgateLayer = new flagwind.MinemapPointLayer( myMap, "tollgateLayer", {
             kind: "marker",
             dataType: "tollgate",
             symbol:{
@@ -98,7 +98,7 @@ requirejs(['flagwindMap'],
             onLoad: function () {
 
             }
-        });
+        },businessService);
 
         var selectbox = new flagwind.MinemapSelectBox(myMap, {
             onCheckChanged:function(evt){
