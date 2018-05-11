@@ -242,7 +242,7 @@ declare namespace flagwind {
     /**
      * 绘制图层
      */
-    class EsriDrawLayer {
+    class EsriDrawLayer implements IFlagwindDrawLayer {
         private symbolSetting;
         flagwindMap: FlagwindMap;
         draw: any;
@@ -971,8 +971,8 @@ declare namespace flagwind {
      * 车辆路由服务
      */
     class EsriTrackLayer extends FlagwindTrackLayer {
-        businessLayer: EsriPointLayer;
-        constructor(businessLayer: EsriPointLayer, options: any);
+        businessLayer: FlagwindBusinessLayer;
+        constructor(businessLayer: FlagwindBusinessLayer, options: any);
     }
 }
 declare namespace flagwind {
@@ -1012,6 +1012,19 @@ declare namespace flagwind {
         logo: boolean;
         slider: boolean;
         sliderPosition: string;
+    }
+}
+declare namespace flagwind {
+    const DRAW_LAYER_OPTIONS: {
+        onDrawCompleteEvent: (geometry: any) => void;
+    };
+    /**
+     * 绘画图层
+     */
+    interface IFlagwindDrawLayer {
+        activate(mode: string, options?: any): void;
+        clear(): void;
+        finish(): void;
     }
 }
 declare namespace flagwind {

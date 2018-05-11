@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.3 
+* flagwind-map v1.0.4 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -802,11 +802,9 @@ var flagwind;
                 }
             };
             this.flagwindMap = flagwindMap;
-            this.options = __assign({}, this.options, options);
+            this.options = __assign({}, flagwind.DRAW_LAYER_OPTIONS, this.options, options);
             this.draw = new esri.toolbars.Draw(flagwindMap.map, this.options);
-            this.draw.on("draw-complete", function (evt) {
-                _this.onDrawComplete(evt);
-            });
+            this.draw.on("draw-complete", function (evt) { return _this.onDrawComplete(evt); });
         }
         EsriDrawLayer.prototype.activate = function (mode, options) {
             if (this.draw && options) {
@@ -844,6 +842,7 @@ var flagwind;
         EsriDrawLayer.prototype.onDrawComplete = function (evt) {
             this.clear();
             this.options.onEvent("draw-complete", evt.geometry);
+            this.options.onDrawCompleteEvent(evt.geometry);
         };
         Object.defineProperty(EsriDrawLayer.prototype, "lineSymbol", {
             get: function () {
@@ -4601,6 +4600,15 @@ var flagwind;
         return EsriSetting;
     }());
     flagwind.EsriSetting = EsriSetting;
+})(flagwind || (flagwind = {}));
+/// <reference path="./flagwind-feature.layer.ts" />import { resolve } from "dns";
+var flagwind;
+(function (flagwind) {
+    flagwind.DRAW_LAYER_OPTIONS = {
+        onDrawCompleteEvent: function (geometry) {
+            // console.log(eventName);
+        }
+    };
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {

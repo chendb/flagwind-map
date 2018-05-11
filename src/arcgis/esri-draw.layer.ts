@@ -4,7 +4,7 @@ namespace flagwind {
     /**
      * 绘制图层
      */
-    export class EsriDrawLayer {
+    export class EsriDrawLayer implements IFlagwindDrawLayer {
         private symbolSetting: any;
         public flagwindMap: FlagwindMap;
         public draw: any;
@@ -22,16 +22,14 @@ namespace flagwind {
 
         public constructor(flagwindMap: FlagwindMap, options?: any) {
             this.flagwindMap = flagwindMap;
-            this.options = { ...this.options, ...options };
+            this.options = { ...DRAW_LAYER_OPTIONS, ...this.options, ...options };
 
             this.draw = new esri.toolbars.Draw(flagwindMap.map, this.options);
-            this.draw.on("draw-complete", (evt: any) => {
-                this.onDrawComplete(evt);
-            });
+            this.draw.on("draw-complete", (evt: any) => this.onDrawComplete(evt));
         }
 
         public activate(mode: string, options?: any) {
-            if(this.draw && options) {
+            if (this.draw && options) {
                 this.setSymbol(mode, options);
             }
             if (this.draw && mode) {
@@ -64,6 +62,7 @@ namespace flagwind {
         private onDrawComplete(evt: any) {
             this.clear();
             this.options.onEvent("draw-complete", evt.geometry);
+            this.options.onDrawCompleteEvent(evt.geometry);
         }
 
         private get lineSymbol() {
