@@ -2116,6 +2116,12 @@ var flagwind;
                 var layer = new flagwind.EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
             }
+            if (this.mapSetting.tiledUrls) {
+                this.mapSetting.tiledUrls.forEach(function (l) {
+                    var layer = new flagwind.EsriTiledLayer(l.id, l.url, _this.spatial, l.title);
+                    baseLayers.push(layer);
+                });
+            }
             if (this.mapSetting.webTiledUrl) {
                 var tileInfo1 = this.getTileInfo();
                 var cycleLayer = new esri.layers.WebTiledLayer(this.mapSetting.webTiledUrl, {

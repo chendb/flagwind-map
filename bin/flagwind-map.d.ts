@@ -988,6 +988,11 @@ declare namespace flagwind {
         baseUrl: string;
         imageUrl: string;
         zhujiImageUrl: string;
+        tiledUrls: Array<{
+            id: string;
+            url: string;
+            title: string;
+        }>;
         arcgisApi: string;
         wkid: number;
         routeUrl: string;

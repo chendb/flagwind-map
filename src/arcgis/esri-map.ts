@@ -207,6 +207,12 @@ namespace flagwind {
                 const layer = new EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
             }
+            if (this.mapSetting.tiledUrls) {
+                this.mapSetting.tiledUrls.forEach(l => {
+                    const layer = new EsriTiledLayer(l.id, l.url, this.spatial, l.title);
+                    baseLayers.push(layer);
+                });
+            }
             if (this.mapSetting.webTiledUrl) {
                 const tileInfo1 = this.getTileInfo();
 

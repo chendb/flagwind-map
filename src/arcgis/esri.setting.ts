@@ -6,6 +6,7 @@ namespace flagwind {
         public baseUrl: string;
         public imageUrl: string;
         public zhujiImageUrl: string;
+        public tiledUrls: Array<{ id: string; url: string; title: string }>;
         // public mapDomain: string = "minedata.cn";
         // public mapVersion: string = "v1.3";
         // public accessToken: string = "25cc55a69ea7422182d00d6b7c0ffa93";
