@@ -1866,15 +1866,6 @@ var flagwind;
             }
             return false;
         };
-        FlagwindMap.prototype.onMapLoad = function () {
-            if (this.options.onMapLoad) {
-                this.options.onMapLoad();
-            }
-            var me = this;
-            this.on("onClick", function (evt) {
-                me.options.onMapClick(evt); // evt.data
-            });
-        };
         FlagwindMap.prototype.showBaseLayers = function () {
             if (this.baseLayers) {
                 this.baseLayers.forEach(function (g) {
@@ -1904,6 +1895,15 @@ var flagwind;
                 return true;
             }
             return false;
+        };
+        FlagwindMap.prototype.onMapLoad = function () {
+            if (this.options.onMapLoad) {
+                this.options.onMapLoad();
+            }
+            var me = this;
+            this.on("onClick", function (evt) {
+                me.options.onMapClick(evt); // evt.data
+            });
         };
         FlagwindMap.prototype.getFeatureLayerById = function (id) {
             var layers = this.featureLayers.filter(function (g) { return g.id === id; });

@@ -231,7 +231,6 @@ namespace flagwind {
             return false;
         }
 
-
         public showBaseLayers() {
             if (this.baseLayers) {
                 this.baseLayers.forEach(g => {

@@ -185,6 +185,7 @@ declare namespace flagwind {
         layerType: string;
         constructor(flagwindMap: FlagwindMap, id: string, options: any);
         onInit(): void;
+        abstract openInfoWindow(id: string, context: any, options: any): void;
         abstract onShowInfoWindow(evt: any): void;
         abstract onCreatGraphicByModel(item: any): any;
         abstract onUpdateGraphicByModel(item: any): void;
@@ -449,11 +450,11 @@ declare namespace flagwind {
         getPoint(item: any): any;
         addFeatureLayer(deviceLayer: FlagwindFeatureLayer): void;
         removeFeatureLayer(id: string): boolean;
+        showBaseLayers(): void;
+        hideBaseLayers(): void;
+        showBaseLayer(id: string): boolean;
+        hideBaseLayer(id: string): boolean;
         protected onMapLoad(): void;
-        protected showBaseLayers(): void;
-        protected hideBaseLayers(): void;
-        protected showBaseLayer(id: string): boolean;
-        protected hideBaseLayer(id: string): boolean;
         protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null;
         protected showFeatureLayer(id: string): boolean;
         readonly map: any;
