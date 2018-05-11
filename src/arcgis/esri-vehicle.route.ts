@@ -37,21 +37,6 @@ namespace flagwind {
             // 以x,y属性创建点
             return this.flagwindMap.onToPoint(item);
         }
-        
-        // private validGeometryModel(item: any) {
-        //     return MapUtils.validGeometryModel(item);
-        // }
-
-        // private changeStandardModel(item: any) {
-        //     if (this.options.changeStandardModel) {
-        //         return this.options.changeStandardModel(item);
-        //     } else {
-        //         item.id = item.id || item.tollCode || item.equipmentCode;
-        //         item.longitude = item.longitude || item.tollLongitude;
-        //         item.latitude = item.latitude || item.tollLatitude;
-        //         return item;
-        //     }
-        // }
 
     }
 }

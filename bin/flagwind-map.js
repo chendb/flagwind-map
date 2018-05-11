@@ -487,6 +487,15 @@ var flagwind;
         onVisibleChanged: function (isShow) {
             console.log("onVisibleChanged");
         },
+        changeStandardModel: function (model) {
+            return model;
+        },
+        getInfoWindowContext: function (mode) {
+            return {
+                title: "详细信息",
+                content: "没有定制详细信息"
+            };
+        },
         enableEdit: true,
         enableSelectMode: false,
         selectMode: 1,
@@ -692,7 +701,7 @@ var flagwind;
             this.on("onClick", function (evt) {
                 _deviceLayer.onLayerClick(_deviceLayer, evt.data);
             });
-            if (this.options.showTooltipOnHover) {
+            if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
                 this.on("onMouseOver", function (evt) {
                     // 增加Tooltip点位避免页面出现闪烁
                     if (_deviceLayer.layerType === "polyline" || _deviceLayer.layerType === "polygon") {
@@ -2776,7 +2785,7 @@ var flagwind;
             }
         };
         EsriPointLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
+            var context = this.options.getInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -2792,15 +2801,7 @@ var flagwind;
          * @param item 实体信息
          */
         EsriPointLayer.prototype.onChangeStandardModel = function (item) {
-            if (this.businessService) {
-                return this.businessService.changeStandardModel(item);
-            }
-            else if (this.options.changeStandardModel) {
-                return this.options.changeStandardModel(item);
-            }
-            else {
-                return item;
-            }
+            return this.options.changeStandardModel(item);
         };
         EsriPointLayer.prototype.getImageUrl = function (item) {
             var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
@@ -2935,7 +2936,7 @@ var flagwind;
      */
     var EsriPolygonLayer = /** @class */ (function (_super) {
         __extends(EsriPolygonLayer, _super);
-        function EsriPolygonLayer(businessService, flagwindMap, id, options) {
+        function EsriPolygonLayer(flagwindMap, id, options, businessService) {
             var _this = _super.call(this, flagwindMap, id, __assign({}, options, { layerType: "polygon" })) || this;
             _this.businessService = businessService;
             _this.isLoading = false; // 设备是否正在加载
@@ -2979,7 +2980,7 @@ var flagwind;
             }
         };
         EsriPolygonLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
+            var context = this.options.getInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -2995,7 +2996,7 @@ var flagwind;
          * @param item 实体信息
          */
         EsriPolygonLayer.prototype.onChangeStandardModel = function (item) {
-            return this.businessService.changeStandardModel(item);
+            return this.options.changeStandardModel(item);
         };
         /**
          * 创建要素方法
@@ -3123,7 +3124,7 @@ var flagwind;
      */
     var EsriPolylineLayer = /** @class */ (function (_super) {
         __extends(EsriPolylineLayer, _super);
-        function EsriPolylineLayer(businessService, flagwindMap, id, options) {
+        function EsriPolylineLayer(flagwindMap, id, options, businessService) {
             var _this = _super.call(this, flagwindMap, id, __assign({}, options, { layerType: "polyline" })) || this;
             _this.businessService = businessService;
             _this.isLoading = false; // 设备是否正在加载
@@ -3167,7 +3168,7 @@ var flagwind;
             }
         };
         EsriPolylineLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
+            var context = this.options.getInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -3183,7 +3184,7 @@ var flagwind;
          * @param item 实体信息
          */
         EsriPolylineLayer.prototype.onChangeStandardModel = function (item) {
-            return this.businessService.changeStandardModel(item);
+            return this.options.changeStandardModel(item);
         };
         /**
          * 创建要素方法
@@ -3388,7 +3389,7 @@ var flagwind;
             configurable: true
         });
         FlagwindRouteLayer.prototype.show = function () {
-            if (this.moveMarkLayer) {
+            if (this.moveMarkLayer) { // 移动小车 
                 this.moveMarkLayer.show();
             }
             if (this.moveLineLayer != null) {
@@ -3396,7 +3397,7 @@ var flagwind;
             }
         };
         FlagwindRouteLayer.prototype.hide = function () {
-            if (this.moveMarkLayer) {
+            if (this.moveMarkLayer) { // 移动小车 {
                 this.moveMarkLayer.hide();
             }
             if (this.moveLineLayer) {
@@ -4287,7 +4288,7 @@ var flagwind;
                     _this.businessLayer.saveGraphicByModel(graphic.attributes.__model);
                     _this.options.onPointChanged(index, graphic.attributes.__model);
                 }
-                if (!isStartPoint) {
+                if (!isStartPoint) { // 出站
                     _this.businessLayer.saveGraphicByModel(graphic.attributes.__model);
                     _this.options.onPointChanged(index + 1, graphic.attributes.__model);
                 }
@@ -4614,10 +4615,10 @@ var flagwind;
      */
     var TrackSegment = /** @class */ (function () {
         function TrackSegment(flagwindRouteLayer, index, // 线路对应路段索引
-            name, // 线路名
-            startGraphic, // 起点要素
-            endGraphic, // 终点要素
-            options) {
+        name, // 线路名
+        startGraphic, // 起点要素
+        endGraphic, // 终点要素
+        options) {
             this.flagwindRouteLayer = flagwindRouteLayer;
             this.index = index;
             this.name = name;
@@ -5165,12 +5166,15 @@ var flagwind;
             if (x > 0 && y >= 0) {
                 return Math.round((Math.atan(y / x) / Math.PI * 180));
             }
+            // 第四象限
             else if (x > 0 && y < 0) {
                 return 360 + Math.round((Math.atan(y / x) / Math.PI * 180));
             }
+            // 第二象限
             else if (x < 0 && y >= 0) {
                 return 180 + Math.round((Math.atan(y / x) / Math.PI * 180));
             }
+            // 第三象限
             else if (x < 0 && y < 0) {
                 return 180 + Math.round((Math.atan(y / x) / Math.PI * 180));
             }
@@ -7053,7 +7057,7 @@ var flagwind;
             if ((!_this.icon) && _this.symbol.imageUrl) {
                 _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl, imageSize: _this.symbol.imageSize, imgOffset: _this.symbol.imgOffset });
             }
-            _this.marker = new minemap.Marker(_this.icon, {});
+            _this.marker = new minemap.Marker(_this.icon, { /* offset: [-10, -14] */});
             _this.element = _this.marker.getElement();
             if (options.point) {
                 _this.geometry = new flagwind.MinemapPoint(options.point.x, options.point.y);
@@ -7333,7 +7337,7 @@ var flagwind;
             }
         };
         MinemapPointLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
+            var context = this.options.getInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -7348,7 +7352,7 @@ var flagwind;
          * @param item 实体信息
          */
         MinemapPointLayer.prototype.onChangeStandardModel = function (item) {
-            return this.businessService.changeStandardModel(item);
+            return this.options.changeStandardModel(item);
         };
         MinemapPointLayer.prototype.getImageUrl = function (item) {
             var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;

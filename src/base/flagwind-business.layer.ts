@@ -21,6 +21,15 @@ namespace flagwind {
         onVisibleChanged: function (isShow: boolean) {
             console.log("onVisibleChanged");
         },
+        changeStandardModel: function (model: any) {
+            return model;
+        },
+        getInfoWindowContext: function (mode: any) {
+            return {
+                title: "详细信息",
+                content: "没有定制详细信息"
+            };
+        },
         enableEdit: true,      // 启用要素编辑功能
         enableSelectMode: false, // 是否启用选择模块
         selectMode: 1,           // 1为多选，2为单选

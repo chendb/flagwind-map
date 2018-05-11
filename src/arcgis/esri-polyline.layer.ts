@@ -8,7 +8,7 @@ namespace flagwind {
 
         public isLoading: boolean = false; // 设备是否正在加载
 
-        public constructor(public businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any) {
+        public constructor(flagwindMap: FlagwindMap, id: string, options: any, public businessService: IFlagwindBusinessService) {
             super(flagwindMap, id, { ...options, ...{ layerType: "polyline" } });
             this.onInit();
         }
@@ -51,7 +51,7 @@ namespace flagwind {
         }
 
         public onShowInfoWindow(evt: any): void {
-            let context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
+            let context = this.options.getInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -68,7 +68,7 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onChangeStandardModel(item: any): any {
-            return this.businessService.changeStandardModel(item);
+            return this.options.changeStandardModel(item);
         }
 
         /**

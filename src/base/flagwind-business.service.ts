@@ -5,9 +5,9 @@ namespace flagwind {
      */
     export interface IFlagwindBusinessService {
 
-        changeStandardModel(model: any): any;
+        // changeStandardModel(model: any): any;
 
-        getInfoWindowContext(mode: any): { title: string; content: string };
+        // getInfoWindowContext(mode: any): { title: string; content: string };
         /**
          * 获取图层
          */

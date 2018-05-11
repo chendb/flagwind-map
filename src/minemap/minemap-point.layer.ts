@@ -35,7 +35,7 @@ namespace flagwind {
         }
 
         public onShowInfoWindow(evt: any): void {
-            let context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
+            let context = this.options.getInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -51,7 +51,7 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onChangeStandardModel(item: any): any {
-            return this.businessService.changeStandardModel(item);
+            return this.options.changeStandardModel(item);
         }
 
         public getImageUrl(item: any): string {

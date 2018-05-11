@@ -544,7 +544,7 @@ declare namespace flagwind {
     class EsriPolygonLayer extends FlagwindBusinessLayer {
         businessService: IFlagwindBusinessService;
         isLoading: boolean;
-        constructor(businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
+        constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService?: IFlagwindBusinessService);
         onCreateGraphicsLayer(options: any): any;
         openInfoWindow(id: string, context: any, options: any): void;
         onShowInfoWindow(evt: any): void;
@@ -596,7 +596,7 @@ declare namespace flagwind {
     class EsriPolylineLayer extends FlagwindBusinessLayer {
         businessService: IFlagwindBusinessService;
         isLoading: boolean;
-        constructor(businessService: IFlagwindBusinessService, flagwindMap: FlagwindMap, id: string, options: any);
+        constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService: IFlagwindBusinessService);
         onCreateGraphicsLayer(options: any): any;
         openInfoWindow(id: string, context: any, options: any): void;
         onShowInfoWindow(evt: any): void;
@@ -1011,11 +1011,6 @@ declare namespace flagwind {
      * 业务图层数据服务接口
      */
     interface IFlagwindBusinessService {
-        changeStandardModel(model: any): any;
-        getInfoWindowContext(mode: any): {
-            title: string;
-            content: string;
-        };
         /**
          * 获取图层
          */
@@ -1252,10 +1247,10 @@ declare namespace flagwind {
          * @param end 终点
          * @param n 增加的点数
          */
-        static density(start: MinemapPoint, end: MinemapPoint, n: number): {
+        static density(start: MinemapPoint, end: MinemapPoint, n: number): (MinemapPoint | {
             x: number;
             y: number;
-        }[];
+        })[];
         /**
          * 把一个直线，切成多个点
          * @param start 始点

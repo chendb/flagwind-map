@@ -60,7 +60,7 @@ namespace flagwind {
         }
 
         public onShowInfoWindow(evt: any): void {
-            let context = this.businessService.getInfoWindowContext(evt.graphic.attributes);
+            let context = this.options.getInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -77,13 +77,7 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onChangeStandardModel(item: any): any {
-            if (this.businessService) {
-                return this.businessService.changeStandardModel(item);
-            } else if (this.options.changeStandardModel) {
-                return this.options.changeStandardModel(item);
-            } else {
-                return item;
-            }
+            return this.options.changeStandardModel(item);
         }
 
         public getImageUrl(item: any): string {
