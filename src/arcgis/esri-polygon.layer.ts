@@ -51,7 +51,7 @@ namespace flagwind {
         }
 
         public onShowInfoWindow(evt: any): void {
-            let context = this.options.getInfoWindowContext(evt.graphic.attributes);
+            let context = this.onGetInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -69,6 +69,10 @@ namespace flagwind {
          */
         public onChangeStandardModel(item: any): any {
             return this.options.changeStandardModel(item);
+        }
+
+        public onGetInfoWindowContext(item: any): any {
+            return this.options.getInfoWindowContext(item);
         }
 
         /**

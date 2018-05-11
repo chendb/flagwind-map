@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.2 
+* flagwind-map v1.0.3 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -2806,7 +2806,7 @@ var flagwind;
             }
         };
         EsriPointLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.options.getInfoWindowContext(evt.graphic.attributes);
+            var context = this.onGetInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -2823,6 +2823,9 @@ var flagwind;
          */
         EsriPointLayer.prototype.onChangeStandardModel = function (item) {
             return this.options.changeStandardModel(item);
+        };
+        EsriPointLayer.prototype.onGetInfoWindowContext = function (item) {
+            return this.options.getInfoWindowContext(item);
         };
         EsriPointLayer.prototype.getImageUrl = function (item) {
             var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
@@ -3001,7 +3004,7 @@ var flagwind;
             }
         };
         EsriPolygonLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.options.getInfoWindowContext(evt.graphic.attributes);
+            var context = this.onGetInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -3018,6 +3021,9 @@ var flagwind;
          */
         EsriPolygonLayer.prototype.onChangeStandardModel = function (item) {
             return this.options.changeStandardModel(item);
+        };
+        EsriPolygonLayer.prototype.onGetInfoWindowContext = function (item) {
+            return this.options.getInfoWindowContext(item);
         };
         /**
          * 创建要素方法
@@ -3189,7 +3195,7 @@ var flagwind;
             }
         };
         EsriPolylineLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.options.getInfoWindowContext(evt.graphic.attributes);
+            var context = this.onGetInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -3206,6 +3212,9 @@ var flagwind;
          */
         EsriPolylineLayer.prototype.onChangeStandardModel = function (item) {
             return this.options.changeStandardModel(item);
+        };
+        EsriPolylineLayer.prototype.onGetInfoWindowContext = function (item) {
+            return this.options.getInfoWindowContext(item);
         };
         /**
          * 创建要素方法
@@ -7358,7 +7367,7 @@ var flagwind;
             }
         };
         MinemapPointLayer.prototype.onShowInfoWindow = function (evt) {
-            var context = this.options.getInfoWindowContext(evt.graphic.attributes);
+            var context = this.onGetInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
                 graphic: evt.graphic,
                 context: {
@@ -7374,6 +7383,9 @@ var flagwind;
          */
         MinemapPointLayer.prototype.onChangeStandardModel = function (item) {
             return this.options.changeStandardModel(item);
+        };
+        MinemapPointLayer.prototype.onGetInfoWindowContext = function (item) {
+            return this.options.getInfoWindowContext(item);
         };
         MinemapPointLayer.prototype.getImageUrl = function (item) {
             var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;

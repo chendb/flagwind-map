@@ -503,6 +503,7 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onChangeStandardModel(item: any): any;
+        onGetInfoWindowContext(item: any): any;
         getImageUrl(item: any): string;
         /**
          * 创建要素方法
@@ -553,6 +554,7 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onChangeStandardModel(item: any): any;
+        onGetInfoWindowContext(item: any): any;
         /**
          * 创建要素方法
          * @param item 实体信息
@@ -596,7 +598,7 @@ declare namespace flagwind {
     class EsriPolylineLayer extends FlagwindBusinessLayer {
         businessService: IFlagwindBusinessService;
         isLoading: boolean;
-        constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService: IFlagwindBusinessService);
+        constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService?: IFlagwindBusinessService);
         onCreateGraphicsLayer(options: any): any;
         openInfoWindow(id: string, context: any, options: any): void;
         onShowInfoWindow(evt: any): void;
@@ -605,6 +607,7 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onChangeStandardModel(item: any): any;
+        onGetInfoWindowContext(item: any): any;
         /**
          * 创建要素方法
          * @param item 实体信息
@@ -2452,6 +2455,7 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onChangeStandardModel(item: any): any;
+        onGetInfoWindowContext(item: any): any;
         getImageUrl(item: any): string;
         getClassName(item: any): string;
         /**
