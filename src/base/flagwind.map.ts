@@ -231,6 +231,41 @@ namespace flagwind {
             return false;
         }
 
+
+        public showBaseLayers() {
+            if (this.baseLayers) {
+                this.baseLayers.forEach(g => {
+                    g.show();
+                });
+            }
+        }
+
+        public hideBaseLayers() {
+            if (this.baseLayers) {
+                this.baseLayers.forEach(g => {
+                    g.show();
+                });
+            }
+        }
+
+        public showBaseLayer(id: string) {
+            const layer = this.getBaseLayerById(id);
+            if (layer) {
+                layer.show();
+                return true;
+            }
+            return false;
+        }
+
+        public hideBaseLayer(id: string) {
+            const layer = this.getBaseLayerById(id);
+            if (layer) {
+                layer.hide();
+                return true;
+            }
+            return false;
+        }
+
         protected onMapLoad() {
             if (this.options.onMapLoad) {
                 this.options.onMapLoad();
@@ -240,40 +275,6 @@ namespace flagwind {
             this.on("onClick", function (evt: EventArgs) {
                 me.options.onMapClick(evt);// evt.data
             });
-        }
-
-        protected showBaseLayers() {
-            if (this.baseLayers) {
-                this.baseLayers.forEach(g => {
-                    g.show();
-                });
-            }
-        }
-
-        protected hideBaseLayers() {
-            if (this.baseLayers) {
-                this.baseLayers.forEach(g => {
-                    g.show();
-                });
-            }
-        }
-
-        protected showBaseLayer(id: string) {
-            const layer = this.getBaseLayerById(id);
-            if (layer) {
-                layer.show();
-                return true;
-            }
-            return false;
-        }
-
-        protected hideBaseLayer(id: string) {
-            const layer = this.getBaseLayerById(id);
-            if (layer) {
-                layer.hide();
-                return true;
-            }
-            return false;
         }
 
         protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null {

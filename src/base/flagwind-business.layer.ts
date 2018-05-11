@@ -67,6 +67,8 @@ namespace flagwind {
             }
         }
 
+        public abstract openInfoWindow(id: string, context: any, options: any): void;
+
         public abstract onShowInfoWindow(evt: any): void;
 
         public abstract onCreatGraphicByModel(item: any): any;
