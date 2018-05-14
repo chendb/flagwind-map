@@ -978,7 +978,7 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     /**
-     * 车辆路由服务
+     * 车辆路由服务(该类即将废弃)
      */
     class EsriVehicleRouteLayer extends EsriRouteLayer {
         showTrack(trackLineName: string, stopList: Array<any>, options: any): void;

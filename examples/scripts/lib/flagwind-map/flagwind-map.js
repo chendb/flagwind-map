@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.5 
+* flagwind-map v1.0.6 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -2967,13 +2967,14 @@ var flagwind;
             return _this;
         }
         EsriPolygonLayer.prototype.onCreateGraphicsLayer = function (options) {
+            var _this = this;
             var layer = new esri.layers.GraphicsLayer(options);
-            layer.on("mouse-over", function (evt) { return layer.dispatchEvent("onMouseOver", evt); });
-            layer.on("mouse-out", function (evt) { return layer.dispatchEvent("onMouseOut", evt); });
-            layer.on("mouse-up", function (evt) { return layer.dispatchEvent("onMouseUp", evt); });
-            layer.on("mouse-down", function (evt) { return layer.dispatchEvent("onMouseDown", evt); });
-            layer.on("click", function (evt) { return layer.dispatchEvent("onClick", evt); });
-            layer.on("dbl-click", function (evt) { return layer.dispatchEvent("onDblClick", evt); });
+            layer.on("mouse-over", function (evt) { return _this.dispatchEvent("onMouseOver", evt); });
+            layer.on("mouse-out", function (evt) { return _this.dispatchEvent("onMouseOut", evt); });
+            layer.on("mouse-up", function (evt) { return _this.dispatchEvent("onMouseUp", evt); });
+            layer.on("mouse-down", function (evt) { return _this.dispatchEvent("onMouseDown", evt); });
+            layer.on("click", function (evt) { return _this.dispatchEvent("onClick", evt); });
+            layer.on("dbl-click", function (evt) { return _this.dispatchEvent("onDblClick", evt); });
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
@@ -3158,13 +3159,14 @@ var flagwind;
             return _this;
         }
         EsriPolylineLayer.prototype.onCreateGraphicsLayer = function (options) {
+            var _this = this;
             var layer = new esri.layers.GraphicsLayer(options);
-            layer.on("mouse-over", function (evt) { return layer.dispatchEvent("onMouseOver", evt); });
-            layer.on("mouse-out", function (evt) { return layer.dispatchEvent("onMouseOut", evt); });
-            layer.on("mouse-up", function (evt) { return layer.dispatchEvent("onMouseUp", evt); });
-            layer.on("mouse-down", function (evt) { return layer.dispatchEvent("onMouseDown", evt); });
-            layer.on("click", function (evt) { return layer.dispatchEvent("onClick", evt); });
-            layer.on("dbl-click", function (evt) { return layer.dispatchEvent("onDblClick", evt); });
+            layer.on("mouse-over", function (evt) { return _this.dispatchEvent("onMouseOver", evt); });
+            layer.on("mouse-out", function (evt) { return _this.dispatchEvent("onMouseOut", evt); });
+            layer.on("mouse-up", function (evt) { return _this.dispatchEvent("onMouseUp", evt); });
+            layer.on("mouse-down", function (evt) { return _this.dispatchEvent("onMouseDown", evt); });
+            layer.on("click", function (evt) { return _this.dispatchEvent("onClick", evt); });
+            layer.on("dbl-click", function (evt) { return _this.dispatchEvent("onDblClick", evt); });
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
@@ -4543,7 +4545,7 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     /**
-     * 车辆路由服务
+     * 车辆路由服务(该类即将废弃)
      */
     var EsriVehicleRouteLayer = /** @class */ (function (_super) {
         __extends(EsriVehicleRouteLayer, _super);

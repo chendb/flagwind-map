@@ -1,7 +1,7 @@
 namespace flagwind {
 
     /**
-     * 车辆路由服务
+     * 车辆路由服务(该类即将废弃)
      */
     export class EsriVehicleRouteLayer extends EsriRouteLayer {
 

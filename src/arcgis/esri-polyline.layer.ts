@@ -15,12 +15,12 @@ namespace flagwind {
 
         public onCreateGraphicsLayer(options: any) {
             const layer = new esri.layers.GraphicsLayer(options);
-            layer.on("mouse-over", (evt: any) => layer.dispatchEvent("onMouseOver", evt));
-            layer.on("mouse-out", (evt: any) => layer.dispatchEvent("onMouseOut", evt));
-            layer.on("mouse-up", (evt: any) => layer.dispatchEvent("onMouseUp", evt));
-            layer.on("mouse-down", (evt: any) => layer.dispatchEvent("onMouseDown", evt));
-            layer.on("click", (evt: any) => layer.dispatchEvent("onClick", evt));
-            layer.on("dbl-click", (evt: any) => layer.dispatchEvent("onDblClick", evt));
+            layer.on("mouse-over", (evt: any) => this.dispatchEvent("onMouseOver", evt));
+            layer.on("mouse-out", (evt: any) => this.dispatchEvent("onMouseOut", evt));
+            layer.on("mouse-up", (evt: any) => this.dispatchEvent("onMouseUp", evt));
+            layer.on("mouse-down", (evt: any) => this.dispatchEvent("onMouseDown", evt));
+            layer.on("click", (evt: any) => this.dispatchEvent("onClick", evt));
+            layer.on("dbl-click", (evt: any) => this.dispatchEvent("onDblClick", evt));
             layer.addToMap = function (map: any) {
                 map.addLayer(this);
             };
