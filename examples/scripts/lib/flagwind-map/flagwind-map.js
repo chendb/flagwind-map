@@ -1281,9 +1281,12 @@ var flagwind;
             var list = [];
             data.forEach(function (g) {
 <<<<<<< HEAD
+<<<<<<< HEAD
                 if ((g.x || g.longitude) && (g.y || g.latitude) > -90 && (g.y || g.latitude) < 90 && g.count) {
                     list.push({ "x": g.x || g.longitude, "y": g.y || g.latitude, "count": g.count });
 =======
+=======
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
                 if (flagwind.Type.isArray(g)) {
                     list.push({ "x": g[0], "y": g[1], "count": g[2] });
                 }
@@ -1294,6 +1297,9 @@ var flagwind;
                     else {
                         console.warn("无法解析热力图点位对象：" + g);
                     }
+<<<<<<< HEAD
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
+=======
 >>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
                 }
             });
@@ -2138,6 +2144,7 @@ var flagwind;
                 baseLayers.push(layer);
             }
 <<<<<<< HEAD
+<<<<<<< HEAD
             else {
                 console.warn("zhujiImageUrl为空！");
             }
@@ -2148,11 +2155,16 @@ var flagwind;
             else {
                 console.warn("imageUrl为空！");
 =======
+=======
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
             if (this.mapSetting.tiledUrls) {
                 this.mapSetting.tiledUrls.forEach(function (l) {
                     var layer = new flagwind.EsriTiledLayer(l.id, l.url, _this.spatial, l.title);
                     baseLayers.push(layer);
                 });
+<<<<<<< HEAD
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
+=======
 >>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
             }
             if (this.mapSetting.webTiledUrl) {
@@ -2822,6 +2834,7 @@ var flagwind;
                     graphic: graphic
                 });
             }
+<<<<<<< HEAD
         };
         EsriPointLayer.prototype.onShowInfoWindow = function (evt) {
             var context = this.onGetInfoWindowContext(evt.graphic.attributes);
@@ -2845,9 +2858,24 @@ var flagwind;
          */
         EsriPointLayer.prototype.onChangeStandardModel = function (item) {
             return this.options.changeStandardModel(item);
+=======
+        };
+        EsriPointLayer.prototype.onShowInfoWindow = function (evt) {
+            var context = this.onGetInfoWindowContext(evt.graphic.attributes);
+            this.flagwindMap.onShowInfoWindow({
+                graphic: evt.graphic,
+                context: {
+                    type: "html",
+                    title: context.title,
+                    content: context.content
+                },
+                options: {}
+            });
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
         };
 <<<<<<< HEAD
         /**
+<<<<<<< HEAD
          * 获取屏幕坐标点
          */
         EsriMarkerGraphic.prototype.getScreenPoint = function () {
@@ -2869,6 +2897,16 @@ var flagwind;
                 this.element.classList.add(classList[i]);
             }
 =======
+        EsriPointLayer.prototype.onGetInfoWindowContext = function (item) {
+            return this.options.getInfoWindowContext(item);
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
+=======
+         * 把实体转换成标准的要素属性信息
+         * @param item 实体信息
+         */
+        EsriPointLayer.prototype.onChangeStandardModel = function (item) {
+            return this.options.changeStandardModel(item);
+        };
         EsriPointLayer.prototype.onGetInfoWindowContext = function (item) {
             return this.options.getInfoWindowContext(item);
 >>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
@@ -2929,6 +2967,76 @@ var flagwind;
                 console.log("加载图层数据时发生了错误：", error);
                 _this.fireEvent("showDataList", { action: "error", attributes: error });
             });
+<<<<<<< HEAD
+        };
+        /**
+         * 开启定时器
+         */
+        EsriPointLayer.prototype.start = function () {
+            var me = this;
+            this.timer = setInterval(function () {
+                me.updateStatus();
+            }, this.options.timeout || 20000);
+        };
+        /**
+         * 关闭定时器
+         */
+        EsriPointLayer.prototype.stop = function () {
+            if (this.timer) {
+                clearInterval(this.timer);
+            }
+        };
+        EsriPointLayer.prototype.setSelectStatus = function (item, selected) {
+            item.selected = true;
+            this.onUpdateGraphicByModel(item);
+        };
+        EsriPointLayer.prototype.onCreateMarkerGraphic = function (item) {
+            var iconUrl = this.getImageUrl(item);
+            var pt = this.getPoint(item);
+            var width = this.options.symbol.width || 20;
+            var height = this.options.symbol.height || 27;
+            var markerSymbol = new esri.symbol.PictureMarkerSymbol(iconUrl, width, height);
+            var attr = __assign({}, item, { __type: "marker" });
+            var graphic = new esri.Graphic(pt, markerSymbol, attr);
+            return graphic;
+        };
+        EsriPointLayer.prototype.onUpdateMarkerGraphic = function (item) {
+            var iconUrl = this.getImageUrl(item);
+            var pt = this.getPoint(item);
+            var width = this.options.symbol.width || 20;
+            var height = this.options.symbol.height || 27;
+            var markerSymbol = new esri.symbol.PictureMarkerSymbol(iconUrl, width, height);
+            var graphic = this.getGraphicById(item.id);
+            graphic.setGeometry(pt);
+            graphic.setSymbol(markerSymbol);
+            graphic.attributes = __assign({}, graphic.attributes, item, { __type: "marker" });
+            graphic.draw(); // 重绘
+        };
+        /**
+         * 更新设备状态
+         */
+        EsriPointLayer.prototype.updateStatus = function () {
+            var _this = this;
+            var getLastStatus = (this.businessService) ? this.businessService.getLastStatus : this.options.getLastStatus;
+            if (!getLastStatus) {
+                throw new Error("没有指定该图层的状态获取方法");
+            }
+            this.isLoading = true;
+            this.fireEvent("updateStatus", { action: "start" });
+            getLastStatus().then(function (dataList) {
+                _this.isLoading = false;
+                _this.saveGraphicList(dataList);
+                _this.fireEvent("updateStatus", { action: "end", attributes: dataList });
+            }).catch(function (error) {
+                _this.isLoading = false;
+                console.log("加载状态时发生了错误：", error);
+                _this.fireEvent("updateStatus", { action: "error", attributes: error });
+            });
+        };
+        return EsriPointLayer;
+    }(flagwind.FlagwindBusinessLayer));
+    flagwind.EsriPointLayer = EsriPointLayer;
+=======
         };
         /**
          * 开启定时器
@@ -3189,6 +3297,221 @@ var flagwind;
         return EsriPolygonLayer;
     }(flagwind.FlagwindBusinessLayer));
     flagwind.EsriPolygonLayer = EsriPolygonLayer;
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
+})(flagwind || (flagwind = {}));
+/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+var flagwind;
+(function (flagwind) {
+    /**
+<<<<<<< HEAD
+     * 面图层
+     */
+    var EsriPolygonLayer = /** @class */ (function (_super) {
+        __extends(EsriPolygonLayer, _super);
+        function EsriPolygonLayer(flagwindMap, id, options, businessService) {
+            var _this = _super.call(this, flagwindMap, id, __assign({}, options, { layerType: "polygon" })) || this;
+=======
+     * 线图层
+     */
+    var EsriPolylineLayer = /** @class */ (function (_super) {
+        __extends(EsriPolylineLayer, _super);
+        function EsriPolylineLayer(flagwindMap, id, options, businessService) {
+            var _this = _super.call(this, flagwindMap, id, __assign({}, options, { layerType: "polyline" })) || this;
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
+            _this.businessService = businessService;
+            _this.isLoading = false; // 设备是否正在加载
+            _this.onInit();
+            return _this;
+        }
+<<<<<<< HEAD
+        EsriPolygonLayer.prototype.onCreateGraphicsLayer = function (options) {
+=======
+        EsriPolylineLayer.prototype.onCreateGraphicsLayer = function (options) {
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
+            var _this = this;
+            var layer = new esri.layers.GraphicsLayer(options);
+            layer.on("mouse-over", function (evt) { return _this.dispatchEvent("onMouseOver", evt); });
+            layer.on("mouse-out", function (evt) { return _this.dispatchEvent("onMouseOut", evt); });
+            layer.on("mouse-up", function (evt) { return _this.dispatchEvent("onMouseUp", evt); });
+            layer.on("mouse-down", function (evt) { return _this.dispatchEvent("onMouseDown", evt); });
+            layer.on("click", function (evt) { return _this.dispatchEvent("onClick", evt); });
+            layer.on("dbl-click", function (evt) { return _this.dispatchEvent("onDblClick", evt); });
+            layer.addToMap = function (map) {
+                map.addLayer(this);
+            };
+            layer.removeFormMap = function (map) {
+                map.removeLayer(this);
+            };
+            return layer;
+            // return new EsriGraphicsLayer(options);
+        };
+<<<<<<< HEAD
+        EsriPolygonLayer.prototype.openInfoWindow = function (id, context, options) {
+=======
+        EsriPolylineLayer.prototype.openInfoWindow = function (id, context, options) {
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
+            var graphic = this.getGraphicById(id);
+            if (!graphic) {
+                console.trace("-----该条数据不在图层内！id:", id);
+                return;
+            }
+            if (context) {
+                this.flagwindMap.onShowInfoWindow({
+                    graphic: graphic,
+                    context: context,
+                    options: options || {}
+                });
+            }
+            else {
+                this.onShowInfoWindow({
+                    graphic: graphic
+                });
+            }
+        };
+<<<<<<< HEAD
+        EsriPolygonLayer.prototype.onShowInfoWindow = function (evt) {
+=======
+        EsriPolylineLayer.prototype.onShowInfoWindow = function (evt) {
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
+            var context = this.onGetInfoWindowContext(evt.graphic.attributes);
+            this.flagwindMap.onShowInfoWindow({
+                graphic: evt.graphic,
+                context: {
+                    type: "html",
+                    title: context.title,
+                    content: context.content
+                },
+                options: {}
+            });
+        };
+        /**
+         * 把实体转换成标准的要素属性信息
+         * @param item 实体信息
+         */
+<<<<<<< HEAD
+        EsriPolygonLayer.prototype.onChangeStandardModel = function (item) {
+            return this.options.changeStandardModel(item);
+        };
+        EsriPolygonLayer.prototype.onGetInfoWindowContext = function (item) {
+            return this.options.getInfoWindowContext(item);
+        };
+        /**
+         * 创建要素方法
+         * @param item 实体信息
+         */
+        EsriPolygonLayer.prototype.onCreatGraphicByModel = function (item) {
+            return this.onCreatePolygonGraphic(item);
+        };
+        /**
+         * 更新要素方法
+         * @param item 实体信息
+         */
+        EsriPolygonLayer.prototype.onUpdateGraphicByModel = function (item) {
+            return this.onUpdatePolygonGraphic(item);
+        };
+        /**
+         * 加载并显示设备点位
+         *
+         * @memberof TollgateLayer
+         */
+        EsriPolygonLayer.prototype.showDataList = function () {
+            var me = this;
+            me.isLoading = true;
+            me.fireEvent("showDataList", { action: "start" });
+            return this.businessService.getDataList().then(function (dataList) {
+                me.isLoading = false;
+                me.saveGraphicList(dataList);
+                me.fireEvent("showDataList", { action: "end", attributes: dataList });
+            }).catch(function (error) {
+                me.isLoading = false;
+                console.log("加载卡口数据时发生了错误：", error);
+                me.fireEvent("showDataList", { action: "error", attributes: error });
+            });
+        };
+        /**
+         * 开启定时器
+         */
+        EsriPolygonLayer.prototype.start = function () {
+            var me = this;
+            this.timer = setInterval(function () {
+                me.updateStatus();
+            }, this.options.timeout || 20000);
+        };
+        /**
+         * 关闭定时器
+         */
+        EsriPolygonLayer.prototype.stop = function () {
+            if (this.timer) {
+                clearInterval(this.timer);
+            }
+        };
+        EsriPolygonLayer.prototype.setSelectStatus = function (item, selected) {
+            item.selected = true;
+            this.onUpdateGraphicByModel(item);
+        };
+        EsriPolygonLayer.prototype.onCreatePolygonGraphic = function (item) {
+            var polygon = this.getPolygon(item.polyline);
+            var fillSymbol = this.getFillSymbol(item, null);
+            var attr = __assign({}, item, { __type: "polygon" });
+            var graphic = new esri.Graphic(polygon, fillSymbol, attr);
+            return graphic;
+        };
+        EsriPolygonLayer.prototype.onUpdatePolygonGraphic = function (item) {
+            var polygon = this.getPolygon(item.polyline);
+            var fillSymbol = this.getFillSymbol(item, null);
+            var graphic = this.getGraphicById(item.id);
+            graphic.setGeometry(polygon);
+            graphic.setSymbol(fillSymbol);
+            graphic.attributes = __assign({}, graphic.attributes, item, { __type: "polygon" });
+            graphic.draw(); // 重绘
+        };
+        EsriPolygonLayer.prototype.getPolygon = function (strLine) {
+            if (!strLine)
+                return null;
+            var polygon = new esri.geometry.Polygon(this.spatial);
+            var xys = strLine.split(";");
+            var points = [];
+            for (var i = 0; i < xys.length; i++) {
+                if ((!xys[i]) || xys[i].length <= 0)
+                    continue;
+                var xy = xys[i].split(",");
+                var p = this.getPoint({
+                    x: parseFloat(xy[0]),
+                    y: parseFloat(xy[1])
+                });
+                points.push([p.x, p.y]);
+            }
+            polygon.addRing(points);
+            return polygon;
+        };
+        EsriPolygonLayer.prototype.getFillSymbol = function (item, symbol) {
+            var polygonSymbol = new esri.symbol.SimpleFillSymbol(symbol);
+            return polygonSymbol;
+        };
+        EsriPolygonLayer.prototype.getLineSymbol = function (item, symbol) {
+            var playedLineSymbol = new esri.symbol.CartographicLineSymbol(symbol);
+            return playedLineSymbol;
+        };
+        /**
+         * 更新设备状态
+         */
+        EsriPolygonLayer.prototype.updateStatus = function () {
+            var me = this;
+            me.isLoading = true;
+            me.fireEvent("updateStatus", { action: "start" });
+            this.businessService.getLastStatus().then(function (dataList) {
+                me.isLoading = false;
+                me.saveGraphicList(dataList);
+                me.fireEvent("updateStatus", { action: "end", attributes: dataList });
+            }).catch(function (error) {
+                me.isLoading = false;
+                console.log("加载卡口状态时发生了错误：", error);
+                me.fireEvent("updateStatus", { action: "error", attributes: error });
+            });
+        };
+        return EsriPolygonLayer;
+    }(flagwind.FlagwindBusinessLayer));
+    flagwind.EsriPolygonLayer = EsriPolygonLayer;
 })(flagwind || (flagwind = {}));
 /// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
 var flagwind;
@@ -3241,6 +3564,13 @@ var flagwind;
                     graphic: graphic
                 });
             }
+=======
+        EsriPolylineLayer.prototype.onChangeStandardModel = function (item) {
+            return this.options.changeStandardModel(item);
+        };
+        EsriPolylineLayer.prototype.onGetInfoWindowContext = function (item) {
+            return this.options.getInfoWindowContext(item);
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
         };
         EsriPolylineLayer.prototype.onShowInfoWindow = function (evt) {
             var context = this.onGetInfoWindowContext(evt.graphic.attributes);
@@ -3268,6 +3598,7 @@ var flagwind;
          * 创建要素方法
          * @param item 实体信息
          */
+<<<<<<< HEAD
 <<<<<<< HEAD
         EsriPointLayer.prototype.onCreatGraphicByModel = function (item) {
             var className = this.options.symbol.className || "graphic-tollgate";
@@ -3297,6 +3628,10 @@ var flagwind;
                 map: this.flagwindMap,
                 attributes: item
             });
+=======
+        EsriPolylineLayer.prototype.onCreatGraphicByModel = function (item) {
+            return this.onCreateLineGraphic(item);
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
 =======
         EsriPolylineLayer.prototype.onCreatGraphicByModel = function (item) {
             return this.onCreateLineGraphic(item);
@@ -3348,6 +3683,7 @@ var flagwind;
         EsriPolylineLayer.prototype.setSelectStatus = function (item, selected) {
             item.selected = true;
             this.onUpdateGraphicByModel(item);
+<<<<<<< HEAD
         };
         EsriPolylineLayer.prototype.onCreateLineGraphic = function (item) {
             var polyline = this.getPolyline(item.polyline);
@@ -3356,6 +3692,16 @@ var flagwind;
             var graphic = new esri.Graphic(polyline, lineSymbol, attr);
             return graphic;
         };
+=======
+        };
+        EsriPolylineLayer.prototype.onCreateLineGraphic = function (item) {
+            var polyline = this.getPolyline(item.polyline);
+            var lineSymbol = this.getLineSymbol(item, null);
+            var attr = __assign({}, item, { __type: "polyline" });
+            var graphic = new esri.Graphic(polyline, lineSymbol, attr);
+            return graphic;
+        };
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
         EsriPolylineLayer.prototype.onUpdateLineGraphic = function (item) {
             var polyline = this.getPolyline(item.polyline);
             var lineSymbol = this.getLineSymbol(item, null);

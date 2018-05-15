@@ -225,6 +225,12 @@ namespace flagwind {
                     baseLayers.push(layer);
                 });
             }
+            if (this.mapSetting.tiledUrls) {
+                this.mapSetting.tiledUrls.forEach(l => {
+                    const layer = new EsriTiledLayer(l.id, l.url, this.spatial, l.title);
+                    baseLayers.push(layer);
+                });
+            }
             if (this.mapSetting.webTiledUrl) {
                 const tileInfo1 = this.getTileInfo();
 

@@ -504,6 +504,7 @@ declare namespace flagwind {
          * @param item 实体信息
          */
 <<<<<<< HEAD
+<<<<<<< HEAD
         private _isInsided;
         private _geometry;
         id: string;
@@ -540,6 +541,11 @@ declare namespace flagwind {
         getScreenPoint(): any;
         addClass(className: string): void;
         removeClass(className: string): void;
+=======
+        onChangeStandardModel(item: any): any;
+        onGetInfoWindowContext(item: any): any;
+        getImageUrl(item: any): string;
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
 =======
         onChangeStandardModel(item: any): any;
         onGetInfoWindowContext(item: any): any;
@@ -658,6 +664,7 @@ declare namespace flagwind {
          * @param item 实体信息
          */
         onUpdateGraphicByModel(item: any): void;
+<<<<<<< HEAD
         /**
          * 加载并显示设备点位
          *
@@ -680,6 +687,30 @@ declare namespace flagwind {
          * 把点集字符串转换成线要素
          * @param strLine 坐标点字符串"x1,y1;x2,y2;x3,y3"
          */
+=======
+        /**
+         * 加载并显示设备点位
+         *
+         * @memberof TollgateLayer
+         */
+        showDataList(): Promise<void>;
+        /**
+         * 开启定时器
+         */
+        start(): void;
+        /**
+         * 关闭定时器
+         */
+        stop(): void;
+        protected setSelectStatus(item: any, selected: boolean): void;
+        protected onCreateLineGraphic(item: any): any;
+        protected onUpdateLineGraphic(item: any): void;
+        protected getLineSymbol(item: any, symbol: any): any;
+        /**
+         * 把点集字符串转换成线要素
+         * @param strLine 坐标点字符串"x1,y1;x2,y2;x3,y3"
+         */
+>>>>>>> 438eaffd69b4e297c292bed82ffee58ccada9c81
         protected getPolyline(strLine: string): any;
         /**
          * 更新设备状态
