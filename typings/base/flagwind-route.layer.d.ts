@@ -129,7 +129,7 @@ declare namespace flagwind {
          * 线段创建完成事件回调
          * @param {*} segment
          */
-        protected onCreateSegmentLineComplete(segment: TrackSegment): void;
+        protected onCreateSegmentComplete(segment: TrackSegment): void;
         protected checkMapSetting(): void;
         /**
          * 每次位置移动线路上的要素样式变换操作

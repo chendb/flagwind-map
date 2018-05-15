@@ -7,20 +7,6 @@ namespace flagwind {
         public moveMarkLayer: FlagwindGroupLayer;
         public trackLines: Array<TrackLine> = [];
 
-        // public constructor(public flagwindMap: FlagwindMap, public layerName: string, public options: any) {
-        //     super(flagwindMap, layerName, options);
-        //     this.options = {
-        //         routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route",
-        //         // showPlayTrackToolBar: false, //是否显示轨迹回放工具栏
-        //         speed: 100,
-        //         routeType: "NA",
-        //         minSpeedRatio: 0.25,
-        //         maxSpeedRatio: 4,
-        //         trackLevel: 2,
-        //         ...this.options
-        //     };
-        // }
-
         public onSetSegmentByLine(options: any, segment: TrackSegment) {
             segment.polyline = options.polyline;
             segment.length = options.length;
@@ -31,6 +17,7 @@ namespace flagwind {
                 segment.line = MapUtils.vacuate(segment.polyline.paths, segment.length, numsOfKilometer);
             }
         }
+
         public onSetSegmentByPoint(options: any, segment: TrackSegment) {
             let points = options.points;
             let numsOfKilometer = segment.options.numsOfKilometer ? segment.options.numsOfKilometer : 100;
@@ -53,24 +40,25 @@ namespace flagwind {
                 esri.symbol.CartographicLineSymbol.CAP_ROUND,
                 esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
 
-            segment.lineGraphic = this.getStandardGraphic(new esri.Graphic(segment.polyline, playedLineSymbol, {
-                type: "segment",
-                index: segment.index,
-                line: segment.name
-            }));
+            segment.lineGraphic = new esri.Graphic(segment.polyline, playedLineSymbol, {
+                __type: "segment",
+                __index: segment.index,
+                __line: segment.name
+            });
             this.moveLineLayer.addGraphic(segment.name, segment.lineGraphic);
         }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
-            let markerUrl = trackline.options.symbol.imageUrl;
-            let markerHeight = trackline.options.symbol.height;
-            let markerWidth = trackline.options.symbol.width;
+            let markerUrl = trackline.options.symbol.imageUrl || trackline.options.markerUrl || this.options.markerUrl;
+            let markerHeight = trackline.options.symbol.height || trackline.options.markerHeight || this.options.markerHeight;
+            let markerWidth = trackline.options.symbol.width || trackline.options.markerWidth || this.options.markerWidth;
+            if (!markerUrl) {
+                console.warn("轨迹移动要素图片未定义");
+            }
             let symbol = new esri.symbol.PictureMarkerSymbol(markerUrl, markerHeight, markerWidth);
-            let marker = this.getStandardGraphic(new esri.Graphic(graphic.geometry, symbol, { type: "marker", line: trackline.name }));
+            let marker = new esri.Graphic(graphic.geometry, symbol, { __type: "marker", __line: trackline.name });
             trackline.markerGraphic = marker;
             this.moveMarkLayer.addGraphic(trackline.name, marker);
-            // return this.getStandardGraphic(new esri.Graphic(graphic.geometry, symbol, { type: "marker", line: trackline.name }));
-            // return this.mapService.getTrackLineMarkerGraphic(trackline, graphic, angle);
         }
 
         public onCreateLineLayer(id: string): FlagwindGroupLayer {
@@ -84,6 +72,7 @@ namespace flagwind {
         public onEqualGraphic(originGraphic: any, targetGraphic: any): boolean {
             return MapUtils.isEqualPoint(originGraphic.geometry, targetGraphic.geometry);
         }
+
         public onGetStandardStops(name: String, stops: Array<any>): Array<any> {
             const stopGraphics = [];
             let stopSymbol = new esri.symbol.SimpleMarkerSymbol()
@@ -91,26 +80,33 @@ namespace flagwind {
                 .setSize(15).outline.setWidth(3);
             for (let i = 0; i < stops.length; i++) {
                 if (stops[i] instanceof Array) {
-                    stopGraphics.push(this.getStandardGraphic(new esri.Graphic(
+                    stopGraphics.push(new esri.Graphic(
                         new esri.geometry.Point(stops[i][0], stops[i][1]),
-                        stopSymbol, { type: "stop", line: name }
-                    )));
+                        stopSymbol, { __type: "stop", __line: name }
+                    ));
                 }
                 else if ((stops[i].declaredClass || "").indexOf("Point") > 0) {
-                    stopGraphics.push(this.getStandardGraphic(new esri.Graphic(
+                    stopGraphics.push(new esri.Graphic(
                         stops[i],
-                        stopSymbol, { type: "stop", line: name }
-                    )));
-                } else {
-                    stopGraphics.push(this.getStandardGraphic(new esri.Graphic(
+                        stopSymbol, { __type: "stop", __line: name }
+                    ));
+                } else if ((stops[i].declaredClass || "").indexOf("Graphic") > 0) {
+                    stopGraphics.push(new esri.Graphic(
                         stops[i].geometry,
-                        stopSymbol, { type: "stop", model: stops[i].attributes, line: name }
-                    )));
+                        stopSymbol, { __type: "stop", __model: stops[i].attributes, __line: name }
+                    ));
+                } else {
+                    stopGraphics.push(new esri.Graphic(this.flagwindMap.getPoint(stops[i]), stopSymbol, { __type: "stop", __model: stops[i], __line: name }));
                 }
             }
             return stopGraphics;
         }
+
         public onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void {
+            if (!this.options.routeUrl) {
+                console.error("routeUrl地址为空！");
+                return;
+            }
             const routeTask = new esri.tasks.RouteTask(this.options.routeUrl);
             const routeParams = new esri.tasks.RouteParameters();
             routeParams.stops = new esri.tasks.FeatureSet();
@@ -127,6 +123,7 @@ namespace flagwind {
                 flagwindRoute.solveComplete({ polyline: polyline, length: length }, segment);
             });
             routeTask.on("error", function (err: any) {
+                console.warn("轨迹路由服务请求异常：" + err);
                 flagwindRoute.errorHandler(err, segment);
             });
 
@@ -143,6 +140,7 @@ namespace flagwind {
             routeParams.stops.features.push(this.cloneStopGraphic(end));
             routeTask.solve(routeParams);
         }
+
         public onSolveByJoinPoint(segment: TrackSegment): void {
             const points = [];
             points.push(segment.startGraphic.geometry);
@@ -157,6 +155,7 @@ namespace flagwind {
             // 当路由分析出错时，两点之间的最短路径以直线代替
             segment.setMultPoints(points);
         }
+
         public onAddEventListener(groupLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void {
             groupLayer.layer.on(eventName, callBack);
         }
@@ -165,25 +164,15 @@ namespace flagwind {
             return new esri.SpatialReference({ wkid: this.flagwindMap.spatial.wkid });
         }
 
-        protected getStandardGraphic(graphic: any) {
-            // graphic.show = function () {
-            //     console.log("graphic 的显示方法没有实现");
-            // };
-            // graphic.hide = function () {
-            //     console.log("graphic 的隐藏方法没有实现");
-            // };
-            return graphic;
-
-        }
-
         protected cloneStopGraphic(graphic: any): any {
-            return this.getStandardGraphic(new esri.Graphic(
+            return new esri.Graphic(
                 graphic.geometry,
                 graphic.symbol, {
-                    type: graphic.attributes.type,
-                    line: graphic.attributes.line
+                    __type: graphic.attributes.__type,
+                    __model: graphic.attributes.__model,
+                    __line: graphic.attributes.__line
                 }
-            ));
+            );
         }
 
         /**

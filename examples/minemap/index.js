@@ -28,7 +28,7 @@ requirejs(['flagwindMap'],
         mapSetting.wkid = 3591
         
         var myMap = new flagwind.MinemapMap(mapSetting, 'map', {
-            onLoad: function () {}
+            onMapLoad: function () {}
         });
 
         var businessService = {
@@ -96,7 +96,7 @@ requirejs(['flagwindMap'],
 
 
 
-        var tollgateLayer = new flagwind.MinemapPointLayer(businessService, myMap, "tollgateLayer", {
+        var tollgateLayer = new flagwind.MinemapPointLayer( myMap, "tollgateLayer", {
             kind: "marker",
             showInfoWindow: false,
             symbol: {
@@ -105,7 +105,7 @@ requirejs(['flagwindMap'],
             onLoad: function () {
                 alert("测试");
             }
-        });
+        },businessService);
 
         tollgateLayer.showDataList();
 

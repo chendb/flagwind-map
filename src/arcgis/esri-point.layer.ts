@@ -122,6 +122,7 @@ namespace flagwind {
                 //     x: item.longitude
                 // },
                 spatial: this.flagwindMap.spatial,
+                map: this.flagwindMap,
                 attributes: item
             });
         }

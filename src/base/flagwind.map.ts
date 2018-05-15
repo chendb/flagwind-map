@@ -30,7 +30,7 @@ namespace flagwind {
             public mapSetting: IMapSetting,
             public mapEl: any,
             options: any) {
-                
+
             super();
             this.options = { ...MAP_OPTIONS, ...options };
         }
@@ -220,6 +220,51 @@ namespace flagwind {
             deviceLayer.appendTo(this.innerMap);
         }
 
+        public removeFeatureLayer(id: string) {
+            const flayer = this.getFeatureLayerById(id);
+            if (flayer) {
+                flayer.removeLayer(this.innerMap);
+                const i = this.featureLayers.indexOf(flayer);
+                this.featureLayers.splice(i, 1);
+                return true;
+            }
+            return false;
+        }
+
+        public showBaseLayers() {
+            if (this.baseLayers) {
+                this.baseLayers.forEach(g => {
+                    g.show();
+                });
+            }
+        }
+
+        public hideBaseLayers() {
+            if (this.baseLayers) {
+                this.baseLayers.forEach(g => {
+                    g.show();
+                });
+            }
+        }
+
+        public showBaseLayer(id: string) {
+            const layer = this.getBaseLayerById(id);
+            if (layer) {
+                layer.show();
+                return true;
+            }
+            return false;
+        }
+
+        public hideBaseLayer(id: string) {
+            const layer = this.getBaseLayerById(id);
+            if (layer) {
+                layer.hide();
+                return true;
+            }
+            return false;
+        }
+
         protected onMapLoad() {
             if (this.options.onMapLoad) {
                 this.options.onMapLoad();
@@ -231,15 +276,6 @@ namespace flagwind {
             });
         }
 
-        protected showBaseLayer(id: string) {
-            const layer = this.getBaseLayerById(id);
-            if (layer) {
-                layer.show();
-                return true;
-            }
-            return false;
-        }
-
         protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null {
             const layers = this.featureLayers.filter(g => g.id === id);
             return layers != null && layers.length > 0 ? layers[0] : null;
@@ -249,17 +285,6 @@ namespace flagwind {
             const layer = this.getFeatureLayerById(id);
             if (layer) {
                 layer.show();
-                return true;
-            }
-            return false;
-        }
-
-        protected removeFeatureLayer(id: string) {
-            const flayer = this.getFeatureLayerById(id);
-            if (flayer) {
-                flayer.removeLayer(this.innerMap);
-                const i = this.featureLayers.indexOf(flayer);
-                this.featureLayers.splice(i, 1);
                 return true;
             }
             return false;

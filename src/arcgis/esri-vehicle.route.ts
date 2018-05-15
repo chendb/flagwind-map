@@ -1,46 +1,41 @@
 namespace flagwind {
+
+    /**
+     * 车辆路由服务(该类即将废弃)
+     */
     export class EsriVehicleRouteLayer extends EsriRouteLayer {
 
-        private vehicleOptions: any = {
-            dataType: "marker",
-            symbol: {
-                className: "route-point",
-                imageUrl: "",
-                width: 48,
-                height: 48
-            }
-        };
-
         public showTrack(trackLineName: string, stopList: Array<any>, options: any): void {
-            if(this.options.symbol) this.vehicleOptions.symbol = {...this.vehicleOptions.symbol, ...this.options.symbol};
-            this.vehicleOptions = {...this.vehicleOptions, ...options};
+            let trackOptions = { ...{ solveMode: "Line" }, ...options };
             let stops = this.getStopsGraphicList(stopList);
-            this.solveSegment(trackLineName, stops, this.vehicleOptions);
+            if (trackOptions.solveMode === "Segment") {
+                this.solveSegment(trackLineName, stops, trackOptions);
+            } else {
+                this.solveLine(trackLineName, stops, trackOptions);
+            }
         }
 
         public getStopsGraphicList(stopList: Array<any>) {
             let dataList: Array<any> = [];
             stopList.forEach(g => {
                 g = this.changeStandardModel(g);
-                if (g.id && g.longitude && g.latitude) {
-                    dataList.push(new flagwind.EsriMarkerGraphic({
-                        id: g.id,
-                        dataType: this.vehicleOptions.dataType,
-                        symbol: this.vehicleOptions.symbol,
-                        point: new flagwind.EsriPoint(g.longitude, g.latitude, this.flagwindMap.spatial),
-                        spatial: this.flagwindMap.spatial,
-                        attributes: g
-                    }));
+
+                if (this.validGeometryModel(g)) {
+                    dataList.push(new esri.Graphic(this.toStopPoint(g), this.options.stopSymbol, { type: "stop", line: name }));
                 }
             });
             return dataList;
         }
 
-        private changeStandardModel(item: any) {
-            item.id =  item.id || item.tollCode || item.equipmentCode;
-            item.longitude = item.longitude || item.tollLongitude;
-            item.latitude = item.latitude || item.tollLatitude;
-            return item;
+        private toStopPoint(item: any): any {
+            let lnglat = { "lat": item.latitude, "lon": item.longitude };
+            if (!this.validGeometryModel(item)) {
+                lnglat.lon = item.x;
+                lnglat.lat = item.y;
+            }
+
+            // 以x,y属性创建点
+            return this.flagwindMap.onToPoint(item);
         }
 
     }

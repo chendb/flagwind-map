@@ -3,7 +3,7 @@ namespace flagwind {
     export class MinemapMap extends FlagwindMap {
 
         public constructor(
-            public mapSetting: IMapSetting,
+            public mapSetting: MinemapSetting,
             public mapEl: any,
             options: any) {
             super(mapSetting, mapEl, options);

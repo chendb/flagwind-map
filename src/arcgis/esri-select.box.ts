@@ -8,7 +8,7 @@ namespace flagwind {
         }
     };
     /**
-     * 线
+     * 地图选择组件
      */
     export class EsriSelectBox extends EventProvider {
 
@@ -55,16 +55,14 @@ namespace flagwind {
 
         }
 
-        public addLayer(layers: Array<any>): void {
-            layers.forEach(g => {
-                g.options.enableSelectMode = true;
-                this.layers.push(g);
-            });
+        public addLayer(layer: FlagwindBusinessLayer): void {
+            layer.options.enableSelectMode = true;
+            this.layers.push(layer);
         }
 
         public deleteSelectBar(): void {
             let ele = document.getElementById("edit-ctrl-group");
-            if(ele) ele.remove();
+            if (ele) ele.remove();
         }
 
         public showSelectBar(): void {
@@ -81,9 +79,6 @@ namespace flagwind {
             container.innerHTML = `<div class="edit-btn" title="画圆" data-operate="circle"><span class="iconfont icon-draw-circle"></span></div>
                 <div class="edit-btn" title="画矩形" data-operate="rectangle"><span class="iconfont icon-draw-square"></span></div>
                 <div class="edit-btn" title="画多边形" data-operate="polygon"><span class="iconfont icon-draw-polygon1"></span></div>`;
-                // <div class="edit-btn" title="撤销上一步操作" data-operate="undo"><span class="iconfont icon-undo"></span></div>
-                // <div class="edit-btn" title="重复上一步操作" data-operate="redo"><span class="iconfont icon-redo"></span></div>
-                // <div class="edit-btn" title="删除所选" data-operate="trash"><span class="iconfont icon-tool-trash"></span></div>`;
             mapEle.appendChild(container);
             let operateBtns = document.querySelectorAll("#edit-ctrl-group .edit-btn") as NodeListOf<HTMLElement>;
             for (let i = 0; i < operateBtns.length; i++) {
