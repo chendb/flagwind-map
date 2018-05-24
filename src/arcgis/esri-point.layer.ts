@@ -160,8 +160,7 @@ namespace flagwind {
 
             this.isLoading = true;
             this.fireEvent("showDataList", { action: "start" });
-            return this.businessService
-                .getDataList()
+            return this.businessService.getDataList()
                 .then(dataList => {
                     this.isLoading = false;
                     this.saveGraphicList(dataList);
