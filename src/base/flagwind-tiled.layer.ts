@@ -6,12 +6,15 @@ namespace flagwind {
      * @class FlagwindTiledLayer
      */
     export abstract class FlagwindTiledLayer {
-
         public layer: any;
         public isShow: boolean = true;
 
-        public constructor(public id: string, public url: string | null, public spatial: any, public title: string | null) {
-
+        public constructor(
+            public id: string,
+            public url: string | null,
+            public spatial: any,
+            public title: string | null
+        ) {
             if (url) {
                 this.layer = this.onCreateTiledLayer({
                     url: url,
@@ -31,17 +34,23 @@ namespace flagwind {
         }
 
         public removeLayer(map: any) {
-            this.layer.removeFromMap(map);
+            if (this.layer) {
+                this.layer.removeFromMap(map);
+            }
         }
 
         public show() {
             this.isShow = true;
-            this.layer.show();
+            if (this.layer) {
+                this.layer.show();
+            }
         }
 
         public hide() {
             this.isShow = false;
-            this.layer.hide();
+            if (this.layer) {
+                this.layer.hide();
+            }
         }
     }
 }

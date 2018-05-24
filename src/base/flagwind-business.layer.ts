@@ -18,6 +18,9 @@ namespace flagwind {
         onEditInfo: function (evt: any, isSave: boolean) {
             console.log("onEditInfo");
         },
+        onPositionChanged: function (currentPoint: any, originPoint: any, item: any) {
+            console.log("onVisibleChanged");
+        },
         onVisibleChanged: function (isShow: boolean) {
             console.log("onVisibleChanged");
         },
