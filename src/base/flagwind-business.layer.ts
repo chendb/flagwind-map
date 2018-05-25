@@ -260,11 +260,11 @@ namespace flagwind {
             if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
                 this.on("onMouseOver", (evt: EventArgs) => {
                     // 增加Tooltip点位避免页面出现闪烁
-                    if (_deviceLayer.layerType === "polyline" || _deviceLayer.layerType === "polygon") {
-                        // TODO:不清楚此处作用
-                        evt.data.graphic.attributes.tooltipX = evt.data.args.layerX;
-                        evt.data.graphic.attributes.tooltipY = evt.data.args.layerY;
-                    }
+                    // if (_deviceLayer.layerType === "polyline" || _deviceLayer.layerType === "polygon") {
+                    //     // TODO:不清楚此处作用
+                    //     evt.data.graphic.attributes.tooltipX = evt.data.layerX;
+                    //     evt.data.graphic.attributes.tooltipY = evt.data.layerY;
+                    // }
                     _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
                     _deviceLayer.fireEvent("onMouseOver", evt.data);
                 });
@@ -328,11 +328,10 @@ namespace flagwind {
 
         protected onValidModel(item: any) {
             switch (this.layerType) {
-                case "marker": return item.id && item.longitude && item.latitude;
+                case "point": return item.id && item.longitude && item.latitude;
                 case "polyline": return item.id && item.polyline;
                 case "polygon": return item.id && item.polygon;
-                default:
-                    return item.id && item.longitude && item.latitude;
+                default: return item.id && item.longitude && item.latitude;
             }
         }
     }

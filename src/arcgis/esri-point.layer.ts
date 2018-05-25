@@ -1,6 +1,30 @@
 /// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
 
 namespace flagwind {
+
+    export const POINT_LAYER_OPTIONS: any = {
+        onEvent: (eventName: string, evt: any) => {  // 事件回调
+            switch (eventName) {
+                case "onMouseOver":
+                    if (evt.graphic.getNode()) evt.graphic.getNode().classList.add("marker-scale"); break;
+                case "onMouseOut":
+                    if (evt.graphic.getNode()) evt.graphic.getNode().classList.remove("marker-scale"); break;
+            }
+        },
+        symbol: {
+            imageUrl1: "",
+            imageUrl0: "",
+            imageUrl: "",
+            imageUrl1checked: "",
+            imageUrl0checked: "",
+            imageUrlchecked: "",
+            width: 32,
+            height: 32
+        },
+        autoInit: true,
+        layerType: "point"
+    };
+
     /**
      * 点图层
      */
@@ -9,10 +33,11 @@ namespace flagwind {
         public isLoading: boolean = false; // 设备是否正在加载
 
         public constructor(flagwindMap: FlagwindMap, id: string, options: any, public businessService?: IFlagwindBusinessService) {
-            super(flagwindMap, id, { ...{ autoInit: true }, ...options, ...{ layerType: "point" } });
+            super(flagwindMap, id, { ...POINT_LAYER_OPTIONS, ...options });
             if (this.options.autoInit) {
                 this.onInit();
             }
+            // this.businessService = businessService;
         }
 
         public onCreateGraphicsLayer(options: any) {
@@ -43,7 +68,7 @@ namespace flagwind {
         public openInfoWindow(id: string, context: any, options: any) {
             let graphic = this.getGraphicById(id);
             if (!graphic) {
-                console.trace("-----该条数据不在图层内！id:", id);
+                console.warn("该条数据不在图层内！id:", id);
                 return;
             }
             if (context) {
@@ -86,19 +111,19 @@ namespace flagwind {
 
         public getImageUrl(item: any): string {
             let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
-            if (typeof imageUrl === "string") {
-                const key = "imageUrl" + (item.status || "") + (item.selected ? "checked" : "");
+            if (typeof imageUrl === "string" && imageUrl.indexOf("base64") === -1) {
+                const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;
                 let statusImageUrl: string = this.options[key] || this.options.symbol[key] || imageUrl;
                 let suffixIndex = statusImageUrl.lastIndexOf(".");
                 const path = statusImageUrl.substring(0, suffixIndex);
                 const suffix = statusImageUrl.substring(suffixIndex + 1);
                 if (item.selected) {
-                    return path + "_checked." + suffix;
+                    return `${path}"_checked."${suffix}`;
                 } else {
-                    return path + "." + suffix;
+                    return `${path}"."${suffix}`;
                 }
             } else {
-                const key = "image" + (item.status || "") + (item.selected ? "checked" : "");
+                const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;
                 return this.options[key] || this.options.symbol[key] || this.options.image;
             }
         }
@@ -173,8 +198,8 @@ namespace flagwind {
         protected onCreateMarkerGraphic(item: any): any {
             const iconUrl = this.getImageUrl(item);
             const pt = this.getPoint(item);
-            const width = this.options.symbol.width || 20;
-            const height = this.options.symbol.height || 27;
+            const width = this.options.symbol.width;
+            const height = this.options.symbol.height;
             const markerSymbol = new esri.symbol.PictureMarkerSymbol(iconUrl, width, height);
             let attr = { ...item, ...{ __type: "marker" } };
             const graphic = new esri.Graphic(pt, markerSymbol, attr);
@@ -184,8 +209,8 @@ namespace flagwind {
         protected onUpdateMarkerGraphic(item: any): any {
             const iconUrl = this.getImageUrl(item);
             const pt = this.getPoint(item);
-            const width = this.options.symbol.width || 20;
-            const height = this.options.symbol.height || 27;
+            const width = this.options.symbol.width;
+            const height = this.options.symbol.height;
             const markerSymbol = new esri.symbol.PictureMarkerSymbol(iconUrl, width, height);
             const graphic = this.getGraphicById(item.id);
             graphic.setGeometry(pt);

@@ -71,6 +71,7 @@ namespace flagwind {
                 console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
                 lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
             }
+            
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
                     if (this.mapSetting.is25D) {
@@ -106,6 +107,7 @@ namespace flagwind {
                 console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
                 lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
             }
+            
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
                     if (this.mapSetting.is25D) {
@@ -242,7 +244,7 @@ namespace flagwind {
         public hideBaseLayers() {
             if (this.baseLayers) {
                 this.baseLayers.forEach(g => {
-                    g.show();
+                    g.hide();
                 });
             }
         }

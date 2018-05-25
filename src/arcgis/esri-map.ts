@@ -201,32 +201,21 @@ namespace flagwind {
             if (this.mapSetting.baseUrl) {
                 const layer = new EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
-            } else {
-                console.warn("baseUrl为空！");
             }
 
             if (this.mapSetting.zhujiImageUrl) {
                 const layer = new EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
-            } else {
-                console.warn("zhujiImageUrl为空！");
             }
 
             if (this.mapSetting.imageUrl) {
                 const layer = new EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, this.spatial, "影像图层");
                 baseLayers.push(layer);
-            } else {
-                console.warn("imageUrl为空！");
             }
 
             if (this.mapSetting.tiledUrls) {
                 this.mapSetting.tiledUrls.forEach(l => {
-                    const layer = new EsriTiledLayer(l.id, l.url, this.spatial, l.title);
-                    baseLayers.push(layer);
-                });
-            }
-            if (this.mapSetting.tiledUrls) {
-                this.mapSetting.tiledUrls.forEach(l => {
+                    if (!l.url) return;
                     const layer = new EsriTiledLayer(l.id, l.url, this.spatial, l.title);
                     baseLayers.push(layer);
                 });
@@ -244,7 +233,7 @@ namespace flagwind {
             this.baseLayers = baseLayers;
             this.baseLayers.forEach(g => {
                 g.appendTo(this.innerMap);
-                g.show(); // 默认全部打开
+                // g.show(); // 默认全部打开
             });
 
             return baseLayers;
@@ -255,9 +244,9 @@ namespace flagwind {
             let pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             let screenpt = this.innerMap.toScreen(pt);
             let title = info.name;
-            if (graphic.attributes.__type === "polyline" || graphic.attributes.__type === "polygon") {
-                screenpt = { x: info.tooltipX, y: info.tooltipY };
-            }
+            // if (graphic.attributes.__type === "polyline" || graphic.attributes.__type === "polygon") {
+            //     screenpt = { x: info.tooltipX, y: info.tooltipY };
+            // }
             (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
             (<any>this).tooltipElement.style.left = (screenpt.x + 15) + "px";
             (<any>this).tooltipElement.style.top = (screenpt.y + 15) + "px";
