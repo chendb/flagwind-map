@@ -29,10 +29,14 @@ namespace flagwind {
      * 点图层
      */
     export class EsriPointLayer extends FlagwindBusinessLayer {
-
         public isLoading: boolean = false; // 设备是否正在加载
 
-        public constructor(flagwindMap: FlagwindMap, id: string, options: any, public businessService?: IFlagwindBusinessService) {
+        public constructor(
+            flagwindMap: FlagwindMap,
+            id: string,
+            options: any,
+            public businessService?: IFlagwindBusinessService
+        ) {
             super(flagwindMap, id, { ...POINT_LAYER_OPTIONS, ...options });
             if (this.options.autoInit) {
                 this.onInit();
@@ -42,16 +46,26 @@ namespace flagwind {
 
         public onCreateGraphicsLayer(options: any) {
             const layer = new esri.layers.GraphicsLayer(options);
-            layer.on("mouse-over", (evt: any) => this.dispatchEvent("onMouseOver", evt));
-            layer.on("mouse-out", (evt: any) => this.dispatchEvent("onMouseOut", evt));
-            layer.on("mouse-up", (evt: any) => this.dispatchEvent("onMouseUp", evt));
-            layer.on("mouse-down", (evt: any) => this.dispatchEvent("onMouseDown", evt));
+            layer.on("mouse-over", (evt: any) =>
+                this.dispatchEvent("onMouseOver", evt)
+            );
+            layer.on("mouse-out", (evt: any) =>
+                this.dispatchEvent("onMouseOut", evt)
+            );
+            layer.on("mouse-up", (evt: any) =>
+                this.dispatchEvent("onMouseUp", evt)
+            );
+            layer.on("mouse-down", (evt: any) =>
+                this.dispatchEvent("onMouseDown", evt)
+            );
             layer.on("click", (evt: any) => this.dispatchEvent("onClick", evt));
-            layer.on("dbl-click", (evt: any) => this.dispatchEvent("onDblClick", evt));
-            layer.addToMap = function (map: any) {
+            layer.on("dbl-click", (evt: any) =>
+                this.dispatchEvent("onDblClick", evt)
+            );
+            layer.addToMap = function(map: any) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map: any) {
+            layer.removeFormMap = function(map: any) {
                 try {
                     if (!this._map) {
                         this._map = map;
@@ -110,7 +124,7 @@ namespace flagwind {
         }
 
         public getImageUrl(item: any): string {
-            let imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
+            let imageUrl = this.options.symbol.imageUrl;
             if (typeof imageUrl === "string" && imageUrl.indexOf("base64") === -1) {
                 const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;
                 let statusImageUrl: string = this.options[key] || this.options.symbol[key] || imageUrl;
@@ -123,8 +137,15 @@ namespace flagwind {
                     return `${path}"."${suffix}`;
                 }
             } else {
-                const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;
-                return this.options[key] || this.options.symbol[key] || this.options.image;
+                const key =
+                    "image" +
+                    (item.status || "") +
+                    (item.selected ? "checked" : "");
+                return (
+                    this.options[key] ||
+                    this.options.symbol[key] ||
+                    this.options.image
+                );
             }
         }
 
@@ -146,29 +167,33 @@ namespace flagwind {
 
         /**
          * 加载并显示设备点位
-         * 
+         *
          * @memberof TollgateLayer
          */
         public showDataList() {
-
-            let getDataList: Function = (this.businessService) ? this.businessService.getDataList : this.options.getDataList;
-
-            if (!getDataList) {
-                throw new Error("没有指定该图层的数据获取方法");
+            if (!this.businessService) {
+                throw new Error("没有指定该图层数据获取服务");
             }
 
             this.isLoading = true;
             this.fireEvent("showDataList", { action: "start" });
-            return (<Promise<Array<any>>>getDataList()).then(dataList => {
-                this.isLoading = false;
-                this.saveGraphicList(dataList);
-                this.fireEvent("showDataList", { action: "end", attributes: dataList });
-            }).catch(error => {
-                this.isLoading = false;
-                console.log("加载图层数据时发生了错误：", error);
-                this.fireEvent("showDataList", { action: "error", attributes: error });
-            });
-
+            return this.businessService.getDataList()
+                .then(dataList => {
+                    this.isLoading = false;
+                    this.saveGraphicList(dataList);
+                    this.fireEvent("showDataList", {
+                        action: "end",
+                        attributes: dataList
+                    });
+                })
+                .catch(error => {
+                    this.isLoading = false;
+                    console.log("加载图层数据时发生了错误：", error);
+                    this.fireEvent("showDataList", {
+                        action: "error",
+                        attributes: error
+                    });
+                });
         }
 
         /**
@@ -213,36 +238,49 @@ namespace flagwind {
             const height = this.options.symbol.height;
             const markerSymbol = new esri.symbol.PictureMarkerSymbol(iconUrl, width, height);
             const graphic = this.getGraphicById(item.id);
+            const originPoint = graphic.geometry;
+
             graphic.setGeometry(pt);
             graphic.setSymbol(markerSymbol);
-            graphic.attributes = { ...graphic.attributes, ...item, ...{ __type: "marker" } };
+            graphic.attributes = {
+                ...graphic.attributes,
+                ...item,
+                ...{ __type: "marker" }
+            };
             graphic.draw(); // 重绘
+            if (!MapUtils.isEqualPoint(pt, originPoint)) {
+                this.options.onPositionChanged(pt, originPoint, graphic.attributes);
+            }
         }
 
         /**
          * 更新设备状态
          */
         private updateStatus(): void {
-
-            let getLastStatus: Function = (this.businessService) ? this.businessService.getLastStatus : this.options.getLastStatus;
-
-            if (!getLastStatus) {
-                throw new Error("没有指定该图层的状态获取方法");
+            if (!this.businessService) {
+                throw new Error("没有指定该图层数据获取服务");
             }
 
             this.isLoading = true;
             this.fireEvent("updateStatus", { action: "start" });
-            (<Promise<Array<any>>>getLastStatus()).then(dataList => {
-                this.isLoading = false;
-                this.saveGraphicList(dataList);
-                this.fireEvent("updateStatus", { action: "end", attributes: dataList });
-            }).catch(error => {
-                this.isLoading = false;
-                console.log("加载状态时发生了错误：", error);
-                this.fireEvent("updateStatus", { action: "error", attributes: error });
-            });
+            this.businessService
+                .getLastStatus()
+                .then(dataList => {
+                    this.isLoading = false;
+                    this.saveGraphicList(dataList);
+                    this.fireEvent("updateStatus", {
+                        action: "end",
+                        attributes: dataList
+                    });
+                })
+                .catch(error => {
+                    this.isLoading = false;
+                    console.log("加载状态时发生了错误：", error);
+                    this.fireEvent("updateStatus", {
+                        action: "error",
+                        attributes: error
+                    });
+                });
         }
-
     }
-
 }

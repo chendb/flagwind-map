@@ -1,5 +1,9 @@
 /*!
+<<<<<<< HEAD
 * flagwind-map v1.0.7 
+=======
+* flagwind-map v1.0.9 
+>>>>>>> 5c2c646291ad60beb9d7a4452d429f39f07c8900
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -483,11 +487,316 @@ var flagwind;
 /// <reference path="./flagwind-feature.layer.ts" />import { resolve } from "dns";
 var flagwind;
 (function (flagwind) {
+<<<<<<< HEAD
     flagwind.DRAW_LAYER_OPTIONS = {
         onDrawCompleteEvent: function (geometry) {
             // console.log(eventName);
         }
     };
+=======
+    flagwind.BUSINESS_LAYER_OPTIONS = {
+        onLayerClick: function (evt) {
+            console.log("onLayerClick");
+        },
+        onMapLoad: function () {
+            // console.log("onMapLoad");
+        },
+        onEvent: function (eventName, evt) {
+            console.log("onEvent");
+        },
+        onCheck: function (evt) {
+            console.log("onCheck");
+        },
+        onEditInfo: function (evt, isSave) {
+            console.log("onEditInfo");
+        },
+        onPositionChanged: function (currentPoint, originPoint, item) {
+            console.log("onVisibleChanged");
+        },
+        onVisibleChanged: function (isShow) {
+            console.log("onVisibleChanged");
+        },
+        changeStandardModel: function (model) {
+            return model;
+        },
+        getInfoWindowContext: function (mode) {
+            return {
+                title: "详细信息",
+                content: "没有定制详细信息"
+            };
+        },
+        enableEdit: true,
+        enableSelectMode: false,
+        selectMode: 1,
+        showTooltipOnHover: false,
+        showInfoWindow: false,
+        dataType: "marker"
+    };
+    /**
+     * 业务图层
+     */
+    var FlagwindBusinessLayer = /** @class */ (function (_super) {
+        __extends(FlagwindBusinessLayer, _super);
+        function FlagwindBusinessLayer(flagwindMap, id, options) {
+            var _this = _super.call(this, id, options.title || "设备图层") || this;
+            _this.flagwindMap = flagwindMap;
+            _this.id = id;
+            _this.options = options;
+            _this.layerType = "point"; // point polyline polygon
+            options = __assign({}, flagwind.BUSINESS_LAYER_OPTIONS, options);
+            _this.layerType = options.layerType;
+            _this.flagwindMap = flagwindMap;
+            _this.options = options;
+            return _this;
+        }
+        FlagwindBusinessLayer.prototype.onInit = function () {
+            var _this = this;
+            this.addToMap();
+            if (this.flagwindMap.loaded) {
+                this.onLoad();
+            }
+            else {
+                this.flagwindMap.on("onLoad", function () { return _this.onLoad(); });
+            }
+        };
+        FlagwindBusinessLayer.prototype.onAddLayerBefor = function () {
+            // console.log("onAddLayerBefor");
+        };
+        FlagwindBusinessLayer.prototype.onAddLayerAfter = function () {
+            // console.log("onAddLayerAfter");
+        };
+        Object.defineProperty(FlagwindBusinessLayer.prototype, "map", {
+            get: function () {
+                return this.flagwindMap.map;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(FlagwindBusinessLayer.prototype, "spatial", {
+            get: function () {
+                return this.flagwindMap.spatial;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        FlagwindBusinessLayer.prototype.closeInfoWindow = function () {
+            this.flagwindMap.closeInfoWindow();
+        };
+        FlagwindBusinessLayer.prototype.gotoCenterById = function (key) {
+            var graphic = this.getGraphicById(key);
+            if (!graphic) {
+                console.trace("-----该条数据不在图层内！id:", key);
+                return;
+            }
+            var pt = this.getPoint(graphic.attributes);
+            this.flagwindMap.centerAt(pt.x, pt.y);
+        };
+        FlagwindBusinessLayer.prototype.saveGraphicList = function (dataList) {
+            for (var i = 0; i < dataList.length; i++) {
+                this.saveGraphicByModel(dataList[i]);
+            }
+        };
+        FlagwindBusinessLayer.prototype.updateGraphicList = function (dataList) {
+            for (var i = 0; i < dataList.length; i++) {
+                this.updateGraphicByModel(dataList[i]);
+            }
+        };
+        // 设置选择状态
+        FlagwindBusinessLayer.prototype.setSelectStatusByModels = function (dataList, refresh) {
+            if (refresh) {
+                this.clearSelectStatus();
+            }
+            for (var i = 0; i < dataList.length; i++) {
+                var model = this.onChangeStandardModel(dataList[i]);
+                var graphic = this.getGraphicById(model.id);
+                if (graphic) {
+                    this.setSelectStatus(graphic.attributes, true);
+                }
+            }
+            this.options.onCheck({
+                target: dataList,
+                check: true,
+                selectedItems: this.getSelectedGraphics().map(function (g) { return g.attributes; })
+            });
+        };
+        /**
+         * 保存要素（如果存在，则修改，否则添加）
+         */
+        FlagwindBusinessLayer.prototype.saveGraphicByModel = function (item) {
+            item = this.onChangeStandardModel(item);
+            if (!item || !item.id)
+                return;
+            var graphic = this.getGraphicById(item.id);
+            if (graphic) {
+                return this.updateGraphicByModel(item, graphic);
+            }
+            else {
+                return this.addGraphicByModel(item);
+            }
+        };
+        FlagwindBusinessLayer.prototype.addGraphicByModel = function (item) {
+            var graphic = this.creatGraphicByModel(item);
+            if (graphic) {
+                this.layer.add(graphic);
+            }
+        };
+        FlagwindBusinessLayer.prototype.creatGraphicByModel = function (item) {
+            item = this.onChangeStandardModel(item);
+            if (!this.onValidModel(item)) {
+                console.warn("无效的要素：" + item);
+                return null;
+            }
+            // select属性为true表示当前选中，false表示未选中
+            if (item.selected === undefined) {
+                item.selected = false;
+            }
+            var graphic = this.onCreatGraphicByModel(item);
+            return graphic;
+        };
+        /**
+         * 修改要素
+         */
+        FlagwindBusinessLayer.prototype.updateGraphicByModel = function (item, graphic) {
+            if (graphic === void 0) { graphic = null; }
+            item = this.onChangeStandardModel(item);
+            if (!this.onValidModel(item)) {
+                return;
+            }
+            if (!graphic) {
+                graphic = this.getGraphicById(item.id);
+            }
+            if (graphic == null) {
+                return;
+            }
+            item = __assign({}, graphic.attributes, item);
+            var pt = this.getPoint(graphic.attributes);
+            this.onUpdateGraphicByModel(item);
+            return pt;
+        };
+        FlagwindBusinessLayer.prototype.clearSelectStatus = function () {
+            var graphics = this.layer.graphics;
+            for (var i = 0; i < graphics.length; i++) {
+                if (graphics[i].attributes.selected || typeof graphics[i].attributes.selected !== "boolean") {
+                    this.setSelectStatus(graphics[i].attributes, false);
+                }
+            }
+            this.options.onCheck({
+                target: graphics ? graphics.map(function (v) { return v.attributes; }) : [],
+                check: false,
+                selectedItems: this.getSelectedGraphics().map(function (g) { return g.attributes; })
+            });
+        };
+        FlagwindBusinessLayer.prototype.getSelectedGraphics = function () {
+            return this.layer.graphics.filter(function (g) { return g.attributes && g.attributes.selected; });
+        };
+        /**
+         * 创建点要素（把业务数据的坐标转换成地图上的点）
+         */
+        FlagwindBusinessLayer.prototype.getPoint = function (item) {
+            return this.flagwindMap.getPoint(item);
+        };
+        /**
+         * 把地图上的点转换成业务的坐标
+         * @param {*} point
+         */
+        FlagwindBusinessLayer.prototype.formPoint = function (point) {
+            return this.flagwindMap.onFormPoint(point);
+        };
+        FlagwindBusinessLayer.prototype.addToMap = function () {
+            this.onAddLayerBefor();
+            this.flagwindMap.addFeatureLayer(this);
+            this.onAddLayerAfter();
+        };
+        FlagwindBusinessLayer.prototype.removeFormMap = function () {
+            this.flagwindMap.removeFeatureLayer(this.id);
+        };
+        FlagwindBusinessLayer.prototype.onLoad = function () {
+            try {
+                if (!this.layer._map) {
+                    this.layer._map = this.flagwindMap.innerMap;
+                }
+                this.registerEvent();
+                this.onMapLoad();
+            }
+            catch (error) {
+                console.error(error);
+            }
+        };
+        FlagwindBusinessLayer.prototype.onMapLoad = function () {
+            this.options.onMapLoad();
+        };
+        FlagwindBusinessLayer.prototype.registerEvent = function () {
+            var _deviceLayer = this;
+            this.on("onClick", function (evt) {
+                _deviceLayer.onLayerClick(_deviceLayer, evt.data);
+            });
+            if (this.options.showTooltipOnHover) {
+                this.on("onMouseOver", function (evt) {
+                    // 增加Tooltip点位避免页面出现闪烁
+                    if (_deviceLayer.layerType === "polyline" || _deviceLayer.layerType === "polygon") {
+                        // TODO:不清楚此处作用
+                        evt.data.graphic.attributes.tooltipX = evt.data.args.layerX;
+                        evt.data.graphic.attributes.tooltipY = evt.data.args.layerY;
+                    }
+                    _deviceLayer.flagwindMap.onShowTooltip(evt.data.graphic);
+                    _deviceLayer.fireEvent("onMouseOver", evt.data);
+                });
+                this.on("onMouseOut", function (evt) {
+                    _deviceLayer.flagwindMap.onHideTooltip(evt.data.graphic);
+                    _deviceLayer.fireEvent("onMouseOut", evt.data);
+                });
+            }
+        };
+        FlagwindBusinessLayer.prototype.onLayerClick = function (deviceLayer, evt) {
+            if (deviceLayer.options.onLayerClick) {
+                deviceLayer.options.onLayerClick(evt);
+            }
+            if (deviceLayer.options.showInfoWindow) {
+                evt.graphic.attributes.eventName = "";
+                deviceLayer.onShowInfoWindow(evt);
+            }
+            if (deviceLayer.options.enableSelectMode) {
+                if (deviceLayer.options.selectMode === 1) {
+                    var item = evt.graphic.attributes;
+                    if (evt.graphic.attributes.selected) {
+                        deviceLayer.setSelectStatus(item, false);
+                    }
+                    else {
+                        deviceLayer.setSelectStatus(item, true);
+                    }
+                }
+                else {
+                    deviceLayer.clearSelectStatus();
+                    var item = evt.graphic.attributes;
+                    deviceLayer.setSelectStatus(item, true);
+                }
+                deviceLayer.options.onCheck({
+                    target: [evt.graphic.attributes],
+                    check: evt.graphic.attributes.selected,
+                    selectedItems: deviceLayer.getSelectedGraphics()
+                });
+            }
+        };
+        FlagwindBusinessLayer.prototype.fireEvent = function (eventName, event) {
+            this.options.onEvent(eventName, event);
+        };
+        FlagwindBusinessLayer.prototype.setSelectStatus = function (item, selected) {
+            item.selected = selected;
+            this.onUpdateGraphicByModel(item);
+        };
+        FlagwindBusinessLayer.prototype.onValidModel = function (item) {
+            switch (this.layerType) {
+                case "marker": return item.id && item.longitude && item.latitude;
+                case "polyline": return item.id && item.polyline;
+                case "polygon": return item.id && item.polygon;
+                default:
+                    return item.id && item.longitude && item.latitude;
+            }
+        };
+        return FlagwindBusinessLayer;
+    }(flagwind.FlagwindFeatureLayer));
+    flagwind.FlagwindBusinessLayer = FlagwindBusinessLayer;
+>>>>>>> 5c2c646291ad60beb9d7a4452d429f39f07c8900
 })(flagwind || (flagwind = {}));
 /// <reference path="../base/flagwind-draw.layer.ts" />import { resolve } from "url";
 var flagwind;
@@ -2804,12 +3113,22 @@ var flagwind;
         EsriPointLayer.prototype.onCreateGraphicsLayer = function (options) {
             var _this = this;
             var layer = new esri.layers.GraphicsLayer(options);
-            layer.on("mouse-over", function (evt) { return _this.dispatchEvent("onMouseOver", evt); });
-            layer.on("mouse-out", function (evt) { return _this.dispatchEvent("onMouseOut", evt); });
-            layer.on("mouse-up", function (evt) { return _this.dispatchEvent("onMouseUp", evt); });
-            layer.on("mouse-down", function (evt) { return _this.dispatchEvent("onMouseDown", evt); });
+            layer.on("mouse-over", function (evt) {
+                return _this.dispatchEvent("onMouseOver", evt);
+            });
+            layer.on("mouse-out", function (evt) {
+                return _this.dispatchEvent("onMouseOut", evt);
+            });
+            layer.on("mouse-up", function (evt) {
+                return _this.dispatchEvent("onMouseUp", evt);
+            });
+            layer.on("mouse-down", function (evt) {
+                return _this.dispatchEvent("onMouseDown", evt);
+            });
             layer.on("click", function (evt) { return _this.dispatchEvent("onClick", evt); });
-            layer.on("dbl-click", function (evt) { return _this.dispatchEvent("onDblClick", evt); });
+            layer.on("dbl-click", function (evt) {
+                return _this.dispatchEvent("onDblClick", evt);
+            });
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
@@ -2869,9 +3188,17 @@ var flagwind;
             return this.options.getInfoWindowContext(item);
         };
         EsriPointLayer.prototype.getImageUrl = function (item) {
+<<<<<<< HEAD
             var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
             if (typeof imageUrl === "string" && imageUrl.indexOf("base64") === -1) {
                 var key = "imageUrl" + (item.status || "") + (item.selected ? "checked" : "");
+=======
+            var imageUrl = this.options.imageUrl;
+            if (typeof imageUrl === "string") {
+                var key = "imageUrl" +
+                    (item.status || "") +
+                    (item.selected ? "checked" : "");
+>>>>>>> 5c2c646291ad60beb9d7a4452d429f39f07c8900
                 var statusImageUrl = this.options[key] || this.options.symbol[key] || imageUrl;
                 var suffixIndex = statusImageUrl.lastIndexOf(".");
                 var path = statusImageUrl.substring(0, suffixIndex);
@@ -2884,8 +3211,17 @@ var flagwind;
                 }
             }
             else {
+<<<<<<< HEAD
                 var key = "imageUrl" + (item.status || "") + (item.selected ? "checked" : "");
                 return this.options[key] || this.options.symbol[key] || this.options.image;
+=======
+                var key = "image" +
+                    (item.status || "") +
+                    (item.selected ? "checked" : "");
+                return (this.options[key] ||
+                    this.options.symbol[key] ||
+                    this.options.image);
+>>>>>>> 5c2c646291ad60beb9d7a4452d429f39f07c8900
             }
         };
         /**
@@ -2909,20 +3245,27 @@ var flagwind;
          */
         EsriPointLayer.prototype.showDataList = function () {
             var _this = this;
-            var getDataList = (this.businessService) ? this.businessService.getDataList : this.options.getDataList;
-            if (!getDataList) {
-                throw new Error("没有指定该图层的数据获取方法");
+            if (!this.businessService) {
+                throw new Error("没有指定该图层数据获取服务");
             }
             this.isLoading = true;
             this.fireEvent("showDataList", { action: "start" });
-            return getDataList().then(function (dataList) {
+            return this.businessService.getDataList()
+                .then(function (dataList) {
                 _this.isLoading = false;
                 _this.saveGraphicList(dataList);
-                _this.fireEvent("showDataList", { action: "end", attributes: dataList });
-            }).catch(function (error) {
+                _this.fireEvent("showDataList", {
+                    action: "end",
+                    attributes: dataList
+                });
+            })
+                .catch(function (error) {
                 _this.isLoading = false;
                 console.log("加载图层数据时发生了错误：", error);
-                _this.fireEvent("showDataList", { action: "error", attributes: error });
+                _this.fireEvent("showDataList", {
+                    action: "error",
+                    attributes: error
+                });
             });
         };
         /**
@@ -2963,30 +3306,42 @@ var flagwind;
             var height = this.options.symbol.height;
             var markerSymbol = new esri.symbol.PictureMarkerSymbol(iconUrl, width, height);
             var graphic = this.getGraphicById(item.id);
+            var originPoint = graphic.geometry;
             graphic.setGeometry(pt);
             graphic.setSymbol(markerSymbol);
             graphic.attributes = __assign({}, graphic.attributes, item, { __type: "marker" });
             graphic.draw(); // 重绘
+            if (!flagwind.MapUtils.isEqualPoint(pt, originPoint)) {
+                this.options.onPositionChanged(pt, originPoint, graphic.attributes);
+            }
         };
         /**
          * 更新设备状态
          */
         EsriPointLayer.prototype.updateStatus = function () {
             var _this = this;
-            var getLastStatus = (this.businessService) ? this.businessService.getLastStatus : this.options.getLastStatus;
-            if (!getLastStatus) {
-                throw new Error("没有指定该图层的状态获取方法");
+            if (!this.businessService) {
+                throw new Error("没有指定该图层数据获取服务");
             }
             this.isLoading = true;
             this.fireEvent("updateStatus", { action: "start" });
-            getLastStatus().then(function (dataList) {
+            this.businessService
+                .getLastStatus()
+                .then(function (dataList) {
                 _this.isLoading = false;
                 _this.saveGraphicList(dataList);
-                _this.fireEvent("updateStatus", { action: "end", attributes: dataList });
-            }).catch(function (error) {
+                _this.fireEvent("updateStatus", {
+                    action: "end",
+                    attributes: dataList
+                });
+            })
+                .catch(function (error) {
                 _this.isLoading = false;
                 console.log("加载状态时发生了错误：", error);
-                _this.fireEvent("updateStatus", { action: "error", attributes: error });
+                _this.fireEvent("updateStatus", {
+                    action: "error",
+                    attributes: error
+                });
             });
         };
         return EsriPointLayer;
@@ -4326,15 +4681,21 @@ var flagwind;
             }
         };
         FlagwindTiledLayer.prototype.removeLayer = function (map) {
-            this.layer.removeFromMap(map);
+            if (this.layer) {
+                this.layer.removeFromMap(map);
+            }
         };
         FlagwindTiledLayer.prototype.show = function () {
             this.isShow = true;
-            this.layer.show();
+            if (this.layer) {
+                this.layer.show();
+            }
         };
         FlagwindTiledLayer.prototype.hide = function () {
             this.isShow = false;
-            this.layer.hide();
+            if (this.layer) {
+                this.layer.hide();
+            }
         };
         return FlagwindTiledLayer;
     }());
@@ -7471,7 +7832,9 @@ var flagwind;
         MinemapPointLayer.prototype.getImageUrl = function (item) {
             var imageUrl = this.options.imageUrl || this.options.symbol.imageUrl;
             if (typeof imageUrl === "string") {
-                var key = "imageUrl" + (item.status || "") + (item.selected ? "checked" : "");
+                var key = "imageUrl" +
+                    (item.status || "") +
+                    (item.selected ? "checked" : "");
                 var statusImageUrl = this.options[key] || this.options.symbol[key] || imageUrl;
                 var imageParts = statusImageUrl.split(".");
                 if (item.selected) {
@@ -7482,8 +7845,12 @@ var flagwind;
                 }
             }
             else {
-                var key = "image" + (item.status || "") + (item.selected ? "checked" : "");
-                return this.options[key] || this.options.symbol[key] || this.options.image;
+                var key = "image" +
+                    (item.status || "") +
+                    (item.selected ? "checked" : "");
+                return (this.options[key] ||
+                    this.options.symbol[key] ||
+                    this.options.image);
             }
         };
         MinemapPointLayer.prototype.getClassName = function (item) {
@@ -7527,9 +7894,14 @@ var flagwind;
         MinemapPointLayer.prototype.onUpdateGraphicByModel = function (item) {
             var graphic = this.getGraphicById(item.id);
             if (graphic) {
-                graphic.geometry = new flagwind.MinemapPoint(item.longitude, item.latitude);
+                var originPoint = graphic.geometry;
+                var currentPoint = new flagwind.MinemapPoint(item.longitude, item.latitude);
+                graphic.geometry = currentPoint;
                 var attr = __assign({}, graphic.attributes, item, { __type: "marker" });
                 this.setGraphicStatus(attr);
+                if (!flagwind.MapUtils.isEqualPoint(currentPoint, originPoint)) {
+                    this.options.onPositionChanged(currentPoint, originPoint, graphic.attributes);
+                }
             }
             else {
                 console.warn("待修改的要素不存在");
@@ -7542,20 +7914,28 @@ var flagwind;
          */
         MinemapPointLayer.prototype.showDataList = function () {
             var _this = this;
-            var getDataList = (this.businessService) ? this.businessService.getDataList : this.options.getDataList;
-            if (!getDataList) {
-                throw new Error("没有指定该图层的状态获取方法");
+            if (!this.businessService) {
+                throw new Error("没有指定该图层数据获取服务");
             }
             this.isLoading = true;
             this.fireEvent("showDataList", { action: "start" });
-            return getDataList().then(function (dataList) {
+            return this.businessService
+                .getDataList()
+                .then(function (dataList) {
                 _this.isLoading = false;
                 _this.saveGraphicList(dataList);
-                _this.fireEvent("showDataList", { action: "end", attributes: dataList });
-            }).catch(function (error) {
+                _this.fireEvent("showDataList", {
+                    action: "end",
+                    attributes: dataList
+                });
+            })
+                .catch(function (error) {
                 _this.isLoading = false;
                 console.log("加载卡口数据时发生了错误：", error);
-                _this.fireEvent("showDataList", { action: "error", attributes: error });
+                _this.fireEvent("showDataList", {
+                    action: "error",
+                    attributes: error
+                });
             });
         };
         /**
@@ -7591,20 +7971,28 @@ var flagwind;
          */
         MinemapPointLayer.prototype.updateStatus = function () {
             var _this = this;
-            var getLastStatus = (this.businessService) ? this.businessService.getLastStatus : this.options.getLastStatus;
-            if (!getLastStatus) {
-                throw new Error("没有指定该图层的状态获取方法");
+            if (!this.businessService) {
+                throw new Error("没有指定该图层数据获取服务");
             }
             this.isLoading = true;
             this.fireEvent("updateStatus", { action: "start" });
-            getLastStatus().then(function (dataList) {
+            this.businessService
+                .getLastStatus()
+                .then(function (dataList) {
                 _this.isLoading = false;
                 _this.saveGraphicList(dataList);
-                _this.fireEvent("updateStatus", { action: "end", attributes: dataList });
-            }).catch(function (error) {
+                _this.fireEvent("updateStatus", {
+                    action: "end",
+                    attributes: dataList
+                });
+            })
+                .catch(function (error) {
                 _this.isLoading = false;
                 console.log("加载卡口状态时发生了错误：", error);
-                _this.fireEvent("updateStatus", { action: "error", attributes: error });
+                _this.fireEvent("updateStatus", {
+                    action: "error",
+                    attributes: error
+                });
             });
         };
         return MinemapPointLayer;
