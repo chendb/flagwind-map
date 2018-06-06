@@ -15,8 +15,6 @@ namespace flagwind {
 
         activate(mode: string, options?: any): void;
 
-        clear(): void;
-
         finish(): void;
     }
 }

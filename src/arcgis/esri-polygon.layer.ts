@@ -1,6 +1,27 @@
 /// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
 
 namespace flagwind {
+
+    export const POLYGON_LAYER_OPTIONS: any = {
+        onEvent: (eventName: string, evt: any) => {
+            if (eventName === "onMouseOver") {
+                evt.graphic.symbol.setColor([247, 247, 247, 0.05]);
+                evt.graphic.draw();
+            } else if (eventName === "onMouseOut") {
+                evt.graphic.symbol.setColor([0, 49, 0, 0.45]);
+                evt.graphic.draw();
+            }
+        },
+        symbol: {
+            lineWidth: 3,
+            lineColor: [255, 255, 255, 0.6],
+            fillColor: [0, 49, 0, 0.45],
+            lineType: "STYLE_DASH",
+            fillType: "STYLE_SOLID"
+        },
+        layerType: "polygon"
+    };
+
     /**
      * 面图层
      */
@@ -9,7 +30,7 @@ namespace flagwind {
         public isLoading: boolean = false; // 设备是否正在加载
 
         public constructor(flagwindMap: FlagwindMap, id: string, options: any, public businessService?: IFlagwindBusinessService) {
-            super(flagwindMap, id, { ...options, ...{ layerType: "polygon" } });
+            super(flagwindMap, id, { ...POLYGON_LAYER_OPTIONS, ...options });
             this.onInit();
         }
 
@@ -34,7 +55,7 @@ namespace flagwind {
         public openInfoWindow(id: string, context: any, options: any) {
             let graphic = this.getGraphicById(id);
             if (!graphic) {
-                console.trace("-----该条数据不在图层内！id:", id);
+                console.warn("该条数据不在图层内！id:", id);
                 return;
             }
             if (context) {
@@ -136,16 +157,16 @@ namespace flagwind {
         }
 
         protected onCreatePolygonGraphic(item: any): any {
-            let polygon = this.getPolygon(item.polyline);
-            let fillSymbol = this.getFillSymbol(item, null);
+            let polygon = this.getPolygon(item.polygon);
+            let fillSymbol = this.getFillSymbol(this.options.symbol);
             let attr = { ...item, ...{ __type: "polygon" } };
             const graphic = new esri.Graphic(polygon, fillSymbol, attr);
             return graphic;
         }
 
         protected onUpdatePolygonGraphic(item: any) {
-            let polygon = this.getPolygon(item.polyline);
-            let fillSymbol = this.getFillSymbol(item, null);
+            let polygon = this.getPolygon(item.polygon);
+            let fillSymbol = this.getFillSymbol(this.options.symbol);
             const graphic = this.getGraphicById(item.id);
             graphic.setGeometry(polygon);
             graphic.setSymbol(fillSymbol);
@@ -171,16 +192,16 @@ namespace flagwind {
             return polygon;
         }
 
-        protected getFillSymbol(item: any, symbol: any): any {
-
-            let polygonSymbol = new esri.symbol.SimpleFillSymbol(symbol);
-
-            return polygonSymbol;
-        }
-
-        protected getLineSymbol(item: any, symbol: any): any {
-            let playedLineSymbol = new esri.symbol.CartographicLineSymbol(symbol);
-            return playedLineSymbol;
+        protected getFillSymbol(symbol: any): any {
+            return new esri.symbol.SimpleFillSymbol(
+                esri.symbol.SimpleFillSymbol[symbol.fillType],
+                new esri.symbol.SimpleLineSymbol(
+                    esri.symbol.SimpleLineSymbol[symbol.lineType],
+                    new esri.Color(symbol.lineColor),
+                    symbol.lineWidth
+                ),
+                new esri.Color(symbol.fillColor)
+            );
         }
 
         /**

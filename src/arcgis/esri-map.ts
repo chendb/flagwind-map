@@ -22,7 +22,7 @@ namespace flagwind {
         }
         public onCenterAt(point: any): void {
             this.map.centerAt(point).then(function () {
-                console.log("centerAt:" + point.x + "," + point.y);
+                // console.log("centerAt:" + point.x + "," + point.y);
             });
         }
         public onCreatePoint(options: any) {
@@ -33,6 +33,8 @@ namespace flagwind {
             this.spatial = new esri.SpatialReference({
                 wkid: this.mapSetting.wkid || 4326
             });
+            // let infoWindow = new esri.dijit.InfoWindow({}, document.getElementById("dispatchInfoWindow"));
+            // infoWindow.startup();
             let setting = this.mapSetting;
             let mapArguments = <any>{
                 wkid: setting.wkid,
@@ -43,6 +45,7 @@ namespace flagwind {
                 zoom: setting.zoom,
                 minZoom: setting.minZoom,
                 maxZoom: setting.maxZoom
+                // infoWindow: infoWindow
             };
             if (setting.zoom) {
                 mapArguments.zoom = setting.zoom;
@@ -195,20 +198,24 @@ namespace flagwind {
 
         public onCreateBaseLayers() {
             let baseLayers = new Array<FlagwindTiledLayer>();
-            if (this.mapSetting.imageUrl) {
-                const layer = new EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, this.spatial, "影像图层");
-                baseLayers.push(layer);
-            }
             if (this.mapSetting.baseUrl) {
                 const layer = new EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
             }
+
             if (this.mapSetting.zhujiImageUrl) {
                 const layer = new EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, this.spatial, "瓦片图层");
                 baseLayers.push(layer);
             }
+
+            if (this.mapSetting.imageUrl) {
+                const layer = new EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, this.spatial, "影像图层");
+                baseLayers.push(layer);
+            }
+
             if (this.mapSetting.tiledUrls) {
                 this.mapSetting.tiledUrls.forEach(l => {
+                    if (!l.url) return;
                     const layer = new EsriTiledLayer(l.id, l.url, this.spatial, l.title);
                     baseLayers.push(layer);
                 });
@@ -226,10 +233,9 @@ namespace flagwind {
             this.baseLayers = baseLayers;
             this.baseLayers.forEach(g => {
                 g.appendTo(this.innerMap);
-                g.show(); // 默认全部打开
+                // g.show(); // 默认全部打开
             });
 
-            // this.getBaseLayerById("base_arcgis_zhuji").hide();
             return baseLayers;
         }
 
@@ -238,9 +244,9 @@ namespace flagwind {
             let pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             let screenpt = this.innerMap.toScreen(pt);
             let title = info.name;
-            if (graphic.attributes.__type === "polyline" || graphic.attributes.__type === "polygon") {
-                screenpt = { x: info.tooltipX, y: info.tooltipY };
-            }
+            // if (graphic.attributes.__type === "polyline" || graphic.attributes.__type === "polygon") {
+            //     screenpt = { x: info.tooltipX, y: info.tooltipY };
+            // }
             (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
             (<any>this).tooltipElement.style.left = (screenpt.x + 15) + "px";
             (<any>this).tooltipElement.style.top = (screenpt.y + 15) + "px";

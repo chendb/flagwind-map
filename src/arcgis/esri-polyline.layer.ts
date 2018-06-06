@@ -1,6 +1,30 @@
 /// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
 
 namespace flagwind {
+
+    export const POLYLINE_LAYER_OPTIONS: any = {
+        onEvent: (eventName: string, evt: any) => {
+            if (eventName === "onMouseOver") {
+                evt.graphic.symbol.setWidth(7);
+                evt.graphic.symbol.setColor([38, 101, 196]);
+                evt.graphic.symbol.setMiterLimit(5);
+                evt.graphic.draw();
+            } else if (eventName === "onMouseOut") {
+                evt.graphic.symbol.setWidth(4);
+                evt.graphic.symbol.setColor([255, 0, 0]);
+                evt.graphic.symbol.setMiterLimit(10);
+                evt.graphic.draw();
+            }
+        },
+        symbol: {
+            lineWidth: 4,
+            lineColor: [255, 0, 0],
+            lineType: "STYLE_DASH",
+            lineMiterLimit: 2
+        },
+        layerType: "polyline"
+    };
+
     /**
      * 线图层
      */
@@ -9,7 +33,7 @@ namespace flagwind {
         public isLoading: boolean = false; // 设备是否正在加载
 
         public constructor(flagwindMap: FlagwindMap, id: string, options: any, public businessService?: IFlagwindBusinessService) {
-            super(flagwindMap, id, { ...options, ...{ layerType: "polyline" } });
+            super(flagwindMap, id, { ...POLYLINE_LAYER_OPTIONS, ...options });
             this.onInit();
         }
 
@@ -31,10 +55,10 @@ namespace flagwind {
             // return new EsriGraphicsLayer(options);
         }
 
-        public openInfoWindow(id: string, context: any, options: any) {
+        public openInfoWindow(id: string, context: any, options?: any) {
             let graphic = this.getGraphicById(id);
             if (!graphic) {
-                console.trace("-----该条数据不在图层内！id:", id);
+                console.warn("该条数据不在图层内！id:", id);
                 return;
             }
             if (context) {
@@ -137,7 +161,7 @@ namespace flagwind {
 
         protected onCreateLineGraphic(item: any): any {
             let polyline = this.getPolyline(item.polyline);
-            let lineSymbol = this.getLineSymbol(item, null);
+            let lineSymbol = this.getLineSymbol(this.options.symbol);
             let attr = { ...item, ...{ __type: "polyline" } };
             const graphic = new esri.Graphic(polyline, lineSymbol, attr);
             return graphic;
@@ -145,7 +169,7 @@ namespace flagwind {
 
         protected onUpdateLineGraphic(item: any) {
             let polyline = this.getPolyline(item.polyline);
-            let lineSymbol = this.getLineSymbol(item, null);
+            let lineSymbol = this.getLineSymbol(this.options.symbol);
             const graphic = this.getGraphicById(item.id);
             graphic.setGeometry(polyline);
             graphic.setSymbol(lineSymbol);
@@ -153,9 +177,11 @@ namespace flagwind {
             graphic.draw(); // 重绘
         }
 
-        protected getLineSymbol(item: any, symbol: any): any {
-            let playedLineSymbol = new esri.symbol.CartographicLineSymbol(symbol);
-            return playedLineSymbol;
+        protected getLineSymbol(symbol: any): any {
+            return new esri.symbol.CartographicLineSymbol(
+                esri.symbol.CartographicLineSymbol[symbol.lineType], new esri.Color(symbol.lineColor), symbol.lineWidth,
+                esri.symbol.CartographicLineSymbol.CAP_ROUND,
+                esri.symbol.CartographicLineSymbol.JOIN_MITER, symbol.lineMiterLimit);
         }
 
         /**

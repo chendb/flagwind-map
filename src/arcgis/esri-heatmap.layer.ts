@@ -87,7 +87,7 @@ namespace flagwind {
                 if (Type.isArray(g)) {
                     list.push({ "x": g[0], "y": g[1], "count": g[2] });
                 } else {
-                    if ((g.x || g.longitude) && (g.y || g.latitude) && g.count) {
+                    if ((g.x || g.longitude) && (g.y || g.latitude) < 90 && (g.y || g.latitude) > -90 && g.count) {
                         list.push({ "x": g.x || g.longitude, "y": g.y || g.latitude, "count": g.count });
                     } else {
                         console.warn("无法解析热力图点位对象：" + g);

@@ -1,4 +1,4 @@
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-draw.layer.ts" />import { resolve } from "url";
 
 namespace flagwind {
     /**
@@ -22,7 +22,7 @@ namespace flagwind {
 
         public constructor(flagwindMap: FlagwindMap, options?: any) {
             this.flagwindMap = flagwindMap;
-            this.options = { ...DRAW_LAYER_OPTIONS, ...this.options, ...options };
+            this.options = {...DRAW_LAYER_OPTIONS, ...this.options, ...options };
 
             this.draw = new esri.toolbars.Draw(flagwindMap.map, this.options);
             this.draw.on("draw-complete", (evt: any) => this.onDrawComplete(evt));
@@ -34,24 +34,21 @@ namespace flagwind {
             }
             if (this.draw && mode) {
                 let tool = mode.toUpperCase().replace(/ /g, "_");
-                this.flagwindMap.map.disableMapNavigation();
+                // this.flagwindMap.map.disableMapNavigation();
                 this.draw.activate(esri.toolbars.Draw[tool]);
             }
         }
 
-        public clear(): void {
+        public finish() {
             if (this.draw) {
                 this.draw.deactivate();
-                this.flagwindMap.map.enableMapNavigation();
+                // this.flagwindMap.map.enableMapNavigation();
+                // this.draw.finishDrawing();
             }
         }
 
-        public finish() {
-            this.draw.finishDrawing();
-        }
-
         private setSymbol(mode: string, options: any) {
-            this.symbolSetting = options;
+            this.symbolSetting = { ...{}, ...options };
             switch (mode) {
                 case "POLYLINE": this.draw.setLineSymbol(this.lineSymbol); break;
                 case "POLYGON": this.draw.setFillSymbol(this.fillSymbol); break;
@@ -60,33 +57,39 @@ namespace flagwind {
         }
 
         private onDrawComplete(evt: any) {
-            this.clear();
+            this.finish();
             this.options.onEvent("draw-complete", evt.geometry);
             this.options.onDrawCompleteEvent(evt.geometry);
         }
 
         private get lineSymbol() {
-            let color = this.symbolSetting.color || [255, 0, 0];
-            let width = this.symbolSetting.width || 4;
+            let lineColor = this.symbolSetting.lineColor || [255, 0, 0];
+            let lineWidth = this.symbolSetting.lineWidth || 4;
+            let lineType = this.symbolSetting.lineType || "STYLE_DASH";
+            let lineMiterLimit = this.symbolSetting.lineMiterLimit || 2;
+
             let lineSymbol = new esri.symbol.CartographicLineSymbol(
-                this.symbolSetting.style === "dash" ? esri.symbol.CartographicLineSymbol.STYLE_DASH : esri.symbol.CartographicLineSymbol.STYLE_SOLID,
-                new esri.Color(color), width,
+                esri.symbol.CartographicLineSymbol[lineType], new esri.Color(lineColor), lineWidth,
                 esri.symbol.CartographicLineSymbol.CAP_ROUND,
-                esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
+                esri.symbol.CartographicLineSymbol.JOIN_MITER, lineMiterLimit);
             return lineSymbol;
         }
 
         private get fillSymbol() {
-            let color = this.symbolSetting.color || [255, 49, 0, 0.45];
-            let width = this.symbolSetting.width || 3;
+            let lineColor = this.symbolSetting.lineColor || [151, 249, 0, .80];
+            let lineWidth = this.symbolSetting.lineWidth || 3;
+            let lineType = this.symbolSetting.lineType || "STYLE_DOT";
+            let fillType = this.symbolSetting.fillType || "STYLE_SOLID";
+            let fillColor = this.symbolSetting.fillColor || [255, 49, 0, 0.45];
+
             let polygonSymbol = new esri.symbol.SimpleFillSymbol(
-                esri.symbol.SimpleFillSymbol.STYLE_SOLID,
+                esri.symbol.SimpleFillSymbol[fillType],
                 new esri.symbol.SimpleLineSymbol(
-                    this.symbolSetting.outlineStyle === "dash" ? esri.symbol.SimpleLineSymbol.STYLE_DASH : esri.symbol.SimpleLineSymbol.STYLE_SOLID,
-                    new esri.Color(this.symbolSetting.outlineColor || [255, 0, 0]),
-                    width
+                    esri.symbol.SimpleLineSymbol[lineType],
+                    new esri.Color(lineColor),
+                    lineWidth
                 ),
-                new esri.Color(color)
+                new esri.Color(fillColor)
             );
             return polygonSymbol;
         }

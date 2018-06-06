@@ -174,69 +174,15 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    const BUSINESS_LAYER_OPTIONS: any;
+    const DRAW_LAYER_OPTIONS: {
+        onDrawCompleteEvent: (geometry: any) => void;
+    };
     /**
-     * 业务图层
+     * 绘画图层
      */
-    abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
-        flagwindMap: FlagwindMap;
-        id: string;
-        options: any;
-        layerType: string;
-        constructor(flagwindMap: FlagwindMap, id: string, options: any);
-        onInit(): void;
-        abstract openInfoWindow(id: string, context: any, options: any): void;
-        abstract onShowInfoWindow(evt: any): void;
-        abstract onCreatGraphicByModel(item: any): any;
-        abstract onUpdateGraphicByModel(item: any): void;
-        onAddLayerBefor(): void;
-        onAddLayerAfter(): void;
-        readonly map: any;
-        readonly spatial: any;
-        closeInfoWindow(): void;
-        gotoCenterById(key: string): void;
-        saveGraphicList(dataList: Array<any>): void;
-        updateGraphicList(dataList: Array<any>): void;
-        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
-        /**
-         * 保存要素（如果存在，则修改，否则添加）
-         */
-        saveGraphicByModel(item: any): void;
-        addGraphicByModel(item: any): void;
-        creatGraphicByModel(item: any): any;
-        /**
-         * 修改要素
-         */
-        updateGraphicByModel(item: any, graphic?: any | null): void;
-        clearSelectStatus(): void;
-        getSelectedGraphics(): Array<any>;
-        /**
-         * 创建点要素（把业务数据的坐标转换成地图上的点）
-         */
-        getPoint(item: any): any;
-        /**
-         * 把地图上的点转换成业务的坐标
-         * @param {*} point
-         */
-        formPoint(point: any): any;
-        addToMap(): void;
-        removeFormMap(): void;
-        protected onLoad(): void;
-        protected onMapLoad(): void;
-        protected registerEvent(): void;
-        protected onLayerClick(deviceLayer: this, evt: any): void;
-        protected fireEvent(eventName: string, event: any): void;
-        protected setSelectStatus(item: any, selected: boolean): void;
-        /**
-         * 变换成标准实体（最好子类重写）
-         *
-         * @protected
-         * @param {*} item
-         * @returns {{ id: String, name: String, longitude: number, latitude: number }}
-         * @memberof FlagwindBusinessLayer
-         */
-        protected abstract onChangeStandardModel(item: any): any;
-        protected onValidModel(item: any): any;
+    interface IFlagwindDrawLayer {
+        activate(mode: string, options?: any): void;
+        finish(): void;
     }
 }
 declare namespace flagwind {
@@ -251,7 +197,6 @@ declare namespace flagwind {
         options: any;
         constructor(flagwindMap: FlagwindMap, options?: any);
         activate(mode: string, options?: any): void;
-        clear(): void;
         finish(): void;
         private setSymbol(mode, options);
         private onDrawComplete(evt);
@@ -489,6 +434,73 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    const BUSINESS_LAYER_OPTIONS: any;
+    /**
+     * 业务图层
+     */
+    abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
+        flagwindMap: FlagwindMap;
+        id: string;
+        options: any;
+        layerType: string;
+        constructor(flagwindMap: FlagwindMap, id: string, options: any);
+        onInit(): void;
+        abstract openInfoWindow(id: string, context: any, options: any): void;
+        abstract onShowInfoWindow(evt: any): void;
+        abstract onCreatGraphicByModel(item: any): any;
+        abstract onUpdateGraphicByModel(item: any): void;
+        onAddLayerBefor(): void;
+        onAddLayerAfter(): void;
+        readonly map: any;
+        readonly spatial: any;
+        closeInfoWindow(): void;
+        gotoCenterById(key: string): void;
+        saveGraphicList(dataList: Array<any>): void;
+        updateGraphicList(dataList: Array<any>): void;
+        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
+        /**
+         * 保存要素（如果存在，则修改，否则添加）
+         */
+        saveGraphicByModel(item: any): void;
+        addGraphicByModel(item: any): void;
+        creatGraphicByModel(item: any): any;
+        /**
+         * 修改要素
+         */
+        updateGraphicByModel(item: any, graphic?: any | null): void;
+        clearSelectStatus(): void;
+        getSelectedGraphics(): Array<any>;
+        /**
+         * 创建点要素（把业务数据的坐标转换成地图上的点）
+         */
+        getPoint(item: any): any;
+        /**
+         * 把地图上的点转换成业务的坐标
+         * @param {*} point
+         */
+        formPoint(point: any): any;
+        addToMap(): void;
+        removeFormMap(): void;
+        protected onLoad(): void;
+        protected onMapLoad(): void;
+        protected registerEvent(): void;
+        protected onLayerClick(deviceLayer: this, evt: any): void;
+        protected fireEvent(eventName: string, event: any): void;
+        protected setSelectStatus(item: any, selected: boolean): void;
+        /**
+         * 变换成标准实体（最好子类重写）
+         *
+         * @protected
+         * @param {*} item
+         * @returns {{ id: String, name: String, longitude: number, latitude: number }}
+         * @memberof FlagwindBusinessLayer
+         */
+        protected abstract onChangeStandardModel(item: any): any;
+        protected onValidModel(item: any): any;
+    }
+}
+declare namespace flagwind {
+    const POINT_LAYER_OPTIONS: any;
     /**
      * 点图层
      */
@@ -540,6 +552,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    const POLYGON_LAYER_OPTIONS: any;
     /**
      * 面图层
      */
@@ -584,8 +597,7 @@ declare namespace flagwind {
         protected onCreatePolygonGraphic(item: any): any;
         protected onUpdatePolygonGraphic(item: any): void;
         protected getPolygon(strLine: string): any;
-        protected getFillSymbol(item: any, symbol: any): any;
-        protected getLineSymbol(item: any, symbol: any): any;
+        protected getFillSymbol(symbol: any): any;
         /**
          * 更新设备状态
          */
@@ -593,6 +605,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    const POLYLINE_LAYER_OPTIONS: any;
     /**
      * 线图层
      */
@@ -601,7 +614,7 @@ declare namespace flagwind {
         isLoading: boolean;
         constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService?: IFlagwindBusinessService);
         onCreateGraphicsLayer(options: any): any;
-        openInfoWindow(id: string, context: any, options: any): void;
+        openInfoWindow(id: string, context: any, options?: any): void;
         onShowInfoWindow(evt: any): void;
         /**
          * 把实体转换成标准的要素属性信息
@@ -636,7 +649,7 @@ declare namespace flagwind {
         protected setSelectStatus(item: any, selected: boolean): void;
         protected onCreateLineGraphic(item: any): any;
         protected onUpdateLineGraphic(item: any): void;
-        protected getLineSymbol(item: any, symbol: any): any;
+        protected getLineSymbol(symbol: any): any;
         /**
          * 把点集字符串转换成线要素
          * @param strLine 坐标点字符串"x1,y1;x2,y2;x3,y3"
@@ -1013,19 +1026,6 @@ declare namespace flagwind {
         logo: boolean;
         slider: boolean;
         sliderPosition: string;
-    }
-}
-declare namespace flagwind {
-    const DRAW_LAYER_OPTIONS: {
-        onDrawCompleteEvent: (geometry: any) => void;
-    };
-    /**
-     * 绘画图层
-     */
-    interface IFlagwindDrawLayer {
-        activate(mode: string, options?: any): void;
-        clear(): void;
-        finish(): void;
     }
 }
 declare namespace flagwind {

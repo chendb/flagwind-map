@@ -103,6 +103,10 @@ namespace flagwind {
         }
 
         public onSolveByService(segment: TrackSegment, start: any, end: any, waypoints: Array<any>): void {
+            if (!this.options.routeUrl) {
+                console.error("routeUrl地址为空！");
+                return;
+            }
             const routeTask = new esri.tasks.RouteTask(this.options.routeUrl);
             const routeParams = new esri.tasks.RouteParameters();
             routeParams.stops = new esri.tasks.FeatureSet();
