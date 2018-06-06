@@ -155,7 +155,7 @@ namespace flagwind {
         }
 
         protected setSelectStatus(item: any, selected: boolean): void {
-            item.selected = true;
+            item.selected = selected;
             this.onUpdateGraphicByModel(item);
         }
 

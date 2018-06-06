@@ -2961,7 +2961,7 @@ var flagwind;
             }
         };
         EsriPointLayer.prototype.setSelectStatus = function (item, selected) {
-            item.selected = true;
+            item.selected = selected;
             this.onUpdateGraphicByModel(item);
         };
         EsriPointLayer.prototype.onCreateMarkerGraphic = function (item) {
@@ -3168,7 +3168,7 @@ var flagwind;
             }
         };
         EsriPolygonLayer.prototype.setSelectStatus = function (item, selected) {
-            item.selected = true;
+            item.selected = selected;
             this.onUpdateGraphicByModel(item);
         };
         EsriPolygonLayer.prototype.onCreatePolygonGraphic = function (item) {
@@ -3378,7 +3378,7 @@ var flagwind;
             }
         };
         EsriPolylineLayer.prototype.setSelectStatus = function (item, selected) {
-            item.selected = true;
+            item.selected = selected;
             this.onUpdateGraphicByModel(item);
         };
         EsriPolylineLayer.prototype.onCreateLineGraphic = function (item) {
