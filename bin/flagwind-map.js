@@ -704,7 +704,7 @@ var flagwind;
             this.on("onClick", function (evt) {
                 _deviceLayer.onLayerClick(_deviceLayer, evt.data);
             });
-            if (this.options.showTooltipOnHover) {
+            if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
                 this.on("onMouseOver", function (evt) {
                     // 增加Tooltip点位避免页面出现闪烁
                     if (_deviceLayer.layerType === "polyline" || _deviceLayer.layerType === "polygon") {
@@ -3443,7 +3443,7 @@ var flagwind;
             configurable: true
         });
         FlagwindRouteLayer.prototype.show = function () {
-            if (this.moveMarkLayer) {
+            if (this.moveMarkLayer) { // 移动小车 
                 this.moveMarkLayer.show();
             }
             if (this.moveLineLayer != null) {
@@ -3451,7 +3451,7 @@ var flagwind;
             }
         };
         FlagwindRouteLayer.prototype.hide = function () {
-            if (this.moveMarkLayer) {
+            if (this.moveMarkLayer) { // 移动小车 {
                 this.moveMarkLayer.hide();
             }
             if (this.moveLineLayer) {
@@ -4143,7 +4143,7 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     flagwind.SELECT_BOX_OPTIONS_ESRI = {
-        onCheckChanged: function (evt) {
+        onCheckChanged: function (checkItems, layer) {
             // console.log("onCheckChanged");
         }
     };
@@ -4184,7 +4184,7 @@ var flagwind;
                 });
                 var checkItems = checkGrahpics.map(function (g) { return g.attributes; });
                 layer.setSelectStatusByModels(checkItems, false);
-                _this.options.onCheckChanged(checkItems);
+                _this.options.onCheckChanged(checkItems, layer);
             });
             me.clear();
         };
@@ -4200,7 +4200,8 @@ var flagwind;
         EsriSelectBox.prototype.showSelectBar = function () {
             if (document.getElementById("edit-ctrl-group")) {
                 console.log("绘制控件已经创建，不可重复创建！");
-                document.getElementById("edit-ctrl-group").style.display = "block";
+                document.getElementById("edit-ctrl-group").style.display =
+                    "block";
                 return;
             }
             var me = this;
@@ -4348,7 +4349,7 @@ var flagwind;
                     _this.businessLayer.saveGraphicByModel(graphic.attributes.__model);
                     _this.options.onPointChanged(index, graphic.attributes.__model);
                 }
-                if (!isStartPoint) {
+                if (!isStartPoint) { // 出站
                     _this.businessLayer.saveGraphicByModel(graphic.attributes.__model);
                     _this.options.onPointChanged(index + 1, graphic.attributes.__model);
                 }
@@ -4684,10 +4685,10 @@ var flagwind;
      */
     var TrackSegment = /** @class */ (function () {
         function TrackSegment(flagwindRouteLayer, index, // 线路对应路段索引
-            name, // 线路名
-            startGraphic, // 起点要素
-            endGraphic, // 终点要素
-            options) {
+        name, // 线路名
+        startGraphic, // 起点要素
+        endGraphic, // 终点要素
+        options) {
             this.flagwindRouteLayer = flagwindRouteLayer;
             this.index = index;
             this.name = name;
@@ -5235,12 +5236,15 @@ var flagwind;
             if (x > 0 && y >= 0) {
                 return Math.round((Math.atan(y / x) / Math.PI * 180));
             }
+            // 第四象限
             else if (x > 0 && y < 0) {
                 return 360 + Math.round((Math.atan(y / x) / Math.PI * 180));
             }
+            // 第二象限
             else if (x < 0 && y >= 0) {
                 return 180 + Math.round((Math.atan(y / x) / Math.PI * 180));
             }
+            // 第三象限
             else if (x < 0 && y < 0) {
                 return 180 + Math.round((Math.atan(y / x) / Math.PI * 180));
             }
@@ -7123,7 +7127,7 @@ var flagwind;
             if ((!_this.icon) && _this.symbol.imageUrl) {
                 _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl, imageSize: _this.symbol.imageSize, imgOffset: _this.symbol.imgOffset });
             }
-            _this.marker = new minemap.Marker(_this.icon, {});
+            _this.marker = new minemap.Marker(_this.icon, { /* offset: [-10, -14] */});
             _this.element = _this.marker.getElement();
             if (options.point) {
                 _this.geometry = new flagwind.MinemapPoint(options.point.x, options.point.y);
@@ -8040,7 +8044,7 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     flagwind.SELECT_BOX_OPTIONS = {
-        onCheckChanged: function (evt) {
+        onCheckChanged: function (checkItems, layer) {
             console.log("onCheckChanged");
         }
     };
@@ -8083,7 +8087,7 @@ var flagwind;
                 });
                 var checkItems = checkGrahpics.map(function (g) { return g.attributes; });
                 layer.setSelectStatusByModels(checkItems, false);
-                _this.options.onCheckChanged(checkItems);
+                _this.options.onCheckChanged(checkItems, layer);
             });
             me.clear();
         };

@@ -1269,10 +1269,10 @@ declare namespace flagwind {
          * @param end 终点
          * @param n 增加的点数
          */
-        static density(start: MinemapPoint, end: MinemapPoint, n: number): {
+        static density(start: MinemapPoint, end: MinemapPoint, n: number): (MinemapPoint | {
             x: number;
             y: number;
-        }[];
+        })[];
         /**
          * 把一个直线，切成多个点
          * @param start 始点
