@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.11 
+* flagwind-map v1.0.12 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
