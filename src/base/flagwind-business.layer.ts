@@ -3,31 +3,31 @@
 namespace flagwind {
 
     export const BUSINESS_LAYER_OPTIONS: any = {
-        onLayerClick: function (evt: any) {
+        onLayerClick: (evt: any) => {
             console.log("onLayerClick");
         },
-        onMapLoad: function () {
+        onMapLoad: () => {
             // console.log("onMapLoad");
         },
-        onEvent: function (eventName: string, evt: any) {
+        onEvent: (eventName: string, evt: any) => {
             console.log("onEvent");
         },
-        onCheck: function (evt: any) {
+        onCheck: (evt: any) => {
             console.log("onCheck");
         },
-        onEditInfo: function (evt: any, isSave: boolean) {
+        onEditInfo: (evt: any, isSave: boolean) => {
             console.log("onEditInfo");
         },
-        onPositionChanged: function (currentPoint: any, originPoint: any, item: any) {
+        onPositionChanged: (currentPoint: any, originPoint: any, item: any) => {
             console.log("onVisibleChanged");
         },
-        onVisibleChanged: function (isShow: boolean) {
+        onVisibleChanged: (isShow: boolean) => {
             console.log("onVisibleChanged");
         },
-        changeStandardModel: function (model: any) {
+        changeStandardModel: (model: any) => {
             return model;
         },
-        getInfoWindowContext: function (mode: any) {
+        getInfoWindowContext: (mode: any) => {
             return {
                 title: "详细信息",
                 content: "没有定制详细信息"
@@ -38,7 +38,7 @@ namespace flagwind {
         selectMode: 1,           // 1为多选，2为单选
         showTooltipOnHover: false,
         showInfoWindow: false,
-        dataType: "marker"
+        dataType: "point"
     };
 
     /**

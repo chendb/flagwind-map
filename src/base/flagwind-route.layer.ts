@@ -16,23 +16,22 @@ namespace flagwind {
         onMessageEvent(name: string, message: string) {
             console.log(name + " " + message);
         },
-        onCreateSegmentCompleteEvent(segment: TrackSegment) {
+        onCreateSegmentCompleteEvent: (segment: TrackSegment) => {
             console.log("onCreateSegmentCompleteEvent");
         },
-        onLineStartEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
+        onLineStartEvent: (lineName: string, segmentIndex: number, trackLine: TrackLine) => {
             console.log("onLineStartEvent");
         },
-        onLineEndEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
+        onLineEndEvent: (lineName: string, segmentIndex: number, trackLine: TrackLine) => {
             console.log("onLineEndEvent");
         },
-        onMoveEvent(lineName: string, segmentIndex: number, xy: Array<any>, angle: number) {
+        onMoveEvent: (lineName: string, segmentIndex: number, xy: Array<any>, angle: number) => {
             console.log("onMoveEvent");
         },
 
-        onStationEvent(lineName: string, segmentIndex: number, graphic: any, enter: boolean, trackLine: TrackLine) {
+        onStationEvent: (lineName: string, segmentIndex: number, graphic: any, enter: boolean, trackLine: TrackLine) => {
             console.log("onStationEvent");
         }
-
     };
 
     export const TRACKLINE_OPTIONS: any = {
@@ -40,17 +39,17 @@ namespace flagwind {
         autoShowSegmentLine: true,
         symbol: {
             imageUrl: "",
-            height: 10,
-            width: 10
+            height: null,
+            width: null
         },
         // 移动要素图片地址
         markerUrl: "",
         // 移动要素文本
         markerLabel: "",
         // 移动要不高度
-        markerHeight: 10,
+        markerHeight: null,
         // 移动要不宽度
-        markerWidth: 10
+        markerWidth: null
     };
 
     export abstract class FlagwindRouteLayer {
@@ -570,6 +569,7 @@ namespace flagwind {
                 this.onSolveByService(segment, start, end, waypoints);
             } else {
                 this.onSolveByJoinPoint(segment);
+                this.onCreateSegmentComplete(segment);
             }
 
         }

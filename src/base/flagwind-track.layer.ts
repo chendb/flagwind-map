@@ -6,15 +6,29 @@ namespace flagwind {
         solveMode: "Line",
         // 行驶速度
         speed: 100,
-        onPointChanged: function (index: number, model: any) {
+        onPointChanged: (index: number, model: any) => {
             console.log(`onPointChanged index:${index}`);
         },
         onMessageEvent: function (name: string, message: string) {
             console.log("onMessageEvent");
+        },
+        onMoveEvent: (lineName: string, segmentIndex: number, xy: Array<any>, angle: number) => {
+            console.log("onMoveEvent");
+        },
+        onLineEndEvent: (lineName: string, segmentIndex: number, trackLine: TrackLine) => {
+            console.log("onLineEndEvent");
         }
     };
 
     export class FlagwindTrackLayer {
+
+        private _trackToolBox: HTMLElement;
+        private _playButton: HTMLElement;
+        private _pauseButton: HTMLElement;
+        private _speedUpButton: HTMLElement;
+        private _speedDownButton: HTMLElement;
+        private _clearButton: HTMLElement;
+        private _toolBoxText: HTMLElement;
 
         public activedTrackLineName: string;
 
@@ -32,9 +46,9 @@ namespace flagwind {
              * 当轨迹上的移动物体进出卡口点事件回调
              */
             routeLayer.options.onStationEvent = (name: string, index: number, graphic: any, isStartPoint: boolean, trackline: TrackLine) => {
-                if (index === 0) {
-                    this.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
-                }
+                // if (index === 0) {
+                //     this.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
+                // }
                 if (index === 0 && isStartPoint) {
                     this.businessLayer.saveGraphicByModel(graphic.attributes.__model);
                     this.options.onPointChanged(index, graphic.attributes.__model);
@@ -46,9 +60,11 @@ namespace flagwind {
             };
             routeLayer.options.onMoveEvent = (lineName: string, segmentIndex: number, xy: Array<any>, angle: number) => {
                 this.options.onMessageEvent("info", "正在播放");
+                this.options.onMoveEvent(lineName, segmentIndex, xy, angle);
             };
             routeLayer.options.onLineEndEvent = (lineName: string, segmentIndex: number, trackLine: TrackLine) => {
                 this.options.onMessageEvent("success", "播放结束");
+                this.options.onLineEndEvent(lineName, segmentIndex, trackLine);
             };
             routeLayer.options.onMovingClick = (evt: any) => {
                 if (this.trackLine.isRunning) {
@@ -66,6 +82,8 @@ namespace flagwind {
         public showTrack(stopList: Array<any>, trackLineName?: string, options?: any): void {
             if (trackLineName) {
                 this.activedTrackLineName = trackLineName;
+            } else {
+                trackLineName = this.activedTrackLineName;
             }
 
             if (!this.isShow) {
@@ -81,8 +99,13 @@ namespace flagwind {
         }
 
         public deleteTrackToolBox(): void {
-            let ele = document.getElementById("route-ctrl-group");
-            if (ele) ele.remove();
+            if (this._trackToolBox) this._toolBoxText.remove();
+            this._playButton = null;
+            this._pauseButton = null;
+            this._speedUpButton = null;
+            this._speedDownButton = null;
+            this._clearButton = null;
+            this._toolBoxText = null;
         }
 
         public showTrackToolBox(): void {
@@ -91,46 +114,37 @@ namespace flagwind {
                 document.getElementById("route-ctrl-group").style.display = "block";
                 return;
             }
-            const me = this;
-            let trackToolBox = document.createElement("div");
-            trackToolBox.setAttribute("id", "route-ctrl-group");
-            trackToolBox.innerHTML = `<div class="tool-btns"><span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
+            this._trackToolBox = document.createElement("div");
+            this._trackToolBox.setAttribute("id", "route-ctrl-group");
+            this._trackToolBox.innerHTML = `<div class="tool-btns"><span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
                 <span class="route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
                 <span class="route-btn icon-speedDown" title="减速" data-operate="speedDown"></span>
                 <span class="route-btn icon-speedUp" title="加速" data-operate="speedUp"></span>
                 <span class="route-btn icon-clear" title="清除轨迹" data-operate="clear"></span></div>
                 <div class="tool-text"><span></span></div>`;
-            this.flagwindMap.innerMap.container.appendChild(trackToolBox);
+            this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
 
-            let playBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-continue");
-            let pauseBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-pause");
-            let speedUpBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-speedUp");
-            let speedDownBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-speedDown");
-            let clearBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-clear");
-            let toolBoxTextEle: HTMLElement = document.querySelector("#route-ctrl-group .tool-text span");
-            playBtn.onclick = function () {
-                me.routeLayer.continue(me.activedTrackLineName);
-                playBtn.style.display = "none";
-                pauseBtn.style.display = "block";
-                toolBoxTextEle.innerHTML = "当前状态：正在播放";
+            this._playButton  = document.querySelector("#route-ctrl-group .icon-continue");
+            this._pauseButton = document.querySelector("#route-ctrl-group .icon-pause");
+            this._speedUpButton = document.querySelector("#route-ctrl-group .icon-speedUp");
+            this._speedDownButton = document.querySelector("#route-ctrl-group .icon-speedDown");
+            this._clearButton = document.querySelector("#route-ctrl-group .icon-clear");
+            this._toolBoxText = document.querySelector("#route-ctrl-group .tool-text span");
+            this._playButton.onclick = () => {
+                this.continue();
             };
-            pauseBtn.onclick = function () {
-                me.routeLayer.pause(me.activedTrackLineName);
-                playBtn.style.display = "block";
-                pauseBtn.style.display = "none";
-                toolBoxTextEle.innerHTML = "当前状态：已暂停";
+            this._pauseButton.onclick = () => {
+                this.pause();
             };
-            speedUpBtn.onclick = function () {
-                toolBoxTextEle.innerHTML = me.routeLayer.speedUp(me.activedTrackLineName);
+            this._speedUpButton.onclick = () => {
+                this.speedUp();
             };
-            speedDownBtn.onclick = function () {
-                toolBoxTextEle.innerHTML = me.routeLayer.speedDown(me.activedTrackLineName);
+            this._speedDownButton.onclick = () => {
+                this.speedDown();
             };
-            clearBtn.onclick = function () {
-                me.routeLayer.clearAll();
-                toolBoxTextEle.innerHTML = "";
+            this._clearButton.onclick = () => {
+                this.clear();
             };
-
         }
 
         public get trackLine(): TrackLine {
@@ -147,6 +161,8 @@ namespace flagwind {
         public startTrack(list: Array<any>, name?: string, options?: any) {
             if (name) {
                 this.activedTrackLineName = name;
+            } else {
+                name = this.activedTrackLineName;
             }
             this.routeLayer.stop(this.activedTrackLineName);
             this.clear();
@@ -166,6 +182,8 @@ namespace flagwind {
         public move(list: Array<any>, name?: string): void {
             if (name) {
                 this.activedTrackLineName = name;
+            } else {
+                name = this.activedTrackLineName;
             }
             this.showTrack(list, name);
             this.routeLayer.move(this.activedTrackLineName);
@@ -177,6 +195,9 @@ namespace flagwind {
         public clear(): void {
             this.routeLayer.clearAll();
             this.businessLayer.clear();
+            if (this._trackToolBox) {
+                this._toolBoxText.innerHTML = "";
+            }
         }
 
         /**
@@ -201,7 +222,13 @@ namespace flagwind {
          */
         public start(): void {
             this.options.onMessageEvent("info", "播放");
+            this.options.onMessageEvent("start", "播放");
             this.routeLayer.start(this.activedTrackLineName);
+            if (this._trackToolBox) {
+                this._playButton.style.display = "none";
+                this._pauseButton.style.display = "block";
+                this._toolBoxText.innerHTML = "当前状态：正在播放";
+            }
         }
 
         /**
@@ -209,7 +236,37 @@ namespace flagwind {
          */
         public stop(): void {
             this.options.onMessageEvent("info", "已停止");
+            this.options.onMessageEvent("stop", "已停止");
             this.routeLayer.stop(this.activedTrackLineName);
+            if (this._trackToolBox) {
+                this._playButton.style.display = "block";
+                this._pauseButton.style.display = "none";
+                this._toolBoxText.innerHTML = "已停止";
+            }
+        }
+
+        /**
+         * 移动要素是否正在跑
+         */
+        public get isRunning(): boolean {
+            if (!this.trackLine) return false;
+            return this.trackLine.isRunning;
+        }
+
+        /**
+         * 移动要素是否跑完
+         */
+        public get isCompleted(): boolean {
+            if (!this.trackLine) return false;
+            return this.trackLine.isCompleted;
+        }
+
+        /**
+         * 移动要素是否隐藏
+         */
+        public get isMovingGraphicHide(): boolean {
+            if (!this.trackLine) return false;
+            return this.trackLine.isMovingGraphicHide;
         }
 
         /**
@@ -217,28 +274,50 @@ namespace flagwind {
          */
         public pause(): void {
             this.options.onMessageEvent("info", "已暂停");
+            this.options.onMessageEvent("pause", "已暂停");
             this.routeLayer.pause(this.activedTrackLineName);
+            if (this._trackToolBox) {
+                this._playButton.style.display = "block";
+                this._pauseButton.style.display = "none";
+                this._toolBoxText.innerHTML = "当前状态：已暂停";
+            }
         }
 
         /**
          * 继续
          */
         public continue(): void {
+            this.options.onMessageEvent("continue", "继续");
             this.routeLayer.continue(this.activedTrackLineName);
+            if (this._trackToolBox) {
+                this._playButton.style.display = "none";
+                this._pauseButton.style.display = "block";
+                this._toolBoxText.innerHTML = "当前状态：正在播放";
+            }
         }
 
         /**
          * 加速
          */
-        public speedUp(): void {
-            this.routeLayer.speedUp(this.activedTrackLineName);
+        public speedUp(): string {
+            this.options.onMessageEvent("speedUp", "加速");
+            let msg = this.routeLayer.speedUp(this.activedTrackLineName);
+            if (this._trackToolBox) {
+                this._toolBoxText.innerHTML = msg;
+            }
+            return msg;
         }
 
         /**
          * 减速
          */
-        public speedDown(): void {
-            this.routeLayer.speedDown(this.activedTrackLineName);
+        public speedDown(): string {
+            this.options.onMessageEvent("speedDown", "减速");
+            let msg = this.routeLayer.speedDown(this.activedTrackLineName);
+            if (this._trackToolBox) {
+                this._toolBoxText.innerHTML = msg;
+            }
+            return msg;
         }
 
         /**
