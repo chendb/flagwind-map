@@ -13,6 +13,7 @@ namespace flagwind {
         maxSpeedRatio: 4,
         // 轨迹播放图层显示层级
         trackLevel: 2,
+        autoCenterAt: true,
         onMessageEvent(name: string, message: string) {
             console.log(name + " " + message);
         },
@@ -28,7 +29,6 @@ namespace flagwind {
         onMoveEvent: (lineName: string, segmentIndex: number, xy: Array<any>, angle: number) => {
             console.log("onMoveEvent");
         },
-
         onStationEvent: (lineName: string, segmentIndex: number, graphic: any, enter: boolean, trackLine: TrackLine) => {
             console.log("onStationEvent");
         }
@@ -454,7 +454,7 @@ namespace flagwind {
             const segment = this.getLastSegment(name);
             let startLineIndex = segment ? segment.index + 1 : 0;
 
-            if ((startLineIndex + stopList.length) <= 2) {
+            if ((startLineIndex + stopList.length) < 2) {
                 throw Error("停靠点不能少于2");
             }
 
@@ -506,7 +506,7 @@ namespace flagwind {
             const segment = this.getLastSegment(name);
             let startLineIndex = segment ? segment.index + 1 : 0;
 
-            if ((startLineIndex + stopList.length) <= 2) {
+            if ((startLineIndex + stopList.length) < 2) {
                 throw Error("停靠点不能少于2");
             }
 
@@ -640,7 +640,9 @@ namespace flagwind {
                 flagwindRoute.onCreateMoveMark(trackline, graphic, angle);
             }
 
-            flagwindRoute.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
+            if (flagwindRoute.options.autoCenterAt) {
+                flagwindRoute.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
+            }
 
             if (!segment.lineGraphic) {
                 flagwindRoute.onShowSegmentLine(segment);

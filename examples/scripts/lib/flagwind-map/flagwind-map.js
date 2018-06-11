@@ -3036,6 +3036,7 @@ var flagwind;
         maxSpeedRatio: 4,
         // 轨迹播放图层显示层级
         trackLevel: 2,
+        autoCenterAt: true,
         onMessageEvent: function (name, message) {
             console.log(name + " " + message);
         },
@@ -3407,7 +3408,7 @@ var flagwind;
             this.activedTrackLineName = name;
             var segment = this.getLastSegment(name);
             var startLineIndex = segment ? segment.index + 1 : 0;
-            if ((startLineIndex + stopList.length) <= 2) {
+            if ((startLineIndex + stopList.length) < 2) {
                 throw Error("停靠点不能少于2");
             }
             var stopGraphics = this.onGetStandardStops(name, stopList);
@@ -3451,7 +3452,7 @@ var flagwind;
             this.activedTrackLineName = name;
             var segment = this.getLastSegment(name);
             var startLineIndex = segment ? segment.index + 1 : 0;
-            if ((startLineIndex + stopList.length) <= 2) {
+            if ((startLineIndex + stopList.length) < 2) {
                 throw Error("停靠点不能少于2");
             }
             var stopGraphics = this.onGetStandardStops(name, stopList);
@@ -3566,7 +3567,9 @@ var flagwind;
             if (!trackline.markerGraphic) {
                 flagwindRoute.onCreateMoveMark(trackline, graphic, angle);
             }
-            flagwindRoute.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
+            if (flagwindRoute.options.autoCenterAt) {
+                flagwindRoute.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
+            }
             if (!segment.lineGraphic) {
                 flagwindRoute.onShowSegmentLine(segment);
             }
