@@ -99,7 +99,8 @@ namespace flagwind {
         }
 
         public deleteTrackToolBox(): void {
-            if (this._trackToolBox) this._toolBoxText.remove();
+            if (this._trackToolBox) this._trackToolBox.parentNode.removeChild(this._trackToolBox);
+            this._trackToolBox = null;
             this._playButton = null;
             this._pauseButton = null;
             this._speedUpButton = null;
