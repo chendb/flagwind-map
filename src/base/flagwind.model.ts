@@ -94,7 +94,7 @@ namespace flagwind {
         }
 
         public changeSpeed(speed: number | null = null) {
-            if (this.options.numsOfKilometer === 0) {
+            if (this.options.numsOfKilometer === 0 || this.line.length === 0) {
                 this.speed = 10000000;
                 this.time = 1;
             } else {
@@ -209,6 +209,8 @@ namespace flagwind {
         public isMovingGraphicHide = false;
 
         public speed: number | null;
+        public direction: number | null;
+        public step: number | null;
 
         public constructor(
             public flagwindMap: FlagwindMap,

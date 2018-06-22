@@ -9,7 +9,10 @@ namespace flagwind {
             let trackOptions = { ...{ solveMode: "Line" }, ...options };
             let stops = this.getStopsGraphicList(stopList);
             if (trackOptions.solveMode === "Segment") {
-                this.solveSegment(trackLineName, stops, trackOptions);
+                stops.forEach((g, i) => {
+                    if (i < stops.length - 1) this.solveSegment(trackLineName, [stops[i], stops[i + 1]], trackOptions);
+                });
+                // this.solveSegment(trackLineName, stops, trackOptions);
             } else {
                 this.solveLine(trackLineName, stops, trackOptions);
             }
@@ -21,7 +24,10 @@ namespace flagwind {
                 g = this.changeStandardModel(g);
 
                 if (this.validGeometryModel(g)) {
-                    dataList.push(new esri.Graphic(this.toStopPoint(g), this.options.stopSymbol, { type: "stop", line: name }));
+                    dataList.push(new esri.Graphic(this.toStopPoint(g),
+                        this.options.stopSymbol || new esri.symbol.PictureMarkerSymbol(this.options.markerUrl, this.options.markerWidth, this.options.markerHeigth),
+                        { type: "stop", line: name || this.options.name, attributes: g})
+                    );
                 }
             });
             return dataList;

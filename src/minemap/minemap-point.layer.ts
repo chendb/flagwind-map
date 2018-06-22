@@ -126,7 +126,8 @@ namespace flagwind {
                 },
                 point: {
                     y: this.getPoint(item).y,
-                    x: this.getPoint(item).x
+                    x: this.getPoint(item).x,
+                    spatial: { wkid: minemap.solution }
                 },
                 attributes: attr
             });

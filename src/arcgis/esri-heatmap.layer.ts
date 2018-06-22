@@ -21,7 +21,7 @@ namespace flagwind {
             this.map.innerMap.container.appendChild(heatObj);
             this.heatContainer = heatObj;
 
-            return new esri.layers.HeatmapLayer({
+            return new HeatmapLayer({
                 config: {
                     ...{
                         "useLocalMaximum": false,

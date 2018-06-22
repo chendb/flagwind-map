@@ -3,7 +3,7 @@ namespace flagwind {
 
     export const SELECT_BOX_OPTIONS_ESRI: any = {
 
-        onCheckChanged: function (evt: any) {
+        onCheckChanged: function (evt: any, layer: FlagwindBusinessLayer) {
             // console.log("onCheckChanged");
         }
     };
@@ -48,7 +48,7 @@ namespace flagwind {
                 });
                 let checkItems = checkGrahpics.map(g => g.attributes);
                 layer.setSelectStatusByModels(checkItems, false);
-                this.options.onCheckChanged(checkItems);
+                this.options.onCheckChanged(checkItems, layer);
             });
 
             me.clear();

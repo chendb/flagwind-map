@@ -849,6 +849,7 @@ declare namespace flagwind {
         onSetSegmentByPoint(options: any, segment: TrackSegment): void;
         onShowSegmentLine(segment: TrackSegment): void;
         onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): void;
+        getImageUrl(trackline: TrackLine, angle: number): any;
         onCreateLineLayer(id: string): FlagwindGroupLayer;
         onCreateMovingLayer(id: string): FlagwindGroupLayer;
         onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
@@ -1163,6 +1164,8 @@ declare namespace flagwind {
         segments: Array<TrackSegment>;
         isMovingGraphicHide: boolean;
         speed: number | null;
+        direction: number | null;
+        step: number | null;
         constructor(flagwindMap: FlagwindMap, name: string, options: any);
         /**
          * 隐藏移动要素

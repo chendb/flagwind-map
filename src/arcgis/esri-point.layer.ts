@@ -125,7 +125,7 @@ namespace flagwind {
 
         public getImageUrl(item: any): string {
             let imageUrl = this.options.symbol.imageUrl;
-            if (typeof imageUrl === "string" && imageUrl.indexOf("base64") === -1) {
+            if (typeof imageUrl === "string" && imageUrl) {
                 const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;
                 let statusImageUrl: string = this.options[key] || this.options.symbol[key] || imageUrl;
                 let suffixIndex = statusImageUrl.lastIndexOf(".");
@@ -139,7 +139,8 @@ namespace flagwind {
             } else {
                 const key =
                     "image" +
-                    (item.status || "") +
+                    // (item.deviceNo ? (item.deviceNo.indexOf("mobi") === -1 ? "" : "mobi") : "") +
+                    ((typeof item.status === "number") ? item.status : "") +
                     (item.selected ? "checked" : "");
                 return (
                     this.options[key] ||
@@ -148,6 +149,32 @@ namespace flagwind {
                 );
             }
         }
+
+        // public getImageUrl(item: any): string {
+        //     let imageUrl = this.options.symbol.imageUrl;
+        //     if (typeof imageUrl === "string") {
+        //         const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;
+        //         let statusImageUrl: string = this.options[key] || this.options.symbol[key] || imageUrl;
+        //         let suffixIndex = statusImageUrl.lastIndexOf(".");
+        //         const path = statusImageUrl.substring(0, suffixIndex);
+        //         const suffix = statusImageUrl.substring(suffixIndex + 1);
+        //         if (item.selected) {
+        //             return `${path}"_checked."${suffix}`;
+        //         } else {
+        //             return `${path}"."${suffix}`;
+        //         }
+        //     } else {
+        //         const key =
+        //             "image" +
+        //             (item.status + "") +
+        //             (item.selected ? "checked" : "");
+        //         return (
+        //             this.options[key] ||
+        //             this.options.symbol[key] ||
+        //             this.options.image
+        //         );
+        //     }
+        // }
 
         /**
          * 创建要素方法
@@ -216,7 +243,7 @@ namespace flagwind {
         }
 
         protected setSelectStatus(item: any, selected: boolean): void {
-            item.selected = true;
+            item.selected = selected;
             this.onUpdateGraphicByModel(item);
         }
 

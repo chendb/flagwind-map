@@ -58,12 +58,18 @@ namespace flagwind {
                 return;
             }
             let graphic: MinemapMarkerGraphic = this.businessLayer.getGraphicById(this.graphic.attributes.id);
-            graphic.setGeometry(new MinemapPoint(this.graphic.geometry.x, this.graphic.geometry.y));
+            graphic.setGeometry(new MinemapPoint(this.graphic.geometry.x, this.graphic.geometry.y, graphic.geometry.spatial));
+            
+            let lnglat: any = {};
+            if (graphic.geometry.spatial.wkid === 3589) {
+                lnglat = MapUtils.gcj_encrypt(editLayer.graphic.geometry.y, editLayer.graphic.geometry.x);
+                console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
+            }
 
             this.options.onEditInfo(
                 editLayer.graphic.attributes.id,
-                editLayer.graphic.geometry.x,
-                editLayer.graphic.geometry.y,
+                lnglat.lon || editLayer.graphic.geometry.x,
+                lnglat.lat || editLayer.graphic.geometry.y,
                 isOK
             );
             // editLayer.onChanged({

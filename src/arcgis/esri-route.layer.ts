@@ -15,6 +15,8 @@ namespace flagwind {
                 let numsOfKilometer = segment.options.numsOfKilometer ? segment.options.numsOfKilometer : 100;
 
                 segment.line = MapUtils.vacuate(segment.polyline.paths, segment.length, numsOfKilometer);
+            } else {
+                segment.line = [];
             }
         }
 
@@ -36,7 +38,7 @@ namespace flagwind {
 
         public onShowSegmentLine(segment: TrackSegment) {
             let playedLineSymbol = new esri.symbol.CartographicLineSymbol(
-                esri.symbol.CartographicLineSymbol.STYLE_SOLID, new esri.Color([38, 101, 196, 0.8]), 4,
+                esri.symbol.CartographicLineSymbol.STYLE_SOLID, new esri.Color([48, 254, 62, 0.8]), 4,// 38, 101, 196, 0.8
                 esri.symbol.CartographicLineSymbol.CAP_ROUND,
                 esri.symbol.CartographicLineSymbol.JOIN_MITER, 2);
 
@@ -50,15 +52,38 @@ namespace flagwind {
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
             let markerUrl = trackline.options.symbol.imageUrl || trackline.options.markerUrl || this.options.markerUrl;
+            if (trackline.options.markerType !== "car")  markerUrl = this.getImageUrl(trackline, angle);
             let markerHeight = trackline.options.symbol.height || trackline.options.markerHeight || this.options.markerHeight;
             let markerWidth = trackline.options.symbol.width || trackline.options.markerWidth || this.options.markerWidth;
             if (!markerUrl) {
                 console.warn("轨迹移动要素图片未定义");
             }
-            let symbol = new esri.symbol.PictureMarkerSymbol(markerUrl, markerHeight, markerWidth);
+            let symbol = new esri.symbol.PictureMarkerSymbol(markerUrl, markerWidth, markerHeight);
             let marker = new esri.Graphic(graphic.geometry, symbol, { __type: "marker", __line: trackline.name });
             trackline.markerGraphic = marker;
             this.moveMarkLayer.addGraphic(trackline.name, marker);
+        }
+
+        public getImageUrl(trackline: TrackLine, angle: number) {
+            let sx = 1;
+            if (angle < 45 || angle >= 315) sx = 3; // 向东走
+            if (angle >= 45 && angle < 135) sx = 4; // 向北走
+            if (angle >= 135 && angle < 225) sx = 2; // 向西走
+            if (angle >= 225 && angle < 315) sx = 1; // 向南走
+            
+            if (trackline.step === null) {
+                trackline.step = -1;
+            }
+            if (trackline.direction !== sx) {
+                trackline.step = 0;
+            } else {
+                trackline.step = (trackline.step + 1) % 4;
+            }
+            trackline.direction = sx;
+            // let name = trackline.direction + "" + (trackline.step + 1);
+            let name = `${trackline.direction}${trackline.step + 1}`;
+
+            return trackline.options.symbol[`imageUrl${name}`];
         }
 
         public onCreateLineLayer(id: string): FlagwindGroupLayer {
@@ -84,8 +109,7 @@ namespace flagwind {
                         new esri.geometry.Point(stops[i][0], stops[i][1]),
                         stopSymbol, { __type: "stop", __line: name }
                     ));
-                }
-                else if ((stops[i].declaredClass || "").indexOf("Point") > 0) {
+                } else if ((stops[i].declaredClass || "").indexOf("Point") > 0) {
                     stopGraphics.push(new esri.Graphic(
                         stops[i],
                         stopSymbol, { __type: "stop", __line: name }
@@ -123,7 +147,7 @@ namespace flagwind {
                 flagwindRoute.solveComplete({ polyline: polyline, length: length }, segment);
             });
             routeTask.on("error", function (err: any) {
-                console.warn("轨迹路由服务请求异常：" + err);
+                console.warn("轨迹路由服务请求异常：", err);
                 flagwindRoute.errorHandler(err, segment);
             });
 
@@ -181,7 +205,7 @@ namespace flagwind {
         protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number) {
             if (trackline === undefined) return;
             let symbol = trackline.markerGraphic.symbol;
-            symbol.setAngle(360 - angle);
+            trackline.options.markerType === "car" ? symbol.setAngle(360 - angle) : symbol.setUrl(this.getImageUrl(trackline, angle));
             trackline.markerGraphic.setSymbol(symbol);
             trackline.markerGraphic.setGeometry(point);
             trackline.markerGraphic.draw();// 重绘

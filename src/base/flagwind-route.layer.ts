@@ -25,9 +25,12 @@ namespace flagwind {
         onLineEndEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
             console.log("onLineEndEvent");
         },
-        onMoveEvent(lineName: string, segmentIndex: number, xy: Array<any>, angle: number) {
+        onMoveEvent(segment: any, xy: Array<any>, angle: number) {
             console.log("onMoveEvent");
         },
+        // onMoveEvent(lineName: string, segmentIndex: number, xy: Array<any>, angle: number) {
+        //     console.log("onMoveEvent");
+        // },
 
         onStationEvent(lineName: string, segmentIndex: number, graphic: any, enter: boolean, trackLine: TrackLine) {
             console.log("onStationEvent");
@@ -43,6 +46,8 @@ namespace flagwind {
             height: 10,
             width: 10
         },
+        // 移动要素类型
+        markerType: "car",
         // 移动要素图片地址
         markerUrl: "",
         // 移动要素文本
@@ -455,7 +460,7 @@ namespace flagwind {
             const segment = this.getLastSegment(name);
             let startLineIndex = segment ? segment.index + 1 : 0;
 
-            if ((startLineIndex + stopList.length) <= 2) {
+            if ((startLineIndex + stopList.length) < 2) {
                 throw Error("停靠点不能少于2");
             }
 
@@ -590,7 +595,7 @@ namespace flagwind {
          * 路由分析失败回调
          */
         public errorHandler(err: any, segment: TrackSegment) {
-            console.log("路由分析异常" + err + "");
+            console.log("路由分析异常:", err);
             const points = [];
             points.push(segment.startGraphic.geometry);
             if (segment.waypoints) {
@@ -668,6 +673,13 @@ namespace flagwind {
                 segment.stop();
                 // 如果没有下一条线路，说明线路播放结束，此时调用线路播放结束回调
                 flagwindRoute.options.onLineEndEvent(segment.name, segment.index, currentLine);
+
+                let toolBoxTextEle: HTMLElement = document.querySelector("#route-ctrl-group .tool-text span");
+                let playBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-continue");
+                let pauseBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-pause");
+                toolBoxTextEle.innerHTML = "当前状态：已结束";
+                playBtn.style.display = "block";
+                pauseBtn.style.display = "none";
             }
         }
 
@@ -683,7 +695,8 @@ namespace flagwind {
             let trackline = flagwindRoute.getTrackLine(segment.name);
             if (trackline) {
                 flagwindRoute.onChangeMovingGraphicSymbol(trackline, point, angle);
-                flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
+                flagwindRoute.options.onMoveEvent(segment, xy, angle);
+                // flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
             }
         }
 

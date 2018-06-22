@@ -34,7 +34,7 @@ namespace flagwind {
             this.marker = new minemap.Marker(this.icon, { /* offset: [-10, -14] */ });
             this.element = this.marker.getElement();
             if (options.point) {
-                this.geometry = new MinemapPoint(options.point.x, options.point.y);
+                this.geometry = new MinemapPoint(options.point.x, options.point.y, options.point.spatial);
             }
             if (options.geometry) {
                 this.geometry = options.geometry;
