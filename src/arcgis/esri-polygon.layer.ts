@@ -2,7 +2,7 @@
 
 namespace flagwind {
 
-    export const POLYGON_LAYER_OPTIONS: any = {
+    export const ESRI_POLYGON_LAYER_OPTIONS: any = {
         onEvent: (eventName: string, evt: any) => {
             if (eventName === "onMouseOver") {
                 evt.graphic.symbol.setColor([247, 247, 247, 0.05]);
@@ -30,7 +30,7 @@ namespace flagwind {
         public isLoading: boolean = false; // 设备是否正在加载
 
         public constructor(flagwindMap: FlagwindMap, id: string, options: any, public businessService?: IFlagwindBusinessService) {
-            super(flagwindMap, id, { ...POLYGON_LAYER_OPTIONS, ...options });
+            super(flagwindMap, id, { ...ESRI_POLYGON_LAYER_OPTIONS, ...options });
             this.onInit();
         }
 
@@ -152,7 +152,7 @@ namespace flagwind {
         }
 
         protected setSelectStatus(item: any, selected: boolean): void {
-            item.selected = true;
+            item.selected = selected;
             this.onUpdateGraphicByModel(item);
         }
 

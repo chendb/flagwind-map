@@ -2,7 +2,7 @@
 
 namespace flagwind {
 
-    export const POINT_LAYER_OPTIONS: any = {
+    export const ESRI_POINT_LAYER_OPTIONS: any = {
         onEvent: (eventName: string, evt: any) => {  // 事件回调
             switch (eventName) {
                 case "onMouseOver":
@@ -12,12 +12,6 @@ namespace flagwind {
             }
         },
         symbol: {
-            imageUrl1: "",
-            imageUrl0: "",
-            imageUrl: "",
-            imageUrl1checked: "",
-            imageUrl0checked: "",
-            imageUrlchecked: "",
             width: 32,
             height: 32
         },
@@ -37,7 +31,7 @@ namespace flagwind {
             options: any,
             public businessService?: IFlagwindBusinessService
         ) {
-            super(flagwindMap, id, { ...POINT_LAYER_OPTIONS, ...options });
+            super(flagwindMap, id, { ...ESRI_POINT_LAYER_OPTIONS, ...options });
             if (this.options.autoInit) {
                 this.onInit();
             }

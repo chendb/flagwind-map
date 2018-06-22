@@ -51,10 +51,10 @@ namespace flagwind {
         }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
-            let markerUrl = trackline.options.symbol.imageUrl || trackline.options.markerUrl || this.options.markerUrl;
-            if (trackline.options.markerType !== "car")  markerUrl = this.getImageUrl(trackline, angle);
-            let markerHeight = trackline.options.symbol.height || trackline.options.markerHeight || this.options.markerHeight;
-            let markerWidth = trackline.options.symbol.width || trackline.options.markerWidth || this.options.markerWidth;
+            let markerUrl = trackline.options.symbol.image || trackline.options.symbol.imageUrl
+                || this.options.imageUrl || this.options.symbol.image || this.options.symbol.imageUrl;
+            let markerHeight = trackline.options.symbol.height || this.options.symbol.height;
+            let markerWidth = trackline.options.symbol.width || this.options.symbol.width;
             if (!markerUrl) {
                 console.warn("轨迹移动要素图片未定义");
             }
@@ -105,20 +105,11 @@ namespace flagwind {
                 .setSize(15).outline.setWidth(3);
             for (let i = 0; i < stops.length; i++) {
                 if (stops[i] instanceof Array) {
-                    stopGraphics.push(new esri.Graphic(
-                        new esri.geometry.Point(stops[i][0], stops[i][1]),
-                        stopSymbol, { __type: "stop", __line: name }
-                    ));
+                    stopGraphics.push(new esri.Graphic(new esri.geometry.Point(stops[i][0], stops[i][1]), stopSymbol, { __type: "stop", __line: name }));
                 } else if ((stops[i].declaredClass || "").indexOf("Point") > 0) {
-                    stopGraphics.push(new esri.Graphic(
-                        stops[i],
-                        stopSymbol, { __type: "stop", __line: name }
-                    ));
+                    stopGraphics.push(new esri.Graphic(stops[i], stopSymbol, { __type: "stop", __line: name }));
                 } else if ((stops[i].declaredClass || "").indexOf("Graphic") > 0) {
-                    stopGraphics.push(new esri.Graphic(
-                        stops[i].geometry,
-                        stopSymbol, { __type: "stop", __model: stops[i].attributes, __line: name }
-                    ));
+                    stopGraphics.push(new esri.Graphic(stops[i].geometry, stopSymbol, { __type: "stop", __model: stops[i].attributes, __line: name }));
                 } else {
                     stopGraphics.push(new esri.Graphic(this.flagwindMap.getPoint(stops[i]), stopSymbol, { __type: "stop", __model: stops[i], __line: name }));
                 }

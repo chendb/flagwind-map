@@ -1,9 +1,7 @@
 /// <reference path="../events/EventProvider" />
 namespace flagwind {
-
     export const SELECT_BOX_OPTIONS_ESRI: any = {
-
-        onCheckChanged: function (evt: any, layer: FlagwindBusinessLayer) {
+        onCheckChanged: function (checkItems: Array<any>, layer: FlagwindBusinessLayer) {
             // console.log("onCheckChanged");
         }
     };
@@ -11,14 +9,16 @@ namespace flagwind {
      * 地图选择组件
      */
     export class EsriSelectBox extends EventProvider {
-
         private draw: any;
 
         public mode: string;
 
         public layers: Array<FlagwindBusinessLayer> = [];
 
-        public constructor(public flagwindMap: FlagwindMap, public options: any) {
+        public constructor(
+            public flagwindMap: FlagwindMap,
+            public options: any
+        ) {
             super(null);
             options = { ...SELECT_BOX_OPTIONS_ESRI, ...options };
             this.options = options;
@@ -29,10 +29,9 @@ namespace flagwind {
                 tooltipOffset: 15
             });
             const me = this;
-            this.draw.on("draw-complete", function (evt: any) {
+            this.draw.on("draw-complete", function(evt: any) {
                 me.onCreateRecord(me, evt);
             });
-
         }
 
         public onCreateRecord(me: this, e: any): void {
@@ -52,7 +51,6 @@ namespace flagwind {
             });
 
             me.clear();
-
         }
 
         public addLayer(layer: FlagwindBusinessLayer): void {
@@ -68,7 +66,8 @@ namespace flagwind {
         public showSelectBar(): void {
             if (document.getElementById("edit-ctrl-group")) {
                 console.log("绘制控件已经创建，不可重复创建！");
-                document.getElementById("edit-ctrl-group").style.display = "block";
+                document.getElementById("edit-ctrl-group").style.display =
+                    "block";
                 return;
             }
             let me = this;
@@ -80,9 +79,11 @@ namespace flagwind {
                 <div class="edit-btn" title="画矩形" data-operate="rectangle"><span class="iconfont icon-draw-square"></span></div>
                 <div class="edit-btn" title="画多边形" data-operate="polygon"><span class="iconfont icon-draw-polygon1"></span></div>`;
             mapEle.appendChild(container);
-            let operateBtns = document.querySelectorAll("#edit-ctrl-group .edit-btn") as NodeListOf<HTMLElement>;
+            let operateBtns = document.querySelectorAll(
+                "#edit-ctrl-group .edit-btn"
+            ) as NodeListOf<HTMLElement>;
             for (let i = 0; i < operateBtns.length; i++) {
-                operateBtns[i].onclick = function () {
+                operateBtns[i].onclick = function() {
                     me.active(this.dataset.operate);
                 };
             }
@@ -105,5 +106,4 @@ namespace flagwind {
             }
         }
     }
-
 }

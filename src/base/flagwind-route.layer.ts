@@ -13,29 +13,25 @@ namespace flagwind {
         maxSpeedRatio: 4,
         // 轨迹播放图层显示层级
         trackLevel: 2,
+        autoCenterAt: true,
         onMessageEvent(name: string, message: string) {
             console.log(name + " " + message);
         },
-        onCreateSegmentCompleteEvent(segment: TrackSegment) {
+        onCreateSegmentCompleteEvent: (segment: TrackSegment) => {
             console.log("onCreateSegmentCompleteEvent");
         },
-        onLineStartEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
+        onLineStartEvent: (lineName: string, segmentIndex: number, trackLine: TrackLine) => {
             console.log("onLineStartEvent");
         },
-        onLineEndEvent(lineName: string, segmentIndex: number, trackLine: TrackLine) {
+        onLineEndEvent: (lineName: string, segmentIndex: number, trackLine: TrackLine) => {
             console.log("onLineEndEvent");
         },
-        onMoveEvent(segment: any, xy: Array<any>, angle: number) {
+        onMoveEvent: (lineName: string, segmentIndex: number, xy: Array<any>, angle: number) => {
             console.log("onMoveEvent");
         },
-        // onMoveEvent(lineName: string, segmentIndex: number, xy: Array<any>, angle: number) {
-        //     console.log("onMoveEvent");
-        // },
-
-        onStationEvent(lineName: string, segmentIndex: number, graphic: any, enter: boolean, trackLine: TrackLine) {
+        onStationEvent: (lineName: string, segmentIndex: number, graphic: any, enter: boolean, trackLine: TrackLine) => {
             console.log("onStationEvent");
         }
-
     };
 
     export const TRACKLINE_OPTIONS: any = {
@@ -43,8 +39,8 @@ namespace flagwind {
         autoShowSegmentLine: true,
         symbol: {
             imageUrl: "",
-            height: 10,
-            width: 10
+            height: null,
+            width: null
         },
         // 移动要素类型
         markerType: "car",
@@ -53,9 +49,9 @@ namespace flagwind {
         // 移动要素文本
         markerLabel: "",
         // 移动要不高度
-        markerHeight: 10,
+        markerHeight: null,
         // 移动要不宽度
-        markerWidth: 10
+        markerWidth: null
     };
 
     export abstract class FlagwindRouteLayer {
@@ -512,7 +508,7 @@ namespace flagwind {
             const segment = this.getLastSegment(name);
             let startLineIndex = segment ? segment.index + 1 : 0;
 
-            if ((startLineIndex + stopList.length) <= 2) {
+            if ((startLineIndex + stopList.length) < 2) {
                 throw Error("停靠点不能少于2");
             }
 
@@ -575,6 +571,7 @@ namespace flagwind {
                 this.onSolveByService(segment, start, end, waypoints);
             } else {
                 this.onSolveByJoinPoint(segment);
+                this.onCreateSegmentComplete(segment);
             }
 
         }
@@ -645,7 +642,9 @@ namespace flagwind {
                 flagwindRoute.onCreateMoveMark(trackline, graphic, angle);
             }
 
-            flagwindRoute.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
+            if (flagwindRoute.options.autoCenterAt) {
+                flagwindRoute.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
+            }
 
             if (!segment.lineGraphic) {
                 flagwindRoute.onShowSegmentLine(segment);
@@ -695,8 +694,8 @@ namespace flagwind {
             let trackline = flagwindRoute.getTrackLine(segment.name);
             if (trackline) {
                 flagwindRoute.onChangeMovingGraphicSymbol(trackline, point, angle);
-                flagwindRoute.options.onMoveEvent(segment, xy, angle);
-                // flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
+                // flagwindRoute.options.onMoveEvent(segment, xy, angle);
+                flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
             }
         }
 

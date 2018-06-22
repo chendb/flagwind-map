@@ -22,7 +22,7 @@ namespace flagwind {
 
         public constructor(flagwindMap: FlagwindMap, options?: any) {
             this.flagwindMap = flagwindMap;
-            this.options = { ...this.options, ...options };
+            this.options = {...DRAW_LAYER_OPTIONS, ...this.options, ...options };
 
             this.draw = new esri.toolbars.Draw(flagwindMap.map, this.options);
             this.draw.on("draw-complete", (evt: any) => this.onDrawComplete(evt));

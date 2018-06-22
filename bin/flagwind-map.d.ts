@@ -500,7 +500,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    const POINT_LAYER_OPTIONS: any;
+    const ESRI_POINT_LAYER_OPTIONS: any;
     /**
      * 点图层
      */
@@ -552,7 +552,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    const POLYGON_LAYER_OPTIONS: any;
+    const ESRI_POLYGON_LAYER_OPTIONS: any;
     /**
      * 面图层
      */
@@ -605,7 +605,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    const POLYLINE_LAYER_OPTIONS: any;
+    const ESRI_POLYLINE_LAYER_OPTIONS: any;
     /**
      * 线图层
      */
@@ -918,6 +918,13 @@ declare namespace flagwind {
         businessLayer: FlagwindBusinessLayer;
         routeLayer: FlagwindRouteLayer;
         options: any;
+        private _trackToolBox;
+        private _playButton;
+        private _pauseButton;
+        private _speedUpButton;
+        private _speedDownButton;
+        private _clearButton;
+        private _toolBoxText;
         activedTrackLineName: string;
         isShow: boolean;
         constructor(businessLayer: FlagwindBusinessLayer, routeLayer: FlagwindRouteLayer, options: any);
@@ -955,6 +962,18 @@ declare namespace flagwind {
          */
         stop(): void;
         /**
+         * 移动要素是否正在跑
+         */
+        readonly isRunning: boolean;
+        /**
+         * 移动要素是否跑完
+         */
+        readonly isCompleted: boolean;
+        /**
+         * 移动要素是否隐藏
+         */
+        readonly isMovingGraphicHide: boolean;
+        /**
          * 暂停
          */
         pause(): void;
@@ -965,11 +984,11 @@ declare namespace flagwind {
         /**
          * 加速
          */
-        speedUp(): void;
+        speedUp(): string;
         /**
          * 减速
          */
-        speedDown(): void;
+        speedDown(): string;
         /**
          * 调速
          */
