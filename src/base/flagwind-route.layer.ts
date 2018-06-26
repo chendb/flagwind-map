@@ -253,13 +253,15 @@ namespace flagwind {
             }
         }
         /**
-         * 启动线路播放（起点为线路的始点）
+         * 启动线路播放（起点为线路的始点或指定点）
+         * @param index 指定播放位置
          */
-        public start(name: string) {
+        public start(name: string, index?: number) {
             let trackline = this.getTrackLine(name);
             if (trackline) {
                 trackline.stop();
-                trackline.start();
+                typeof index === "number" ? trackline.start(index) : trackline.start();
+                // trackline.start();
             } else {
                 console.warn("无效的路径：" + name);
             }
@@ -385,7 +387,8 @@ namespace flagwind {
             const me = this;
             let trackToolBox = document.createElement("div");
             trackToolBox.setAttribute("id", "route-ctrl-group");
-            trackToolBox.innerHTML = `<div class="tool-btns"><span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
+            trackToolBox.innerHTML = `<div class="tool-btns">
+                <span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
                 <span class="route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
                 <span class="route-btn icon-speedDown" title="减速" data-operate="speedDown"></span>
                 <span class="route-btn icon-speedUp" title="加速" data-operate="speedUp"></span>

@@ -219,17 +219,36 @@ namespace flagwind {
 
         /**
          * 重新播放
+         * @param index 指定播放位置
          */
-        public start(): void {
+        public start(index?: number): void {
             this.options.onMessageEvent("info", "播放");
             this.options.onMessageEvent("start", "播放");
-            this.routeLayer.start(this.activedTrackLineName);
+            if (typeof index === "number") {
+                this.routeLayer.start(this.activedTrackLineName, index);
+            } else {
+                this.routeLayer.start(this.activedTrackLineName);
+            }
             if (this._trackToolBox) {
                 this._playButton.style.display = "none";
                 this._pauseButton.style.display = "block";
                 this._toolBoxText.innerHTML = "当前状态：正在播放";
             }
         }
+
+        // /**
+        //  * 重新播放
+        //  */
+        // public start(): void {
+        //     this.options.onMessageEvent("info", "播放");
+        //     this.options.onMessageEvent("start", "播放");
+        //     this.routeLayer.start(this.activedTrackLineName);
+        //     if (this._trackToolBox) {
+        //         this._playButton.style.display = "none";
+        //         this._pauseButton.style.display = "block";
+        //         this._toolBoxText.innerHTML = "当前状态：正在播放";
+        //     }
+        // }
 
         /**
          * 停止

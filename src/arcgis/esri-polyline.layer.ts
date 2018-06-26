@@ -3,19 +3,6 @@
 namespace flagwind {
 
     export const ESRI_POLYLINE_LAYER_OPTIONS: any = {
-        onEvent: (eventName: string, evt: any) => {
-            if (eventName === "onMouseOver") {
-                evt.graphic.symbol.setWidth(7);
-                evt.graphic.symbol.setColor([38, 101, 196]);
-                evt.graphic.symbol.setMiterLimit(5);
-                evt.graphic.draw();
-            } else if (eventName === "onMouseOut") {
-                evt.graphic.symbol.setWidth(4);
-                evt.graphic.symbol.setColor([255, 0, 0]);
-                evt.graphic.symbol.setMiterLimit(10);
-                evt.graphic.draw();
-            }
-        },
         symbol: {
             lineWidth: 4,
             lineColor: [255, 0, 0],

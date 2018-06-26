@@ -908,68 +908,75 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     var EsriHeatmapLayer = /** @class */ (function () {
-        function EsriHeatmapLayer(flagwindMap, options) {
+        function EsriHeatmapLayer(flagwindMap, id, options) {
             this.flagwindMap = flagwindMap;
-            this.options = __assign({ id: "heatLayer", config: {} }, options);
+            this.id = id || "heatmapLayer";
+            this.options = options;
             this.map = flagwindMap;
             this.heatLayer = this.createHeatLayer();
             this.map.innerMap.addLayer(this.heatLayer);
         }
         EsriHeatmapLayer.prototype.createHeatLayer = function () {
-            var heatObj = document.createElement("div");
-            heatObj.setAttribute("id", this.options.id);
-            this.map.innerMap.container.appendChild(heatObj);
-            this.heatContainer = heatObj;
-            return new HeatmapLayer({
-                config: __assign({}, __assign({ "useLocalMaximum": false, "radius": 40, "gradient": {
-                        0.45: "rgb(000,000,255)",
-                        0.55: "rgb(000,255,255)",
-                        0.65: "rgb(000,255,000)",
-                        0.95: "rgb(255,255,000)",
-                        1.00: "rgb(255,000,000)"
-                    } }, this.options.config)),
-                map: this.map.innerMap,
-                domNodeId: this.options.id,
-                opacity: 0.85
-            });
+            var featureCollection = {
+                "featureSet": null,
+                "layerDefinition": {
+                    "geometryType": "esriGeometryPoint",
+                    "fields": [{
+                            "name": "count",
+                            "type": "esriFieldTypeDouble",
+                            "alias": "count"
+                        }]
+                }
+            };
+            var options = {
+                id: this.id,
+                opacity: 0.7
+            };
+            var layer = new esri.layers.FeatureLayer(featureCollection, options);
+            this.heatmapRenderer = new esri.renderers.HeatmapRenderer(__assign({
+                field: "count",
+                blurRadius: 12,
+                // maxPixelIntensity: 100,
+                // minPixelIntensity: 0,
+                colorStops: [
+                    { ratio: 0, color: "rgb(255, 219, 0, 0)" },
+                    { ratio: 0.6, color: "rgb(250, 146, 0)" },
+                    { ratio: 0.85, color: "rgb(250, 73, 0)" },
+                    { ratio: 0.95, color: "rgba(250, 0, 0)" }
+                ]
+            }, this.options));
+            layer.setRenderer(this.heatmapRenderer);
+            return layer;
         };
         EsriHeatmapLayer.prototype.resize = function () {
-            this.heatLayer.resizeHeatmap();
+            this.map.innerMap.resize();
         };
         EsriHeatmapLayer.prototype.clear = function () {
-            this.heatLayer.clearData();
+            this.heatLayer.clear();
         };
         EsriHeatmapLayer.prototype.show = function () {
-            this.heatContainer.style.display = "block";
+            this.heatLayer.show();
         };
         EsriHeatmapLayer.prototype.hide = function () {
-            this.heatContainer.style.display = "none";
+            this.heatLayer.hide();
         };
-        EsriHeatmapLayer.prototype.showDataList = function (data, changeExtent) {
+        EsriHeatmapLayer.prototype.setMaxPixelIntensity = function (value) {
+            this.heatmapRenderer.setMaxPixelIntensity(value);
+        };
+        EsriHeatmapLayer.prototype.showDataList = function (data) {
             var _this = this;
             var dataList = this.onChangeStandardModel(data);
             if (dataList.length === 0) {
                 console.log("未传入热点数据");
                 return;
             }
-            var points = new esri.geometry.Multipoint(this.map.spatial);
-            var heatDatas = dataList.map(function (g) {
-                var pt = _this.map.onFormPoint(g); // new esri.geometry.Point(g.x, g.y, this.map.spatial);
-                points.addPoint(pt);
-                return {
-                    "attributes": { "count": g.count || 1 },
-                    "geometry": {
-                        "spatialReference": { "wkid": 4326 },
-                        "type": "point",
-                        "x": g.x,
-                        "y": g.y
-                    }
-                };
+            this.setMaxPixelIntensity(dataList.reduce(function (max, item) { return max = Math.max(item.count, max); }, 1));
+            dataList.forEach(function (g) {
+                var pt = _this.map.getPoint(g); // new esri.geometry.Point(g.x, g.y, this.map.spatial);
+                var symbol = new esri.symbol.SimpleMarkerSymbol();
+                var graphic = new esri.Graphic(pt, symbol, g);
+                _this.heatLayer.add(graphic);
             });
-            if (changeExtent) {
-                this.map.innerMap.setExtent(points.getExtent(), false);
-            }
-            this.heatLayer.setData(heatDatas);
         };
         EsriHeatmapLayer.prototype.onChangeStandardModel = function (data) {
             var list = [];
@@ -982,7 +989,7 @@ var flagwind;
                         list.push({ "x": g.x || g.longitude, "y": g.y || g.latitude, "count": g.count });
                     }
                     else {
-                        console.warn("无法解析热力图点位对象：" + g);
+                        console.warn("无法解析热力图点位对象：", g);
                     }
                 }
             });
@@ -992,6 +999,97 @@ var flagwind;
     }());
     flagwind.EsriHeatmapLayer = EsriHeatmapLayer;
 })(flagwind || (flagwind = {}));
+// namespace flagwind {
+//     export class EsriHeatmapLayer implements IFlagwindHeatmapLayer {
+//         private map: any;
+//         public options: any;
+//         public heatLayer: any;
+//         public heatContainer: HTMLElement;
+//         public constructor(public flagwindMap: FlagwindMap, options: any) {
+//             this.options = { ...{ id: "heatLayer", config: {} }, ...options };
+//             this.map = flagwindMap;
+//             this.heatLayer = this.createHeatLayer();
+//             this.map.innerMap.addLayer(this.heatLayer);
+//         }
+//         public createHeatLayer() {
+//             let heatObj = document.createElement("div");
+//             heatObj.setAttribute("id", this.options.id);
+//             this.map.innerMap.container.appendChild(heatObj);
+//             this.heatContainer = heatObj;
+//             return new HeatmapLayer({
+//                 config: {
+//                     ...{
+//                         "useLocalMaximum": false,
+//                         "radius": 40,
+//                         "gradient": {
+//                             0.45: "rgb(000,000,255)",
+//                             0.55: "rgb(000,255,255)",
+//                             0.65: "rgb(000,255,000)",
+//                             0.95: "rgb(255,255,000)",
+//                             1.00: "rgb(255,000,000)"
+//                         },
+//                         ...this.options.config
+//                     }
+//                 },
+//                 map: this.map.innerMap,
+//                 domNodeId: this.options.id,
+//                 opacity: 0.85
+//             });
+//         }
+//         public resize(): void {
+//             this.heatLayer.resizeHeatmap();
+//         }
+//         public clear(): void {
+//             this.heatLayer.clearData();
+//         }
+//         public show(): void {
+//             this.heatContainer.style.display = "block";
+//         }
+//         public hide(): void {
+//             this.heatContainer.style.display = "none";
+//         }
+//         public showDataList(data: Array<any>, changeExtent: boolean): void {
+//             let dataList = this.onChangeStandardModel(data);
+//             if (dataList.length === 0) {
+//                 console.log("未传入热点数据");
+//                 return;
+//             }
+//             let points = new esri.geometry.Multipoint(this.map.spatial);
+//             let heatDatas = dataList.map(g => {
+//                 let pt = this.map.onFormPoint(g); // new esri.geometry.Point(g.x, g.y, this.map.spatial);
+//                 points.addPoint(pt);
+//                 return {
+//                     "attributes": { "count": g.count || 1 },
+//                     "geometry": {
+//                         "spatialReference": { "wkid": 4326 },
+//                         "type": "point",
+//                         "x": g.x,
+//                         "y": g.y
+//                     }
+//                 };
+//             });
+//             if (changeExtent) {
+//                 this.map.innerMap.setExtent(points.getExtent(), false);
+//             }
+//             this.heatLayer.setData(heatDatas);
+//         }
+//         public onChangeStandardModel(data: Array<any>) {
+//             let list: Array<any> = [];
+//             data.forEach(g => {
+//                 if (Type.isArray(g)) {
+//                     list.push({ "x": g[0], "y": g[1], "count": g[2] });
+//                 } else {
+//                     if ((g.x || g.longitude) && (g.y || g.latitude) < 90 && (g.y || g.latitude) > -90 && g.count) {
+//                         list.push({ "x": g.x || g.longitude, "y": g.y || g.latitude, "count": g.count });
+//                     } else {
+//                         console.warn("无法解析热力图点位对象：" + g);
+//                     }
+//                 }
+//             });
+//             return list;
+//         }
+//     }
+// }
 // /// <reference path="../events/EventProvider" />
 // namespace flagwind {
 //     /**
@@ -2035,11 +2133,7 @@ var flagwind;
             console.log("onEditInfo");
         },
         onPositionChanged: function (currentPoint, originPoint, item) {
-<<<<<<< HEAD
             console.log("onPositionChanged");
-=======
-            console.log("onVisibleChanged");
->>>>>>> f566558c99a162abd34fd3da57ebfd803f7bbe15
         },
         onVisibleChanged: function (isShow) {
             console.log("onVisibleChanged");
@@ -2441,11 +2535,7 @@ var flagwind;
         };
         EsriPointLayer.prototype.getImageUrl = function (item) {
             var imageUrl = this.options.symbol.imageUrl;
-<<<<<<< HEAD
             if (typeof imageUrl === "string" && imageUrl) {
-=======
-            if (typeof imageUrl === "string" && imageUrl.indexOf("base64") === -1) {
->>>>>>> f566558c99a162abd34fd3da57ebfd803f7bbe15
                 var key = "imageUrl" + (item.status || "") + (item.selected ? "checked" : "");
                 var statusImageUrl = this.options[key] || this.options.symbol[key] || imageUrl;
                 var suffixIndex = statusImageUrl.lastIndexOf(".");
@@ -2828,20 +2918,6 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     flagwind.ESRI_POLYLINE_LAYER_OPTIONS = {
-        onEvent: function (eventName, evt) {
-            if (eventName === "onMouseOver") {
-                evt.graphic.symbol.setWidth(7);
-                evt.graphic.symbol.setColor([38, 101, 196]);
-                evt.graphic.symbol.setMiterLimit(5);
-                evt.graphic.draw();
-            }
-            else if (eventName === "onMouseOut") {
-                evt.graphic.symbol.setWidth(4);
-                evt.graphic.symbol.setColor([255, 0, 0]);
-                evt.graphic.symbol.setMiterLimit(10);
-                evt.graphic.draw();
-            }
-        },
         symbol: {
             lineWidth: 4,
             lineColor: [255, 0, 0],
@@ -3068,12 +3144,9 @@ var flagwind;
         onLineEndEvent: function (lineName, segmentIndex, trackLine) {
             console.log("onLineEndEvent");
         },
-        onMoveEvent: function (segment, xy, angle) {
+        onMoveEvent: function (lineName, segmentIndex, xy, angle) {
             console.log("onMoveEvent");
         },
-        // onMoveEvent(lineName: string, segmentIndex: number, xy: Array<any>, angle: number) {
-        //     console.log("onMoveEvent");
-        // },
         onStationEvent: function (lineName, segmentIndex, graphic, enter, trackLine) {
             console.log("onStationEvent");
         }
@@ -3246,13 +3319,15 @@ var flagwind;
             }
         };
         /**
-         * 启动线路播放（起点为线路的始点）
+         * 启动线路播放（起点为线路的始点或指定点）
+         * @param index 指定播放位置
          */
-        FlagwindRouteLayer.prototype.start = function (name) {
+        FlagwindRouteLayer.prototype.start = function (name, index) {
             var trackline = this.getTrackLine(name);
             if (trackline) {
                 trackline.stop();
-                trackline.start();
+                typeof index === "number" ? trackline.start(index) : trackline.start();
+                // trackline.start();
             }
             else {
                 console.warn("无效的路径：" + name);
@@ -3376,7 +3451,7 @@ var flagwind;
             var me = this;
             var trackToolBox = document.createElement("div");
             trackToolBox.setAttribute("id", "route-ctrl-group");
-            trackToolBox.innerHTML = "<div class=\"tool-btns\"><span class=\"route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                <span class=\"route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                <span class=\"route-btn icon-speedDown\" title=\"\u51CF\u901F\" data-operate=\"speedDown\"></span>\n                <span class=\"route-btn icon-speedUp\" title=\"\u52A0\u901F\" data-operate=\"speedUp\"></span>\n                <span class=\"route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span></div>\n                <div class=\"tool-text\"><span></span></div>";
+            trackToolBox.innerHTML = "<div class=\"tool-btns\">\n                <span class=\"route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                <span class=\"route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                <span class=\"route-btn icon-speedDown\" title=\"\u51CF\u901F\" data-operate=\"speedDown\"></span>\n                <span class=\"route-btn icon-speedUp\" title=\"\u52A0\u901F\" data-operate=\"speedUp\"></span>\n                <span class=\"route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span></div>\n                <div class=\"tool-text\"><span></span></div>";
             this.flagwindMap.innerMap.container.appendChild(trackToolBox);
             var playBtn = document.querySelector("#route-ctrl-group .icon-continue");
             var pauseBtn = document.querySelector("#route-ctrl-group .icon-pause");
@@ -3639,8 +3714,8 @@ var flagwind;
             var trackline = flagwindRoute.getTrackLine(segment.name);
             if (trackline) {
                 flagwindRoute.onChangeMovingGraphicSymbol(trackline, point, angle);
-                flagwindRoute.options.onMoveEvent(segment, xy, angle);
-                // flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
+                // flagwindRoute.options.onMoveEvent(segment, xy, angle);
+                flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
             }
         };
         FlagwindRouteLayer.prototype.onAddLayerBefor = function () {
@@ -3726,18 +3801,10 @@ var flagwind;
             this.moveLineLayer.addGraphic(segment.name, segment.lineGraphic);
         };
         EsriRouteLayer.prototype.onCreateMoveMark = function (trackline, graphic, angle) {
-<<<<<<< HEAD
-            var markerUrl = trackline.options.symbol.imageUrl || trackline.options.markerUrl || this.options.markerUrl;
-            if (trackline.options.markerType !== "car")
-                markerUrl = this.getImageUrl(trackline, angle);
-            var markerHeight = trackline.options.symbol.height || trackline.options.markerHeight || this.options.markerHeight;
-            var markerWidth = trackline.options.symbol.width || trackline.options.markerWidth || this.options.markerWidth;
-=======
             var markerUrl = trackline.options.symbol.image || trackline.options.symbol.imageUrl
                 || this.options.imageUrl || this.options.symbol.image || this.options.symbol.imageUrl;
             var markerHeight = trackline.options.symbol.height || this.options.symbol.height;
             var markerWidth = trackline.options.symbol.width || this.options.symbol.width;
->>>>>>> f566558c99a162abd34fd3da57ebfd803f7bbe15
             if (!markerUrl) {
                 console.warn("轨迹移动要素图片未定义");
             }
@@ -3880,11 +3947,7 @@ var flagwind;
 var flagwind;
 (function (flagwind) {
     flagwind.SELECT_BOX_OPTIONS_ESRI = {
-<<<<<<< HEAD
-        onCheckChanged: function (evt, layer) {
-=======
         onCheckChanged: function (checkItems, layer) {
->>>>>>> f566558c99a162abd34fd3da57ebfd803f7bbe15
             // console.log("onCheckChanged");
         }
     };
@@ -4260,17 +4323,36 @@ var flagwind;
         };
         /**
          * 重新播放
+         * @param index 指定播放位置
          */
-        FlagwindTrackLayer.prototype.start = function () {
+        FlagwindTrackLayer.prototype.start = function (index) {
             this.options.onMessageEvent("info", "播放");
             this.options.onMessageEvent("start", "播放");
-            this.routeLayer.start(this.activedTrackLineName);
+            if (typeof index === "number") {
+                this.routeLayer.start(this.activedTrackLineName, index);
+            }
+            else {
+                this.routeLayer.start(this.activedTrackLineName);
+            }
             if (this._trackToolBox) {
                 this._playButton.style.display = "none";
                 this._pauseButton.style.display = "block";
                 this._toolBoxText.innerHTML = "当前状态：正在播放";
             }
         };
+        // /**
+        //  * 重新播放
+        //  */
+        // public start(): void {
+        //     this.options.onMessageEvent("info", "播放");
+        //     this.options.onMessageEvent("start", "播放");
+        //     this.routeLayer.start(this.activedTrackLineName);
+        //     if (this._trackToolBox) {
+        //         this._playButton.style.display = "none";
+        //         this._pauseButton.style.display = "block";
+        //         this._toolBoxText.innerHTML = "当前状态：正在播放";
+        //     }
+        // }
         /**
          * 停止
          */
@@ -4769,11 +4851,16 @@ var flagwind;
             return "\u5F53\u524D\u72B6\u6001\uFF1A" + this.speed / this.options.speed + "\u500D\u64AD\u653E";
         };
         /**
-         * 启动线路播放（从第一个路段的起点开始）
+         * 启动线路播放（从第一个路段的起点开始或指定点）
+         * @param index 指定播放位置
          */
-        TrackLine.prototype.start = function () {
+        TrackLine.prototype.start = function (index) {
             if (this.isRunning)
                 return;
+            if (typeof index === "number") {
+                this.segments[index].start();
+                return;
+            }
             var playSegment = this.segments[0];
             for (var i = 0; i < this.segments.length; i++) {
                 var segemtn = this.segments[i];

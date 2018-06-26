@@ -298,16 +298,18 @@ declare namespace flagwind {
     class EsriHeatmapLayer implements IFlagwindHeatmapLayer {
         flagwindMap: FlagwindMap;
         private map;
-        options: any;
         heatLayer: any;
-        heatContainer: HTMLElement;
-        constructor(flagwindMap: FlagwindMap, options: any);
+        id: string;
+        options: any;
+        heatmapRenderer: any;
+        constructor(flagwindMap: FlagwindMap, id: string, options: any);
         createHeatLayer(): any;
         resize(): void;
         clear(): void;
         show(): void;
         hide(): void;
-        showDataList(data: Array<any>, changeExtent: boolean): void;
+        setMaxPixelIntensity(value: number): void;
+        showDataList(data: Array<any>): void;
         onChangeStandardModel(data: Array<any>): any[];
     }
 }
@@ -743,9 +745,10 @@ declare namespace flagwind {
          */
         move(name: string): void;
         /**
-         * 启动线路播放（起点为线路的始点）
+         * 启动线路播放（起点为线路的始点或指定点）
+         * @param index 指定播放位置
          */
-        start(name: string): void;
+        start(name: string, index?: number): void;
         /**
          * 暂停
          */
@@ -955,8 +958,9 @@ declare namespace flagwind {
         hide(): void;
         /**
          * 重新播放
+         * @param index 指定播放位置
          */
-        start(): void;
+        start(index?: number): void;
         /**
          * 停止
          */
@@ -1087,7 +1091,7 @@ declare namespace flagwind {
         show(): void;
         hide(): void;
         resize(): void;
-        showDataList(datas: Array<any>, etent: any): void;
+        showDataList(datas: Array<any>): void;
     }
 }
 declare namespace flagwind {
@@ -1219,9 +1223,10 @@ declare namespace flagwind {
          */
         speedDown(): string;
         /**
-         * 启动线路播放（从第一个路段的起点开始）
+         * 启动线路播放（从第一个路段的起点开始或指定点）
+         * @param index 指定播放位置
          */
-        start(): void;
+        start(index?: number): void;
         /**
          * 停止线路
          */
