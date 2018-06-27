@@ -302,16 +302,10 @@ namespace flagwind {
             return `当前状态：${this.speed / this.options.speed}倍播放`;
         }
         /**
-         * 启动线路播放（从第一个路段的起点开始或指定点）
-         * @param index 指定播放位置
+         * 启动线路播放（从第一个路段的起点开始）
          */
-        public start(index?: number) {
+        public start() {
             if (this.isRunning) return;
-
-            if (typeof index === "number") {
-                this.segments[index].start();
-                return;
-            }
 
             let playSegment = this.segments[0];
             for (let i = 0; i < this.segments.length; i++) {

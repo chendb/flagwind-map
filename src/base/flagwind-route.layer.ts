@@ -253,15 +253,13 @@ namespace flagwind {
             }
         }
         /**
-         * 启动线路播放（起点为线路的始点或指定点）
-         * @param index 指定播放位置
+         * 启动线路播放（起点为线路的始点）
          */
-        public start(name: string, index?: number) {
+        public start(name: string) {
             let trackline = this.getTrackLine(name);
             if (trackline) {
                 trackline.stop();
-                typeof index === "number" ? trackline.start(index) : trackline.start();
-                // trackline.start();
+                trackline.start();
             } else {
                 console.warn("无效的路径：" + name);
             }

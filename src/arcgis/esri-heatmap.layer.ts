@@ -35,7 +35,7 @@ namespace flagwind {
             };
             let layer = new esri.layers.FeatureLayer(featureCollection, options);
 
-            this.heatmapRenderer = new esri.renderers.HeatmapRenderer({
+            this.heatmapRenderer = new esri.renderer.HeatmapRenderer({
                 ...{
                     field: "count",
                     blurRadius: 12,
