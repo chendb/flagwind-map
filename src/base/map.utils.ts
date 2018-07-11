@@ -150,7 +150,7 @@ namespace flagwind {
         }
 
         public static validGeometryModel(item: any) {
-            return item.longitude && item.latitude;
+            return item.longitude && item.latitude && item.latitude > -90 && item.latitude < 90;
         }
 
         public static delta(lat: any, lon: any) {

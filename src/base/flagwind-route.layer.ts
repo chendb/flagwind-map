@@ -6,7 +6,7 @@ namespace flagwind {
         // 路由方式（Line:连线，NA:网络路径分析）
         routeType: "Line",
         // 路由服务地址(当routeType为NA时设置)
-        routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route",
+        routeUrl: "http://120.202.26.98:6080/arcgis/rest/services/Features/NAServer/Route",
         // 行驶速度
         speed: 100,
         minSpeedRatio: 0.25,
