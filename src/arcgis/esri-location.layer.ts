@@ -1,4 +1,3 @@
-/// <reference path="./esri.model.ts" />
 namespace flagwind {
     export class EsriLocationLayer extends FlagwindFeatureLayer implements IFlagwindLocationLayer {
 

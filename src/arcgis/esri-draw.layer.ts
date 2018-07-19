@@ -1,15 +1,15 @@
-/// <reference path="../base/flagwind-draw.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind.draw.ts" />import { resolve } from "url";
 
 namespace flagwind {
     /**
      * 绘制图层
      */
-    export class EsriDrawLayer implements IFlagwindDrawLayer {
+    export class EsriDrawLayer implements IFlagwindDraw {
+
         private symbolSetting: any;
         public flagwindMap: FlagwindMap;
         public draw: any;
         public mode: any;
-
         public options: any = {
             drawTime: 75,
             showTooltips: true,
@@ -46,7 +46,7 @@ namespace flagwind {
                 // this.draw.finishDrawing();
             }
         }
-
+      
         private setSymbol(mode: string, options: any) {
             this.symbolSetting = { ...{}, ...options };
             switch (mode) {

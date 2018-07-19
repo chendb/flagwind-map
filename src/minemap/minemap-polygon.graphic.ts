@@ -85,6 +85,11 @@ namespace flagwind {
                 this.polygon.setPath([]);
             }
         }
+
+        public get geometry() {
+            return this._geometry;
+        }
+        
         public addTo(map: any): void {
             this._isInsided = true;
             this.polygon.addTo(map);

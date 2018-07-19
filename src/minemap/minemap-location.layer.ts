@@ -1,4 +1,5 @@
 /// <reference path="./minemap.model.ts" />
+/// <reference path="./minemap-graphics.layer.ts" />
 namespace flagwind {
     export class MinemapLocationLayer extends MinemapGraphicsLayer implements IFlagwindLocationLayer {
 
@@ -7,10 +8,10 @@ namespace flagwind {
         public constructor(public flagwindMap: FlagwindMap, options: any) {
             super(options);
             this.options = { ...LOCATION_LAYER_OPTIONS, ...this.options };
-            this.addToMap(flagwindMap.map);
+            this.appendTo(flagwindMap.map);
             this.registerEvent();
         }
-
+        
         public registerEvent() {
             const me = this;
             this.flagwindMap.on("onClick", function (args: EventArgs) {
@@ -21,7 +22,7 @@ namespace flagwind {
 
         public locate() {
             this.clear();
-            const marker = new MinemapMarkerGraphic({
+            const marker = new MinemapPointGraphic({
                 id: "flagwind_map_location",
                 type: "Point",
                 geometry: this.point,

@@ -84,6 +84,11 @@ namespace flagwind {
             this._geometry = geometry;
             this.polyline.setPath(geometry.path);
         }
+
+        public get geometry() {
+            return this._geometry;
+        }
+
         public addTo(map: any): void {
             this._isInsided = true;
             this.polyline.addTo(map);

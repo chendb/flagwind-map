@@ -1,4 +1,8 @@
 namespace flagwind {
+
+    /**
+     * 即将废弃
+     */
     export class MinemapVehicleRouteLayer extends MinemapRouteLayer {
 
         public showTrack(trackLineName: string, stopList: Array<any>, options: any): void {
@@ -16,7 +20,7 @@ namespace flagwind {
             stopList.forEach(g => {
                 g = this.changeStandardModel(g);
                 if (this.validGeometryModel(g)) {
-                    dataList.push(new flagwind.MinemapMarkerGraphic({
+                    dataList.push(new flagwind.MinemapPointGraphic({
                         id: g.id,
                         symbol: this.options.stopSymbol,
                         point: this.toStopPoint(g),

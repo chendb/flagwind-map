@@ -6,8 +6,9 @@ namespace flagwind {
         }
     };
 
-    export interface IFlagwindLocationLayer {
+    export interface IFlagwindLocationLayer extends IFlagwindSingleLayer{
         point: any;
         clear(): void;
+        locate(): void;
     }
 }

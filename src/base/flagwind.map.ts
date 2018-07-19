@@ -1,24 +1,22 @@
 /// <reference path="../events/EventProvider" />
 namespace flagwind {
-    // tslint:disable-next-line:variable-name
-    export const MAP_OPTIONS = {
 
+    export const MAP_OPTIONS = {
+        // 地图加载完回调
         onMapLoad() {
             console.log("onMapLoad");
         },
+        // zoom 结束回调
         onMapZoomEnd(level: number) {
             console.log("onMapZoomEnd");
         },
+        // 地图单击回调
         onMapClick(evt: any) {
             console.log("onMapClick");
-        },
-        onCreateContextMenu(args: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {
-            console.log("onCreateContextMenu");
         }
     };
 
     export abstract class FlagwindMap extends EventProvider {
-
         private featureLayers: Array<FlagwindFeatureLayer> = [];
         protected baseLayers: Array<FlagwindTiledLayer> = [];
         public options: any;
@@ -26,42 +24,19 @@ namespace flagwind {
         public innerMap: any;
         public loaded: boolean = false;
 
-        public constructor(
-            public mapSetting: IMapSetting,
-            public mapEl: any,
-            options: any) {
-
+        public constructor(public mapSetting: IMapSetting, public mapElement: any, options: any) {
             super();
             this.options = { ...MAP_OPTIONS, ...options };
         }
 
-        public onInit(): void {
-            this.onCreateMap();
-            this.onCreateBaseLayers();
-            const me = this;
-            me.on("onLoad", function () {
-                try {
-                    me.loaded = true;
-                    me.goToCenter();
-                    me.onMapLoad();
-                } catch (ex) {
-                    console.error(ex);
-                }
-            });
+        // #region 坐标转换
 
-            me.on("onZoomEnd", function (evt: EventArgs) {
-                me.onMapZoomEnd(evt.data);
-            });
-        }
-
-        // public abstract onAddEventListener(eventName: string, callBack: Function): void;
-
-        public abstract onCenterAt(point: any): void;
-
-        public abstract onCreatePoint(point: any): any;
-
-        public onFormPoint(point: any) {
-            let lnglat = { "lat": point.y, "lon": point.x };
+        /**
+         * 坐标点转换成对象
+         * @param point 点
+         */
+        public onFormPoint(point: any): { latitude: number; longitude: number } {
+            let lnglat = { lat: point.y, lon: point.x };
             if (point.latitude && point.longitude) {
                 lnglat.lon = point.longitude;
                 lnglat.lat = point.latitude;
@@ -71,7 +46,7 @@ namespace flagwind {
                 console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
                 lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
             }
-            
+
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
                     if (this.mapSetting.is25D) {
@@ -91,23 +66,25 @@ namespace flagwind {
             }
 
             // 以x,y属性创建点
-            return {
-                longitude: parseFloat(lnglat.lon.toFixed(8)),
-                latitude: parseFloat(lnglat.lat.toFixed(8))
-            };
+            return { longitude: parseFloat(lnglat.lon.toFixed(8)), latitude: parseFloat(lnglat.lat.toFixed(8)) };
         }
-        public onToPoint(item: any) {
-            let lnglat = { "lat": item.latitude || item.lat, "lon": item.longitude || item.lon };
+
+        /**
+         * 对象转换成点
+         * @param item 对象
+         */
+        public onToPoint(item: any): FlagwindPoint {
+            let lnglat = { lat: item.latitude || item.lat, lon: item.longitude || item.lon };
             if (!MapUtils.validGeometryModel(item)) {
                 lnglat.lon = item.x || lnglat.lon;
                 lnglat.lat = item.y || lnglat.lat;
             }
-            // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
+
             if (this.mapSetting.wkid === 3589) {
                 console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
                 lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
             }
-            
+
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
                     if (this.mapSetting.is25D) {
@@ -121,30 +98,21 @@ namespace flagwind {
                     }
                 } else if (this.spatial.wkid === 102100 && this.mapSetting.wkidFromApp === 4326) {
                     lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
-                }
-                else if (this.spatial.wkid === 4326 && this.mapSetting.wkidFromApp === 3857) {
+                } else if (this.spatial.wkid === 4326 && this.mapSetting.wkidFromApp === 3857) {
                     lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
                 }
             }
             // 以x,y属性创建点
             return this.onCreatePoint({
-                x: lnglat.lon, y: lnglat.lat, spatial: this.spatial
+                x: lnglat.lon,
+                y: lnglat.lat,
+                spatial: this.spatial
             });
         }
 
-        public abstract onCreateMap(): any;
+        // #endregion
 
-        public abstract onShowInfoWindow(evt: any): void;
-
-        public abstract onCloseInfoWindow(): void;
-
-        public abstract onCreateBaseLayers(): any;
-
-        public abstract onShowTooltip(graphic: any): void;
-
-        public abstract onHideTooltip(graphic: any): void;
-
-        public abstract onCreateContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }): void;
+        // #region 事件监听与移除
 
         /**
          * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
@@ -171,11 +139,32 @@ namespace flagwind {
             this.removeListener(type, listener, scope);
         }
 
+        // #endregion
+
+        // #region 地图常规操作
+
+        public get map() {
+            return this.innerMap;
+        }
+
+        /**
+         * 关闭信息窗口
+         */
         public closeInfoWindow(): void {
             this.onCloseInfoWindow();
         }
 
-        public goToCenter() {
+        /**
+         * @即将废弃
+         */
+        public gotoCenter() {
+            this.centerAtDefault();
+        }
+
+        /**
+         * 定位到配置的地图中心点
+         */
+        public centerAtDefault() {
             if (this.mapSetting.center && this.mapSetting.center.length === 2) {
                 let pt = this.getPoint({
                     x: this.mapSetting.center[0],
@@ -185,44 +174,120 @@ namespace flagwind {
             }
         }
 
-        public getBaseLayerById(id: string): FlagwindTiledLayer | null {
-            let layer = (<any>this.baseLayers).find((g: any) => g.id === id);
-            return layer ? layer : null;
-            // const layers = this.baseLayers.filter(g => g.id === id);
-            // if (layers && layers.length > 0) {
-            //     return layers[0];
-            // }
-            // return null;
-        }
-
         /**
          * 中心定位
          */
-        public centerAt(x: number, y: number) {
+        public centerAt(x: number, y: number): Promise<void> {
             let pt = this.onCreatePoint({
                 x: x,
                 y: y,
                 spatial: this.spatial
             });
-            this.onCenterAt(pt);
+            return this.onCenterAt(pt);
+        }
+
+        /**
+         * 放大或缩小到指挥zoom级别
+         * @param zoom
+         */
+        public setZoom(zoom: number): Promise<void> {
+            return this.onZoom(zoom);
         }
 
         /**
          * 创建点要素
          */
-        public getPoint(item: any) {
+        public getPoint(item: any): FlagwindPoint {
             return this.onToPoint(item);
         }
 
-        public addFeatureLayer(deviceLayer: FlagwindFeatureLayer) {
-            if (this.getFeatureLayerById(deviceLayer.id)) {
-                throw Error("图层" + deviceLayer.id + "已存在");
-            }
-            this.featureLayers.push(deviceLayer);
-            deviceLayer.appendTo(this.innerMap);
+        // #endregion
+
+        // #region 底图
+
+        /**
+         * 底图查找
+         * @param id 底图id
+         */
+        public getBaseLayerById(id: string): FlagwindTiledLayer | null {
+            let layers = this.baseLayers.filter(g => g.id === id);
+            return layers && layers.length > 0 ? layers[0] : null;
         }
 
-        public removeFeatureLayer(id: string) {
+        /**
+         * 显示所有底图
+         */
+        public showBaseLayers(): void {
+            if (this.baseLayers) {
+                this.baseLayers.forEach(g => g.show());
+            }
+        }
+
+        /**
+         * 隐藏所有底图
+         */
+        public hideBaseLayers(): void {
+            if (this.baseLayers) {
+                this.baseLayers.forEach(g => g.hide());
+            }
+        }
+
+        /**
+         * 显示指定id的底图
+         * @param id
+         */
+        public showBaseLayer(id: string): boolean {
+            const layer = this.getBaseLayerById(id);
+            if (layer) {
+                layer.show();
+                return true;
+            }
+            return false;
+        }
+
+        /**
+         * 隐藏指定id的底图
+         * @param id
+         */
+        public hideBaseLayer(id: string): boolean {
+            const layer = this.getBaseLayerById(id);
+            if (layer) {
+                layer.hide();
+                return true;
+            }
+            return false;
+        }
+
+        // #endregion
+
+        // #region 功能图层
+
+        /**
+         * 获取指定id的功能图层
+         * @param id
+         */
+        public getFeatureLayerById(id: string): FlagwindFeatureLayer | null {
+            const layers = this.featureLayers.filter(g => g.id === id);
+            return layers != null && layers.length > 0 ? layers[0] : null;
+        }
+
+        /**
+         * 增加功能图层
+         * @param featureLayer
+         */
+        public addFeatureLayer(featureLayer: FlagwindFeatureLayer): void {
+            if (this.getFeatureLayerById(featureLayer.id)) {
+                throw Error("图层" + featureLayer.id + "已存在");
+            }
+            this.featureLayers.push(featureLayer);
+            featureLayer.appendTo(this.innerMap);
+        }
+
+        /**
+         * 移除指定id的功能图层
+         * @param id 图层id
+         */
+        public removeFeatureLayer(id: string): boolean {
             const flayer = this.getFeatureLayerById(id);
             if (flayer) {
                 flayer.removeLayer(this.innerMap);
@@ -233,57 +298,11 @@ namespace flagwind {
             return false;
         }
 
-        public showBaseLayers() {
-            if (this.baseLayers) {
-                this.baseLayers.forEach(g => {
-                    g.show();
-                });
-            }
-        }
-
-        public hideBaseLayers() {
-            if (this.baseLayers) {
-                this.baseLayers.forEach(g => {
-                    g.hide();
-                });
-            }
-        }
-
-        public showBaseLayer(id: string) {
-            const layer = this.getBaseLayerById(id);
-            if (layer) {
-                layer.show();
-                return true;
-            }
-            return false;
-        }
-
-        public hideBaseLayer(id: string) {
-            const layer = this.getBaseLayerById(id);
-            if (layer) {
-                layer.hide();
-                return true;
-            }
-            return false;
-        }
-
-        protected onMapLoad() {
-            if (this.options.onMapLoad) {
-                this.options.onMapLoad();
-            }
-
-            const me: FlagwindMap = this;
-            this.on("onClick", function (evt: EventArgs) {
-                me.options.onMapClick(evt);// evt.data
-            });
-        }
-
-        protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null {
-            const layers = this.featureLayers.filter(g => g.id === id);
-            return layers != null && layers.length > 0 ? layers[0] : null;
-        }
-
-        protected showFeatureLayer(id: string) {
+        /**
+         * 显示指定id的功能图层
+         * @param id
+         */
+        public showFeatureLayer(id: string): boolean {
             const layer = this.getFeatureLayerById(id);
             if (layer) {
                 layer.show();
@@ -292,13 +311,125 @@ namespace flagwind {
             return false;
         }
 
-        public get map() {
-            return this.innerMap;
+        /**
+         * 隐藏指定id的功能图层
+         * @param id 
+         */
+        public hideFeatureLayer(id: string): boolean {
+            const layer = this.getFeatureLayerById(id);
+            if (layer) {
+                layer.hide();
+                return true;
+            }
+            return false;
         }
 
-        protected onMapZoomEnd(evt: any) {
-            this.options.onMapZoomEnd(evt.level);
+        // #endregion
+
+        // #region 虚拟方法
+        /**
+         * 中心定位
+         * @param point 点
+         */
+        public abstract onCenterAt(point: FlagwindPoint): Promise<void>;
+
+        /**
+         * 放大或缩小至指定的级别
+         * @param zoom 级别
+         */
+        public abstract onZoom(zoom: number): Promise<void>;
+
+        /**
+         * 创建要素点
+         * @param point 点
+         */
+        public abstract onCreatePoint(item: any): FlagwindPoint;
+
+        /**
+         * 创建地图对象
+         */
+        public abstract onCreateMap(): any;
+
+        /**
+         * 显示信息窗口
+         * @param event
+         */
+        public abstract onShowInfoWindow(event: InfoWindowShowEventArgs): void;
+
+        /**
+         * 关闭信息窗口
+         */
+        public abstract onCloseInfoWindow(): void;
+
+        /**
+         * 创建底图
+         */
+        public abstract onCreateBaseLayers(): Array<FlagwindTiledLayer>;
+
+        /**
+         * 显示要素tooltip信息
+         * @param graphic 要素对象
+         */
+        public abstract onShowTooltip(graphic: any): void;
+
+        /**
+         * 隐藏要素tooltip信息
+         * @param graphic 要素对象
+         */
+        public abstract onHideTooltip(): void;
+
+        /**
+         * 创建地图右键快捷菜单
+         * @param eventArgs 创建菜单的参数
+         */
+        public abstract onCreateContextMenu(eventArgs: ContextMenuCreateEventArgs): void;
+
+        // #endregion
+
+        // #region 初始化动作
+        
+        protected onInit(): void {
+            this.onCreateMap();
+            this.onCreateBaseLayers();
+            this.on("onLoad", () => {
+                try {
+                    this.loaded = true;
+                    this.centerAtDefault();
+                    this.onMapLoad();
+                } catch (ex) {
+                    console.error(ex);
+                }
+            });
+            this.on("onZoomStart", (evt: EventArgs) => {
+                if (this.options.onZoomStart) {
+                    this.options.onZoomStart(evt.data);
+                }
+            });
+            this.on("onZoom", (evt: EventArgs) => {
+                if (this.options.onZoom) {
+                    this.options.onZoom(evt);
+                }
+            });
+            this.on("onZoomEnd", (evt: EventArgs) => {
+                if (this.options.onZoomEnd) {
+                    this.options.onZoomEnd(evt.data);
+                }
+            });
         }
 
+        /**
+         * 地图加载回调
+         */
+        protected onMapLoad(): void {
+            if (this.options.onMapLoad) {
+                this.options.onMapLoad();
+            }
+
+            this.on("onClick", (evt: EventArgs) => {
+                this.options.onMapClick(evt); // evt.data
+            });
+        }
+
+        // #endregion 
     }
 }

@@ -133,7 +133,7 @@ requirejs(["dojo/parser",
 
 
         var tollgateLayer = new flagwind.EsriPointLayer( myMap, "tollgateLayer", {
-            kind: "marker",
+            kind: "point",
             showTooltipOnHover: true,
             dataType: "tollgate",
             symbol:{

@@ -89,7 +89,7 @@ requirejs(['flagwindMap'],
 
 
         var tollgateLayer = new flagwind.MinemapPointLayer(myMap, "tollgateLayer", {
-            kind: "marker",
+            kind: "point",
             showTooltipOnHover: true,
             dataType: "tollgate",
             symbol:{

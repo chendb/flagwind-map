@@ -71,7 +71,6 @@ namespace flagwind {
                 return;
             }
             let me = this;
-            // let mapEle = document.getElementById(mapId);
             let mapEle = this.flagwindMap.innerMap.root;
             let container = document.createElement("div");
             container.setAttribute("id", "edit-ctrl-group");

@@ -1,6 +1,7 @@
 namespace flagwind {
 
     export class MinemapHeatmapLayer implements IFlagwindHeatmapLayer {
+
         private _echartslayer: any;
         public isShow: boolean = false;
         public options: any;
@@ -51,6 +52,14 @@ namespace flagwind {
                     blurSize: 12
                 }]
             };
+        }
+
+        public appendTo(map: any): void {
+            throw new Error("Method not implemented.");
+        }
+        
+        public removeLayer(map: any): void {
+            throw new Error("Method not implemented.");
         }
 
         public resize(): void {

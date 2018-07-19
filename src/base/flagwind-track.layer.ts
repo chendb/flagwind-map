@@ -20,7 +20,7 @@ namespace flagwind {
         }
     };
 
-    export class FlagwindTrackLayer {
+    export class FlagwindTrackLayer implements IFlagwindCombineLayer{
 
         private _trackToolBox: HTMLElement;
         private _playButton: HTMLElement;
@@ -46,9 +46,6 @@ namespace flagwind {
              * 当轨迹上的移动物体进出卡口点事件回调
              */
             routeLayer.options.onStationEvent = (name: string, index: number, graphic: any, isStartPoint: boolean, trackline: TrackLine) => {
-                // if (index === 0) {
-                //     this.flagwindMap.centerAt(graphic.geometry.x, graphic.geometry.y);
-                // }
                 if (index === 0 && isStartPoint) {
                     this.businessLayer.saveGraphicByModel(graphic.attributes.__model);
                     this.options.onPointChanged(index, graphic.attributes.__model);
@@ -75,28 +72,47 @@ namespace flagwind {
             };
         }
 
+        // #region 属性
+
         public get flagwindMap(): FlagwindMap {
             return this.businessLayer.flagwindMap;
         }
 
-        public showTrack(stopList: Array<any>, trackLineName?: string, options?: any): void {
-            if (trackLineName) {
-                this.activedTrackLineName = trackLineName;
-            } else {
-                trackLineName = this.activedTrackLineName;
-            }
+        /**
+         * 移动要素是否正在跑
+         */
+        public get isRunning(): boolean {
+            if (!this.trackLine) return false;
+            return this.trackLine.isRunning;
+        }
 
-            if (!this.isShow) {
-                this.show();
-            }
+        /**
+         * 移动要素是否跑完
+         */
+        public get isCompleted(): boolean {
+            if (!this.trackLine) return false;
+            return this.trackLine.isCompleted;
+        }
 
-            let trackOptions = { ...this.options, ...options };
-            if (trackOptions.solveMode === "Segment") {
-                this.routeLayer.solveSegment(trackLineName, stopList, trackOptions);
+        /**
+         * 移动要素是否隐藏
+         */
+        public get isMovingGraphicHide(): boolean {
+            if (!this.trackLine) return false;
+            return this.trackLine.isMovingGraphicHide;
+        }
+
+        public get trackLine(): TrackLine {
+            if (this.activedTrackLineName) {
+                return this.routeLayer.getTrackLine(this.activedTrackLineName);
             } else {
-                this.routeLayer.solveLine(trackLineName, stopList, trackOptions);
+                return null;
             }
         }
+
+        // #endregion
+
+        // #region TrackToolBox
 
         public deleteTrackToolBox(): void {
             if (this._trackToolBox) this._trackToolBox.parentNode.removeChild(this._trackToolBox);
@@ -148,31 +164,52 @@ namespace flagwind {
             };
         }
 
-        public get trackLine(): TrackLine {
-            if (this.activedTrackLineName) {
-                return this.routeLayer.getTrackLine(this.activedTrackLineName);
+        // #endregion
+
+        // #region 公共方法
+
+        /**
+         * 显示轨迹线路（不播放）
+         * @param stopList 
+         * @param trackLineName 
+         * @param options 
+         */
+        public showTrack(stopList: Array<any>, trackLineName?: string, options?: any): void {
+            if (trackLineName) {
+                this.activedTrackLineName = trackLineName;
             } else {
-                return null;
+                trackLineName = this.activedTrackLineName;
+            }
+
+            if (!this.isShow) {
+                this.show();
+            }
+
+            let trackOptions = { ...this.options, ...options };
+            if (trackOptions.solveMode === "Segment") {
+                this.routeLayer.solveSegment(trackLineName, stopList, trackOptions);
+            } else {
+                this.routeLayer.solveLine(trackLineName, stopList, trackOptions);
             }
         }
 
         /**
          * 启动线路播放（起点为线路的始点）
          */
-        public startTrack(list: Array<any>, name?: string, options?: any) {
-            if (name) {
-                this.activedTrackLineName = name;
+        public startTrack(stopList: Array<any>, trackLineName?: string, options?: any) {
+            if (trackLineName) {
+                this.activedTrackLineName = trackLineName;
             } else {
-                name = this.activedTrackLineName;
+                trackLineName = this.activedTrackLineName;
             }
             this.routeLayer.stop(this.activedTrackLineName);
             this.clear();
-            if (list == null || list.length === 0) {
+            if (stopList == null || stopList.length === 0) {
                 this.options.onMessageEvent("warning", "没有轨迹数据");
                 console.warn("没有轨迹数据！");
                 return;
             }
-            this.showTrack(list, name, options);
+            this.showTrack(stopList, trackLineName, options);
             // 启动线路播放（起点为线路的始点）
             this.routeLayer.start(this.activedTrackLineName);
         }
@@ -180,14 +217,18 @@ namespace flagwind {
         /**
          * 启动线路播放（起点为上次播放的终点）
          */
-        public move(list: Array<any>, name?: string): void {
+        public move(stopList: Array<any>, trackLineName?: string): void {
             if (name) {
-                this.activedTrackLineName = name;
+                this.activedTrackLineName = trackLineName;
             } else {
-                name = this.activedTrackLineName;
+                trackLineName = this.activedTrackLineName;
             }
-            this.showTrack(list, name);
+            this.showTrack(stopList, trackLineName);
             this.routeLayer.move(this.activedTrackLineName);
+        }
+
+        public clearAll(): void {
+            this.clear();
         }
 
         /**
@@ -244,30 +285,6 @@ namespace flagwind {
                 this._pauseButton.style.display = "none";
                 this._toolBoxText.innerHTML = "已停止";
             }
-        }
-
-        /**
-         * 移动要素是否正在跑
-         */
-        public get isRunning(): boolean {
-            if (!this.trackLine) return false;
-            return this.trackLine.isRunning;
-        }
-
-        /**
-         * 移动要素是否跑完
-         */
-        public get isCompleted(): boolean {
-            if (!this.trackLine) return false;
-            return this.trackLine.isCompleted;
-        }
-
-        /**
-         * 移动要素是否隐藏
-         */
-        public get isMovingGraphicHide(): boolean {
-            if (!this.trackLine) return false;
-            return this.trackLine.isMovingGraphicHide;
         }
 
         /**
@@ -335,5 +352,7 @@ namespace flagwind {
         public changeTrackLine(name: string): void {
             this.activedTrackLineName = name;
         }
+
+        // #endregion
     }
 }

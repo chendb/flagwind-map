@@ -41,25 +41,29 @@ namespace flagwind {
             imageUrl: "",
             height: null,
             width: null
-        },
-        // 移动要素图片地址
-        markerUrl: "",
-        // 移动要素文本
-        markerLabel: "",
-        // 移动要不高度
-        markerHeight: null,
-        // 移动要不宽度
-        markerWidth: null
+        }
+        // ,
+        // // 移动要素图片地址
+        // markerUrl: "",
+        // // 移动要素文本
+        // markerLabel: "",
+        // // 移动要不高度
+        // markerHeight: null,
+        // // 移动要不宽度
+        // markerWidth: null
     };
 
-    export abstract class FlagwindRouteLayer {
+    export abstract class FlagwindRouteLayer implements IFlagwindCombineLayer{
 
+        public isShow: boolean = true;
         public moveLineLayer: FlagwindGroupLayer;
         public moveMarkLayer: FlagwindGroupLayer;
-        // public moveMarkLayer: { graphics: any; remove: (arg0: any) => void; _map: null; clear: () => void; id: any; add: (arg0: any) => void; show: () => void; hide: () => void; };
-
         public trackLines: Array<TrackLine> = [];
         public activedTrackLineName: string;
+
+        public get spatial(): any {
+            return this.flagwindMap.spatial;
+        }
 
         public constructor(public flagwindMap: FlagwindMap, public layerName: string, public options: any) {
             this.options = { ...ROUTE_LAYER_OPTIONS, ...options };
@@ -82,22 +86,56 @@ namespace flagwind {
             }
         }
 
+        // #region 虚拟方法
+
+        /**
+         * 创建线路图层
+         * @param id 图层唯一标识
+         */
         public abstract onCreateLineLayer(id: string): FlagwindGroupLayer;
 
+        /**
+         * 创建移动要素图层
+         * @param id 图层唯一标识
+         */
         public abstract onCreateMovingLayer(id: string): FlagwindGroupLayer;
 
-        public abstract onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
+        /**
+         * 判断要素是否在同一位置
+         * @param originGraphic 原始坐标要素
+         * @param targetGraphic 修改后的要素
+         */
+        public abstract onEqualGraphic(originGraphic: FlagwindGraphic, targetGraphic: FlagwindGraphic): boolean;
 
+        /**
+         * 在地图显示线路上的路段
+         * @param segment 路段
+         */
         public abstract onShowSegmentLine(segment: TrackSegment): void;
 
+        /**
+         * 构建标准的停靠点
+         * @param name 线路名
+         * @param stops 原始停靠点
+         */
         public abstract onGetStandardStops(name: String, stops: Array<any>): Array<any>;
 
+        /**
+         * 设置路段用几何线
+         * @param options 路段参数
+         * @param segment 路段
+         */
         public abstract onSetSegmentByLine(options: any, segment: TrackSegment): any;
 
+        /**
+         * 设置路段用几何点集合
+         * @param options 路段参数
+         * @param segment 路段
+         */
         public abstract onSetSegmentByPoint(options: any, segment: TrackSegment): any;
 
         /**
-         * 由网络分析服务来求解轨迹并播放
+         * 由网络分析服务来求解轨迹
          * 
          * @param {TrackSegment} segment 要播放的路段
          * @param {*} start 起点要素
@@ -119,11 +157,19 @@ namespace flagwind {
          * @param {*} graphic 要素
          * @param {*} angle 偏转角
          */
-        public abstract onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
+        public abstract onCreateMoveMark(trackline: TrackLine, graphic: FlagwindGraphic, angle: number): any;
 
-        public get spatial(): any {
-            return this.flagwindMap.spatial;
-        }
+        /**
+         * 修改移动要素
+         * @param trackline 线路
+         * @param point 位置
+         * @param angle 角度
+         */
+        public abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
+
+        // #endregion
+
+        // #region 接口实现
 
         public show(): void {
             if (this.moveMarkLayer) {// 移动小车 
@@ -146,6 +192,63 @@ namespace flagwind {
         }
 
         /**
+         * 清除所有
+         */
+        public clearAll() {
+            this.checkMapSetting();
+
+            this.stopAll();
+            if (this.moveMarkLayer) {
+                this.moveMarkLayer.clear();
+            }
+
+            if (this.moveLineLayer) {
+                this.moveLineLayer.clear();
+            }
+            this.trackLines = [];
+        }
+
+        public clear(name?: string) {
+            if (name) {
+                let trackline = this.getTrackLine(name);
+                if (trackline == null) {
+                    console.warn("无效的路径：" + name);
+                    return;
+                }
+                trackline.stop();
+                this.moveMarkLayer.removeGraphicByName(name);
+                this.moveLineLayer.removeGraphicByName(name);
+                trackline.markerGraphic = null;
+                let index = this.trackLines.indexOf(trackline);
+                if (index >= 0) {
+                    this.trackLines.splice(index, 1);
+                }
+            } else {
+                this.stopAll();
+                if (this.moveMarkLayer) {
+                    this.moveMarkLayer.clear();
+                }
+
+                if (this.moveLineLayer) {
+                    this.moveLineLayer.clear();
+                }
+                this.trackLines = [];
+            }
+        }
+
+        public clearLine(name: string) {
+            if (!name) {
+                console.error("没有指定清除的线路名称");
+                return;
+            }
+            this.moveLineLayer.removeGraphicByName(name);
+
+        }
+
+        // #endregion
+
+        // #region 播放线路
+        /**
          * 获取指定名称的线路
          * @param name 指定名称
          */
@@ -157,7 +260,7 @@ namespace flagwind {
         /**
          * 向指定线路中增加路段
          */
-        public addTrackSegment(name: any, segment: TrackSegment, lineOptions: any) {
+        public addTrackSegment(name: string, segment: TrackSegment, lineOptions: any) {
             let trackline = this.getTrackLine(name);
             if (!trackline) {
                 trackline = new TrackLine(this.flagwindMap, name, lineOptions);
@@ -215,9 +318,9 @@ namespace flagwind {
             }
         }
 
-        /*********************轨迹线路**************************/
+        // #endregion
 
-        /*********************播放控制**************************/
+        // #region 播放控制
 
         public stop(name?: string) {
             let trackline = this.getTrackLine(name);
@@ -315,65 +418,21 @@ namespace flagwind {
             }
         }
 
-        public clear(name?: string) {
-            if (name) {
-                let trackline = this.getTrackLine(name);
-                if (trackline == null) {
-                    console.warn("无效的路径：" + name);
-                    return;
-                }
-                trackline.stop();
-                this.moveMarkLayer.removeGraphicByName(name);
-                this.moveLineLayer.removeGraphicByName(name);
-                trackline.markerGraphic = null;
-                let index = this.trackLines.indexOf(trackline);
-                if (index >= 0) {
-                    this.trackLines.splice(index, 1);
-                }
-            } else {
-                this.stopAll();
-                if (this.moveMarkLayer) {
-                    this.moveMarkLayer.clear();
-                }
+        // #endregion
 
-                if (this.moveLineLayer) {
-                    this.moveLineLayer.clear();
-                }
-                this.trackLines = [];
-            }
-        }
-
-        public clearLine(name: string) {
-            if (!name) {
-                console.error("没有指定清除的线路名称");
-                return;
-            }
-            this.moveLineLayer.removeGraphicByName(name);
-
-        }
+        // #region 播放控件(即将移除)
 
         /**
-         * 清除所有
+         * 此方法移至FlagwindTrackLayer(即将废弃)
          */
-        public clearAll() {
-            this.checkMapSetting();
-
-            this.stopAll();
-            if (this.moveMarkLayer) {
-                this.moveMarkLayer.clear();
-            }
-
-            if (this.moveLineLayer) {
-                this.moveLineLayer.clear();
-            }
-            this.trackLines = [];
-        }
-
         public deleteTrackToolBox(): void {
             let ele = document.getElementById("route-ctrl-group");
             if (ele) ele.remove();
         }
 
+        /**
+         * 此方法移至FlagwindTrackLayer(即将废弃)
+         */
         public showTrackToolBox(): void {
             if (document.getElementById("route-ctrl-group")) {
                 console.log("TrackToolBox已经创建，不可重复创建！");
@@ -422,8 +481,9 @@ namespace flagwind {
 
         }
 
-        /*********************播放控制**************************/
+        // #endregion
 
+        // #region 路径求解
         /**
          * 求解最短路径（与solveLine不同，它求解的是一个路段，该路段起点为stops[0],终点为stops[stops.length-1]
          *
@@ -538,7 +598,7 @@ namespace flagwind {
          * @ lineOptions:线路控制的参数
          * @ waypoints:经过的点
          */
-        public post(index: number, name: string, start: any, end: any, lineOptions: any, waypoints: Array<any> = []) {
+        protected post(index: number, name: string, start: any, end: any, lineOptions: any, waypoints: Array<any> = []) {
 
             const flagwindRoute = this;
 
@@ -577,7 +637,7 @@ namespace flagwind {
         /**
          * 路由分析完成回调
          */
-        public solveComplete(options: { polyline: any; length: number }, segment: TrackSegment) {
+        protected solveComplete(options: { polyline: any; length: number }, segment: TrackSegment) {
 
             const polyline = options.polyline;
             const length = options.length;
@@ -589,7 +649,7 @@ namespace flagwind {
         /**
          * 路由分析失败回调
          */
-        public errorHandler(err: any, segment: TrackSegment) {
+        protected errorHandler(err: any, segment: TrackSegment) {
             console.log("路由分析异常" + err + "");
             const points = [];
             points.push(segment.startGraphic.geometry);
@@ -689,6 +749,9 @@ namespace flagwind {
             }
         }
 
+        // #endregion
+
+        // #region 私有方法
         protected onAddLayerBefor() {
             console.log("onAddLayerBefor");
         }
@@ -724,7 +787,6 @@ namespace flagwind {
         protected validGeometryModel(item: any) {
             return MapUtils.validGeometryModel(item);
         }
-
-        protected abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
+        // #endregion
     }
 }

@@ -149,7 +149,7 @@ function initMap(params) {
     };
 
     var tollgateLayer = new flagwind.EsriPointLayer(businessService, myMap, "tollgateLayer", {
-        kind: "marker",
+        kind: "point",
         showInfoWindow: false,
         symbol: {
             imageUrl: {

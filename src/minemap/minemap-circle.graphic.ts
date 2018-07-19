@@ -77,11 +77,17 @@ namespace flagwind {
                 this.circle.ay(this.symbol.ay);
             }
         }
+        
         public setGeometry(geometry: MinemapCircle): void {
             this._geometry = geometry;
             this.circle.setCenter(geometry.center);
             this.circle.setRadius(geometry.radius);
         }
+
+        public get geometry() {
+            return this._geometry;
+        }
+
         public addTo(map: any): void {
             this._isInsided = true;
             this.circle.addTo(map);

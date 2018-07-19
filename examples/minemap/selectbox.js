@@ -90,7 +90,7 @@ requirejs(['flagwindMap'],
 
 
         var tollgateLayer = new flagwind.MinemapPointLayer( myMap, "tollgateLayer", {
-            kind: "marker",
+            kind: "point",
             dataType: "tollgate",
             symbol:{
                 imageUrl:"http://113.106.54.47:1180/minemapapi/demo/images/police.png"

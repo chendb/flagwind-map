@@ -25,17 +25,12 @@ namespace flagwind {
     export class EsriPointLayer extends FlagwindBusinessLayer {
         public isLoading: boolean = false; // 设备是否正在加载
 
-        public constructor(
-            flagwindMap: FlagwindMap,
-            id: string,
-            options: any,
-            public businessService?: IFlagwindBusinessService
-        ) {
+        public constructor(flagwindMap: FlagwindMap, id: string, options: any, public businessService?: IFlagwindBusinessService) {
             super(flagwindMap, id, { ...ESRI_POINT_LAYER_OPTIONS, ...options });
+            this.layerType = LayerType.point;
             if (this.options.autoInit) {
                 this.onInit();
             }
-            // this.businessService = businessService;
         }
 
         public onCreateGraphicsLayer(options: any) {
@@ -71,25 +66,6 @@ namespace flagwind {
             };
             return layer;
             // return new EsriGraphicsLayer(options);
-        }
-
-        public openInfoWindow(id: string, context: any, options: any) {
-            let graphic = this.getGraphicById(id);
-            if (!graphic) {
-                console.warn("该条数据不在图层内！id:", id);
-                return;
-            }
-            if (context) {
-                this.flagwindMap.onShowInfoWindow({
-                    graphic: graphic,
-                    context: context,
-                    options: options || {}
-                });
-            } else {
-                this.onShowInfoWindow({
-                    graphic: graphic
-                });
-            }
         }
 
         public onShowInfoWindow(evt: any): void {
@@ -209,7 +185,7 @@ namespace flagwind {
             }
         }
 
-        protected setSelectStatus(item: any, selected: boolean): void {
+        public setSelectStatus(item: any, selected: boolean): void {
             item.selected = selected;
             this.onUpdateGraphicByModel(item);
         }
@@ -220,7 +196,7 @@ namespace flagwind {
             const width = this.options.symbol.width;
             const height = this.options.symbol.height;
             const markerSymbol = new esri.symbol.PictureMarkerSymbol(iconUrl, width, height);
-            let attr = { ...item, ...{ __type: "marker" } };
+            let attr = { ...item, ...{ __type: this.layerType } };
             const graphic = new esri.Graphic(pt, markerSymbol, attr);
             return graphic;
         }
@@ -239,7 +215,7 @@ namespace flagwind {
             graphic.attributes = {
                 ...graphic.attributes,
                 ...item,
-                ...{ __type: "marker" }
+                ...{ __type: this.layerType }
             };
             graphic.draw(); // 重绘
             if (!MapUtils.isEqualPoint(pt, originPoint)) {

@@ -5,7 +5,7 @@ namespace flagwind {
      * @export
      * @class FlagwindTiledLayer
      */
-    export abstract class FlagwindTiledLayer {
+    export abstract class FlagwindTiledLayer implements IFlagwindSingleLayer{
         public layer: any;
         public isShow: boolean = true;
 
@@ -39,14 +39,14 @@ namespace flagwind {
             }
         }
 
-        public show() {
+        public show(): void {
             this.isShow = true;
             if (this.layer) {
                 this.layer.show();
             }
         }
 
-        public hide() {
+        public hide(): void {
             this.isShow = false;
             if (this.layer) {
                 this.layer.hide();

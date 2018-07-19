@@ -1,12 +1,15 @@
 /// <reference path="../base/flagwind.map.ts" />
 namespace flagwind {
+    /**
+     * 对ArcGIS地图封装
+     */
     export class EsriMap extends FlagwindMap {
 
         public constructor(
             public mapSetting: EsriSetting,
-            public mapEl: any,
+            mapElement: any,
             options: any) {
-            super(mapSetting, mapEl, {
+            super(mapSetting, mapElement, {
                 ...{
                     onMapClick: function (evt: any) {
                         console.log("onMapClick:" + evt.data.mapPoint.x + "," + evt.data.mapPoint.y);
@@ -20,11 +23,15 @@ namespace flagwind {
         public onAddEventListener(eventName: string, callBack: Function): void {
             dojo.on(this.map, eventName, callBack);
         }
-        public onCenterAt(point: any): void {
-            this.map.centerAt(point).then(function () {
-                // console.log("centerAt:" + point.x + "," + point.y);
+
+        public onCenterAt(point: any): Promise<void> {
+            return new Promise(resolve => {
+                this.map.centerAt(point).then(function () {
+                    resolve();
+                });
             });
         }
+
         public onCreatePoint(options: any) {
             return new esri.geometry.Point(options.x, options.y, options.spatial || this.spatial);
         }
@@ -79,7 +86,7 @@ namespace flagwind {
                 mapArguments.lods = this.getTileInfo().lods;
             }
             // 地图对象
-            const map = new esri.Map(this.mapEl, mapArguments);
+            const map = new esri.Map(this.mapElement, mapArguments);
             map.infoWindow.anchor = "top";
             this.innerMap = map;
 
@@ -167,7 +174,7 @@ namespace flagwind {
 
         }
 
-        public onShowInfoWindow(evt: any): void {
+        public onShowInfoWindow(evt: InfoWindowShowEventArgs): void {
             if (this.innerMap.infoWindow) {
                 this.innerMap.infoWindow.hide();
             }
@@ -176,16 +183,18 @@ namespace flagwind {
                 const pt = this.getPoint(evt.graphic.attributes);
                 this.innerMap.infoWindow.setTitle(evt.context.title);
                 this.innerMap.infoWindow.setContent(evt.context.content);
-                if (evt.options.width && evt.options.height) {
-                    this.innerMap.infoWindow.resize(evt.options.width, evt.options.height);
-                }
-                if (evt.options.offset) {
-                    let location = this.innerMap.toScreen(pt);
-                    location.x += evt.options.offset.x;
-                    location.y += evt.options.offset.y;
-                    this.innerMap.infoWindow.show(location);
-                } else {
-                    this.innerMap.infoWindow.show(pt);
+                if (evt.options) {
+                    if (evt.options.width && evt.options.height) {
+                        this.innerMap.infoWindow.resize(evt.options.width, evt.options.height);
+                    }
+                    if (evt.options.offset) {
+                        let location = this.innerMap.toScreen(pt);
+                        location.x += evt.options.offset.x;
+                        location.y += evt.options.offset.y;
+                        this.innerMap.infoWindow.show(location);
+                    } else {
+                        this.innerMap.infoWindow.show(pt);
+                    }
                 }
             }
         }
@@ -196,7 +205,7 @@ namespace flagwind {
             }
         }
 
-        public onCreateBaseLayers() {
+        public onCreateBaseLayers(): Array<FlagwindTiledLayer> {
             let baseLayers = new Array<FlagwindTiledLayer>();
             if (this.mapSetting.baseUrl) {
                 const layer = new EsriTiledLayer("base_arcgis_tiled", this.mapSetting.baseUrl, this.spatial, "瓦片图层");
@@ -239,26 +248,31 @@ namespace flagwind {
             return baseLayers;
         }
 
+        public onZoom(zoom: number): Promise<void> {
+            return new Promise(resolve => {
+                this.map.setZoom(zoom).then(() => {
+                    resolve();
+                });
+            });
+        }
+
         public onShowTooltip(graphic: any): void {
             let info = graphic.attributes;
             let pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             let screenpt = this.innerMap.toScreen(pt);
             let title = info.name;
-            // if (graphic.attributes.__type === "polyline" || graphic.attributes.__type === "polygon") {
-            //     screenpt = { x: info.tooltipX, y: info.tooltipY };
-            // }
             (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
             (<any>this).tooltipElement.style.left = (screenpt.x + 15) + "px";
             (<any>this).tooltipElement.style.top = (screenpt.y + 15) + "px";
             (<any>this).tooltipElement.style.display = "block";
         }
 
-        public onHideTooltip(graphic: any): void {
+        public onHideTooltip(): void {
             (<any>this).tooltipElement.style.display = "none";
         }
 
-        public onCreateContextMenu(options: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {
-            const menus = options.contextMenu;
+        public onCreateContextMenu(eventArgs: ContextMenuCreateEventArgs): void {
+            const menus = eventArgs.contextMenu;
             let ctxMenu = (<any>this).ctxMenuForMap = new dijit.Menu({
                 onOpen: function (box: any) {
                     (<any>this).currentLocation = this.getMapPointFromMenuPosition(box, this.innerMap);
@@ -268,7 +282,7 @@ namespace flagwind {
                 ctxMenu.addChild(new dijit.MenuItem({
                     label: menus[i],
                     onClick: function (evt: any) {
-                        options.contextMenuClickEvent(this.label);
+                        eventArgs.contextMenuClickEvent(this.label);
                     }
                 }));
             }

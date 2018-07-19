@@ -57,7 +57,7 @@ namespace flagwind {
                 console.warn("轨迹移动要素图片未定义");
             }
             let symbol = new esri.symbol.PictureMarkerSymbol(markerUrl, markerHeight, markerWidth);
-            let marker = new esri.Graphic(graphic.geometry, symbol, { __type: "marker", __line: trackline.name });
+            let marker = new esri.Graphic(graphic.geometry, symbol, { __type: "point", __line: trackline.name });
             trackline.markerGraphic = marker;
             this.moveMarkLayer.addGraphic(trackline.name, marker);
         }

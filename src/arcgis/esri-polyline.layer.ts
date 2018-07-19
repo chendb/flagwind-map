@@ -55,25 +55,6 @@ namespace flagwind {
             // return new EsriGraphicsLayer(options);
         }
 
-        public openInfoWindow(id: string, context: any, options?: any) {
-            let graphic = this.getGraphicById(id);
-            if (!graphic) {
-                console.warn("该条数据不在图层内！id:", id);
-                return;
-            }
-            if (context) {
-                this.flagwindMap.onShowInfoWindow({
-                    graphic: graphic,
-                    context: context,
-                    options: options || {}
-                });
-            } else {
-                this.onShowInfoWindow({
-                    graphic: graphic
-                });
-            }
-        }
-
         public onShowInfoWindow(evt: any): void {
             let context = this.onGetInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
@@ -154,7 +135,7 @@ namespace flagwind {
             }
         }
 
-        protected setSelectStatus(item: any, selected: boolean): void {
+        public setSelectStatus(item: any, selected: boolean): void {
             item.selected = selected;
             this.onUpdateGraphicByModel(item);
         }

@@ -1,24 +1,25 @@
 namespace flagwind {
 
     export class EsriHeatmapLayer implements IFlagwindHeatmapLayer {
-        private map: any;
 
+        private map: any;
+        public isShow: boolean = true;
         public options: any;
         public heatLayer: any;
         public heatContainer: HTMLElement;
 
         public constructor(public flagwindMap: FlagwindMap, options: any) {
             this.options = { ...{ id: "heatLayer", config: {} }, ...options };
-            this.map = flagwindMap;
+            this.map = flagwindMap.innerMap;
 
             this.heatLayer = this.createHeatLayer();
-            this.map.innerMap.addLayer(this.heatLayer);
+            this.appendTo(this.map);
         }
 
         public createHeatLayer() {
             let heatObj = document.createElement("div");
             heatObj.setAttribute("id", this.options.id);
-            this.map.innerMap.container.appendChild(heatObj);
+            this.map.container.appendChild(heatObj);
             this.heatContainer = heatObj;
 
             return new HeatmapLayer({
@@ -40,6 +41,14 @@ namespace flagwind {
                 domNodeId: this.options.id,
                 opacity: 0.85
             });
+        }
+
+        public appendTo(map: any): void {
+            map.addLayer(this.heatLayer);
+        }
+
+        public removeLayer(map: any): void {
+            map.removeLayer(this.heatLayer);
         }
 
         public resize(): void {

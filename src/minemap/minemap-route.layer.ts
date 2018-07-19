@@ -34,7 +34,7 @@ namespace flagwind {
         public onCreateMovingLayer(id: string): FlagwindGroupLayer {
             return new MinemapGroupLayer({
                 id: id,
-                kind: "marker"
+                kind: "point"
             });
         }
 
@@ -64,10 +64,10 @@ namespace flagwind {
         }
 
         public onGetStandardStops(name: String, stops: Array<any>): Array<any> {
-            let list: Array<MinemapMarkerGraphic> = [];
+            let list: Array<MinemapPointGraphic> = [];
             if (stops == null || stops.length === 0) return list;
             stops.forEach(g => {
-                if (g instanceof MinemapMarkerGraphic) {
+                if (g instanceof MinemapPointGraphic) {
                     g.attributes.__type = "stop";
                     g.attributes.__line = name;
                     list.push(g);
@@ -134,7 +134,7 @@ namespace flagwind {
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
             let markerUrl = trackline.options.symbol.imageUrl || trackline.options.markerUrl || this.options.markerUrl || this.options.movingImageUrl;
-            let marker = new MinemapMarkerGraphic({
+            let marker = new MinemapPointGraphic({
                 id: trackline.name,
                 symbol: {
                     imageUrl: markerUrl,

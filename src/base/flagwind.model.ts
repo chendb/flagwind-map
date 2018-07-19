@@ -2,6 +2,7 @@ namespace flagwind {
 
     export const TRACKSEGMENT_OPTIONS = {
         speed: 100,
+        maxSpeed: 800,
         numsOfKilometer: 50,
         autoShowLine: false,
 
@@ -19,6 +20,51 @@ namespace flagwind {
             console.log("onMoveEvent");
         }
     };
+
+    /**
+     * 地图图形要素
+     */
+    // tslint:disable-next-line:interface-name
+    export interface FlagwindGraphic {
+        attributes: any;
+        geometry: any;
+    }
+
+    /**
+     * 地图右键菜单创建事件参数
+     */
+    // tslint:disable-next-line:interface-name
+    export interface ContextMenuCreateEventArgs{
+        contextMenu: Array<any>;
+        contextMenuClickEvent: any;
+    }
+
+    /**
+     * 地图点类型定义
+     */
+    // tslint:disable-next-line:interface-name
+    export interface FlagwindPoint {
+        x: number;
+        y: number;
+        spatial: any;
+    }
+
+    /**
+     * 地图打开事件参数
+     */
+    export interface InfoWindowShowEventArgs {
+        graphic: any;
+        context: { type: string; title: any; content: any };
+        options?: any;
+    }
+
+    export enum SelectMode {
+        single = 1, multiple = 2
+    }
+
+    export enum LayerType {
+        point = "point", polyline = "polyline", polygon = "polygon"
+    }
 
     /**
      * 对轨迹播放中线路的路段的定义
@@ -217,179 +263,24 @@ namespace flagwind {
             this.options = { ...TRACKSEGMENT_OPTIONS, ...options };
         }
 
-        /**
-         * 隐藏移动要素
-         * 
-         * @memberof TrackLine
-         */
-        public hideMovingGraphic() {
-            this.isMovingGraphicHide = true;
-            this.markerGraphic.hide();
-            // this.flagwindMap.onHideGraphic(this.markerGraphic);
-        }
+        // #region 属性
 
         /**
-         * 显示移动要素
-         * 
-         * @memberof TrackLine
+         * 获取监控最近播放完成的路段线路
          */
-        public showMovingGraphic() {
-            if (this.isMovingGraphicHide) {
-                this.isMovingGraphicHide = false;
-                this.markerGraphic.show();
-            }
-        }
+        public get activeCompletedSegment(): TrackSegment | null {
+            let line = null;
+            if (this.segments.length === 0) return undefined;
 
-        /**
-         * 若有一个路段正在跑，代表该线路是正在运行
-         */
-        public get isRunning(): boolean {
-            if (this.segments.length === 0) return false;
             for (let i = 0; i < this.segments.length; i++) {
-                let segemtn = this.segments[i];
-                if (segemtn.isRunning === true) {
-                    return true;
+                let rl = this.segments[i];
+                if (rl.isCompleted && (line == null || rl.index > line.index)) {
+                    line = rl;
                 }
             }
-            return false;
-        }
-        /**
-         * 当所有的路段完成时，说明线路是跑完状态
-         */
-        public get isCompleted(): boolean {
-            if (this.segments.length === 0) return false;
-            for (let i = 0; i < this.segments.length; i++) {
-                let segemtn = this.segments[i];
-                if (segemtn.isCompleted === false) {
-                    return false;
-                }
-            }
-            return true;
+            return line;
         }
 
-        /**
-         * 调速
-         */
-        public changeSpeed(speed: number): void {
-            if (this.segments.length === 0) return;
-            for (let i = 0; i < this.segments.length; i++) {
-                let segemtn = this.segments[i];
-                segemtn.changeSpeed(speed);
-            }
-        }
-        /**
-         * 增速
-         */
-        public speedUp() {
-            if (!this.speed) this.speed = this.options.speed;
-            if (this.speed < 800) {
-                this.speed = Math.max(this.speed * 2, this.options.speed);
-                this.changeSpeed(this.speed);
-                return `当前状态：${this.speed / this.options.speed}倍播放`;
-            } else {
-                return "最大速度：4倍播放";
-            }
-        }
-        /**
-         * 减速
-         */
-        public speedDown() {
-            if (!this.speed) this.speed = this.options.speed;
-            this.speed = Math.max(this.speed / 2, this.options.speed);
-            this.changeSpeed(this.speed);
-            return `当前状态：${this.speed / this.options.speed}倍播放`;
-        }
-        /**
-         * 启动线路播放（从第一个路段的起点开始）
-         */
-        public start() {
-            if (this.isRunning) return;
-
-            let playSegment = this.segments[0];
-            for (let i = 0; i < this.segments.length; i++) {
-                const segemtn = this.segments[i];
-                if (playSegment.index > segemtn.index) {
-                    playSegment = segemtn;
-                }
-            }
-            playSegment.start();
-        }
-        /**
-         * 停止线路
-         */
-        public stop() {
-
-            for (let i = 0; i < this.segments.length; i++) {
-                let segemtn = this.segments[i];
-                segemtn.stop();
-            }
-
-        }
-        public reset() {
-
-            for (let i = 0; i < this.segments.length; i++) {
-                let segemtn = this.segments[i];
-                segemtn.reset();
-            }
-        }
-
-        /**
-         * 暂停
-         */
-        public pause() {
-            for (let i = 0; i < this.segments.length; i++) {
-                let segemtn = this.segments[i];
-                if (segemtn.isRunning) {
-                    segemtn.pause();
-                    return;
-                }
-            }
-        }
-        /**
-         * 继续（与 暂停 是操作对，只能是在调用了暂停 才可以启用它）
-         */
-        public continue() {
-
-            // 若没有路段进行运行，则启动线路
-            if (!this.isRunning) {
-                this.start();
-            }
-
-            // 找到暂停路段，并启动路段
-            for (let i = 0; i < this.segments.length; i++) {
-                let segemtn = this.segments[i];
-                if (segemtn.isRunning && (!segemtn.timer)) {
-                    segemtn.start();
-                    return;
-                }
-            }
-        }
-        /**
-         * 移动(起点为上一次的终点，如果之前没有播放过，则从线路的起点开始)
-         */
-        public move() {
-            // 若没有路段进行运行，则启动线路
-            if (this.isRunning) {
-                return;
-            }
-
-            let segment = this.activeCompletedSegment;
-            let playSegment = null;
-            if (!segment) {
-                playSegment = this.getSegment(0);
-            } else {
-                playSegment = this.getSegment(segment.index + 1);
-            }
-            if (playSegment) {
-                playSegment.start();
-            }
-        }
-        /**
-         * 增加路段
-         */
-        public add(segment: TrackSegment) {
-            this.segments.push(segment);
-        }
         /**
          * 计算线路的下一个路段索引
          */
@@ -422,6 +313,182 @@ namespace flagwind {
             }
             return segment;
         }
+
+        /**
+         * 若有一个路段正在跑，代表该线路是正在运行
+         */
+        public get isRunning(): boolean {
+            if (this.segments.length === 0) return false;
+            for (let i = 0; i < this.segments.length; i++) {
+                let segemtn = this.segments[i];
+                if (segemtn.isRunning === true) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        /**
+         * 当所有的路段完成时，说明线路是跑完状态
+         */
+        public get isCompleted(): boolean {
+            if (this.segments.length === 0) return false;
+            for (let i = 0; i < this.segments.length; i++) {
+                let segemtn = this.segments[i];
+                if (segemtn.isCompleted === false) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // #endregion
+
+        // #region 方法
+
+        /**
+         * 隐藏移动要素
+         * 
+         * @memberof TrackLine
+         */
+        public hideMovingGraphic(): void {
+            this.isMovingGraphicHide = true;
+            this.markerGraphic.hide();
+        }
+
+        /**
+         * 显示移动要素
+         * 
+         * @memberof TrackLine
+         */
+        public showMovingGraphic(): void {
+            if (this.isMovingGraphicHide) {
+                this.isMovingGraphicHide = false;
+                this.markerGraphic.show();
+            }
+        }
+
+        /**
+         * 调速
+         */
+        public changeSpeed(speed: number): void {
+            if (this.segments.length === 0) return;
+            for (let i = 0; i < this.segments.length; i++) {
+                let segemtn = this.segments[i];
+                segemtn.changeSpeed(speed);
+            }
+        }
+        /**
+         * 增速
+         */
+        public speedUp(): string {
+            if (!this.speed) this.speed = this.options.speed;
+            if (this.speed < this.options.maxSpeed) {
+                this.speed = Math.max(this.speed * 2, this.options.speed);
+                this.changeSpeed(this.speed);
+            }
+            return `当前状态：${this.speed / this.options.speed}倍播放`;
+        }
+        /**
+         * 减速
+         */
+        public speedDown(): string {
+            if (!this.speed) this.speed = this.options.speed;
+            this.speed = Math.max(this.speed / 2, this.options.speed);
+            this.changeSpeed(this.speed);
+            return `当前状态：${this.speed / this.options.speed}倍播放`;
+        }
+        /**
+         * 启动线路播放（从第一个路段的起点开始）
+         */
+        public start(): void {
+            if (this.isRunning) return;
+
+            let playSegment = this.segments[0];
+            for (let i = 0; i < this.segments.length; i++) {
+                const segemtn = this.segments[i];
+                if (playSegment.index > segemtn.index) {
+                    playSegment = segemtn;
+                }
+            }
+            playSegment.start();
+        }
+        /**
+         * 停止线路
+         */
+        public stop(): void {
+
+            for (let i = 0; i < this.segments.length; i++) {
+                let segemtn = this.segments[i];
+                segemtn.stop();
+            }
+
+        }
+        public reset(): void {
+
+            for (let i = 0; i < this.segments.length; i++) {
+                let segemtn = this.segments[i];
+                segemtn.reset();
+            }
+        }
+
+        /**
+         * 暂停
+         */
+        public pause(): void {
+            for (let i = 0; i < this.segments.length; i++) {
+                let segemtn = this.segments[i];
+                if (segemtn.isRunning) {
+                    segemtn.pause();
+                    return;
+                }
+            }
+        }
+        /**
+         * 继续（与 暂停 是操作对，只能是在调用了暂停 才可以启用它）
+         */
+        public continue(): void {
+
+            // 若没有路段进行运行，则启动线路
+            if (!this.isRunning) {
+                this.start();
+            }
+
+            // 找到暂停路段，并启动路段
+            for (let i = 0; i < this.segments.length; i++) {
+                let segemtn = this.segments[i];
+                if (segemtn.isRunning && (!segemtn.timer)) {
+                    segemtn.start();
+                    return;
+                }
+            }
+        }
+        /**
+         * 移动(起点为上一次的终点，如果之前没有播放过，则从线路的起点开始)
+         */
+        public move(): void {
+            // 若没有路段进行运行，则启动线路
+            if (this.isRunning) {
+                return;
+            }
+
+            let segment = this.activeCompletedSegment;
+            let playSegment = null;
+            if (!segment) {
+                playSegment = this.getSegment(0);
+            } else {
+                playSegment = this.getSegment(segment.index + 1);
+            }
+            if (playSegment) {
+                playSegment.start();
+            }
+        }
+        /**
+         * 增加路段
+         */
+        public add(segment: TrackSegment): void {
+            this.segments.push(segment);
+        }
+
         /**
          * 获取线路的下一路段
          */
@@ -445,21 +512,8 @@ namespace flagwind {
             }
             return line;
         }
-        /**
-         * 获取监控最近播放完成的路段线路
-         */
-        public get activeCompletedSegment(): TrackSegment | null {
-            let line = null;
-            if (this.segments.length === 0) return undefined;
 
-            for (let i = 0; i < this.segments.length; i++) {
-                let rl = this.segments[i];
-                if (rl.isCompleted && (line == null || rl.index > line.index)) {
-                    line = rl;
-                }
-            }
-            return line;
-        }
+        // #endregion
 
     }
 }

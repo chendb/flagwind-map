@@ -1,4 +1,4 @@
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />
 
 namespace flagwind {
     /**
@@ -25,21 +25,6 @@ namespace flagwind {
 
         public onCreateGraphicsLayer(options: any) {
             return new MinemapGraphicsLayer(options);
-        }
-
-        public openInfoWindow(id: string, context: any, options: any) {
-            let graphic = this.getGraphicById(id);
-            if (context) {
-                this.flagwindMap.onShowInfoWindow({
-                    graphic: graphic,
-                    context: context,
-                    options: options
-                });
-            } else {
-                this.onShowInfoWindow({
-                    graphic: graphic
-                });
-            }
         }
 
         public onShowInfoWindow(evt: any): void {
@@ -112,11 +97,11 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onCreatGraphicByModel(item: any): any {
-            let className = this.options.symbol.className || "graphic-tollgate";
+            let className = this.options.symbol.className || "graphic-point";
             let imageUrl =
                 this.options.symbol.imageUrl || this.options.imageUrl;
-            let attr = { ...item, ...{ __type: "marker" } };
-            return new MinemapMarkerGraphic({
+            let attr = { ...item, ...{ __type: this.layerType } };
+            return new MinemapPointGraphic({
                 id: item.id,
                 className: className,
                 symbol: {
@@ -137,7 +122,7 @@ namespace flagwind {
          * @param item 实体信息
          */
         public onUpdateGraphicByModel(item: any): void {
-            let graphic: MinemapMarkerGraphic = this.getGraphicById(item.id);
+            let graphic: MinemapPointGraphic = this.getGraphicById(item.id);
             if (graphic) {
                 const originPoint = graphic.geometry;
                 const currentPoint = new MinemapPoint(
@@ -149,7 +134,7 @@ namespace flagwind {
                 let attr = {
                     ...graphic.attributes,
                     ...item,
-                    ...{ __type: "marker" }
+                    ...{ __type: this.layerType }
                 };
                 this.setGraphicStatus(attr);
                 if (!MapUtils.isEqualPoint(currentPoint, originPoint)) {
@@ -211,13 +196,13 @@ namespace flagwind {
             }
         }
 
-        protected setSelectStatus(item: any, selected: boolean): void {
+        public setSelectStatus(item: any, selected: boolean): void {
             item.selected = selected;
             this.setGraphicStatus(item);
         }
 
         protected setGraphicStatus(item: any): void {
-            let graphic: MinemapMarkerGraphic = this.getGraphicById(item.id);
+            let graphic: MinemapPointGraphic = this.getGraphicById(item.id);
             graphic.setSymbol({
                 className: this.getClassName(item),
                 imageUrl: this.getImageUrl(item)

@@ -125,7 +125,7 @@ require(["flagwindMap", "heatmaparcgis", 'esri/map', "esri/toolbars/draw", "esri
         };
         
         var tollgateLayer = new flagwind.EsriPointLayer(businessService, myMap, "tollgateLayer", {
-            kind: "marker",
+            kind: "point",
             showInfoWindow: false,
             symbol: {
                 imageUrl: {

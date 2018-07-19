@@ -6,7 +6,7 @@ namespace flagwind {
      * @export
      * @class FlagwindGroupLayer
      */
-    export abstract class FlagwindGroupLayer extends EventProvider {
+    export abstract class FlagwindGroupLayer extends EventProvider implements IFlagwindSingleLayer {
 
         public layer: any;
         public isShow: boolean = true;
@@ -139,7 +139,7 @@ namespace flagwind {
             this.removeListener(type, listener, scope);
         }
 
-        public abstract onCreateGraphicsLayer(args: any): any;
+        public abstract onCreateGraphicsLayer(options: any): any;
 
     }
 }

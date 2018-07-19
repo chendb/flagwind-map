@@ -9,9 +9,9 @@ namespace flagwind {
     };
 
     /**
-     * 绘画图层
+     * 绘画
      */
-    export interface IFlagwindDrawLayer {
+    export interface IFlagwindDraw {
 
         activate(mode: string, options?: any): void;
 

@@ -36,7 +36,6 @@ namespace flagwind {
         }
 
         public onCreateRecord(me: this, e: any): void {
-            // e.record
             let polygon = new MinemapPolygon(null);
             polygon.addRing(e.record.features[0].geometry.coordinates[0]);
 
@@ -74,7 +73,6 @@ namespace flagwind {
                 return;
             }
             let me = this;
-            // let mapEle = document.getElementById(mapId);
             let mapEle = this.flagwindMap.map._container;
             let container = document.createElement("div");
             container.setAttribute("id", "edit-ctrl-group");

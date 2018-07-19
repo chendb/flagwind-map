@@ -135,7 +135,7 @@ requirejs(["dojo/parser",
 
 
         var tollgateLayer = new flagwind.EsriPointLayer( myMap, "tollgateLayer", {
-            kind: "marker",
+            kind: "point",
             dataType: "tollgate",
             symbol: {
                 imageUrl: "http://113.106.54.47:1180/minemapapi/demo/images/police.png"

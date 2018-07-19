@@ -7,7 +7,7 @@ namespace flagwind {
      * @export
      * @class FlagwindFeatureLayer
      */
-    export abstract class FlagwindFeatureLayer extends EventProvider {
+    export abstract class FlagwindFeatureLayer extends EventProvider implements IFlagwindSingleLayer {
 
         protected layer: any;
         public isShow: boolean = true;
@@ -26,6 +26,13 @@ namespace flagwind {
             return this.graphics.map(g => g.attributes);
         }
 
+        public get count(): number {
+            if (this.layer) {
+                return this.graphics.length;
+            }
+            return 0;
+        }
+
         public appendTo(map: any) {
             this.layer.addToMap(map);
         }
@@ -34,35 +41,28 @@ namespace flagwind {
             this.layer.removeFormMap(map);
         }
 
-        public get count() {
-            if (this.layer) {
-                return this.graphics.length;
-            }
-            return 0;
-        }
-
-        public clear() {
+        public clear(): void {
             this.layer.clear();
         }
 
-        public show() {
+        public show(): void {
             this.isShow = true;
             this.layer.show();
         }
 
-        public hide() {
+        public hide(): void  {
             this.isShow = false;
             this.layer.hide();
         }
 
         /**
-         * 获取资源要素点
+         * 获取指定id的地图要素对象
          */
-        public getGraphicById(key: string): any {
+        public getGraphicById(id: string): any {
             const graphics = this.graphics;
             for (let i = 0; i < graphics.length; i++) {
                 const attrs = graphics[i].attributes;
-                if (attrs.id === key) {
+                if (attrs.id === id) {
                     return graphics[i];
                 }
             }
@@ -70,10 +70,10 @@ namespace flagwind {
         }
 
         /**
-         * 删除资源要素点
+         * 删除指定id的地图要素对象
          */
-        public removeGraphicById(key: string) {
-            const graphic = this.getGraphicById(key);
+        public removeGraphicById(id: string): void {
+            const graphic = this.getGraphicById(id);
             if (graphic != null) {
                 this.layer.remove(graphic);
             }
@@ -104,6 +104,10 @@ namespace flagwind {
             this.removeListener(type, listener, scope);
         }
 
+        /**
+         * 创建要素图层
+         * @param args 创建要素图层的参数
+         */
         public abstract onCreateGraphicsLayer(args: any): any;
 
     }

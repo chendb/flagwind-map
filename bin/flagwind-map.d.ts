@@ -1,74 +1,5 @@
 declare namespace flagwind {
     /**
-     * 动画对象
-     */
-    abstract class Animation {
-        abstract updateGraphic(): void;
-        readonly abstract id: string;
-    }
-    /**
-     * 亮光动画对象
-     */
-    class LightingAnimation extends Animation {
-        graphic: any;
-        options: any;
-        private _fadeIn;
-        private _alpha;
-        private _id;
-        attributes: any;
-        readonly id: string;
-        constructor(item: any, graphic: any, options: any);
-        updateGraphic(): void;
-        getSymbol(): any;
-        getColor(): any;
-    }
-    /**
-     * 闪烁星星
-     */
-    class StarAnimation extends Animation {
-        graphic: any;
-        options: {
-            height: number;
-            width: number;
-            images: Array<any>;
-        };
-        id: string;
-        index: number;
-        attributes: any;
-        /**
-         * 构造函数
-         * @param {*} item 实体
-         * @param {*} graphic 地图初始要素
-         * @param {height:number,width:number,images:[]} options 动画属性
-         */
-        constructor(item: any, graphic: any, options: {
-            height: number;
-            width: number;
-            images: Array<any>;
-        });
-        getRandomNum(min: number, max: number): number;
-        updateGraphic(): void;
-    }
-    /**
-     * 动画图层
-     */
-    class AnimationLayer {
-        options: any;
-        private _timer;
-        animations: Array<Animation>;
-        isRunning: boolean;
-        constructor(options: any);
-        getRandomNum(min: number, max: number): number;
-        getAnimationId(id: string): Animation;
-        start(): void;
-        stop(): void;
-        add(animation: Animation): void;
-        removeAnimationById(id: string): void;
-        clear(): void;
-    }
-}
-declare namespace flagwind {
-    /**
      * 事件提供程序类。
      * @description 用于添加或删除事件侦听器的方法，检查是否已注册特定类型的事件侦听器，并调度事件。
      * @class
@@ -129,7 +60,7 @@ declare namespace flagwind {
      * @export
      * @class FlagwindFeatureLayer
      */
-    abstract class FlagwindFeatureLayer extends EventProvider {
+    abstract class FlagwindFeatureLayer extends EventProvider implements IFlagwindSingleLayer {
         id: string;
         title: string | null;
         protected layer: any;
@@ -137,9 +68,9 @@ declare namespace flagwind {
         constructor(id: string, title: string | null);
         readonly graphics: Array<any>;
         readonly items: Array<any>;
+        readonly count: number;
         appendTo(map: any): void;
         removeLayer(map: any): void;
-        readonly count: number;
         clear(): void;
         show(): void;
         hide(): void;
@@ -150,7 +81,7 @@ declare namespace flagwind {
         /**
          * 删除资源要素点
          */
-        removeGraphicById(key: string): void;
+        removeGraphicById(id: string): void;
         /**
          * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
          * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
@@ -178,9 +109,9 @@ declare namespace flagwind {
         onDrawCompleteEvent: (geometry: any) => void;
     };
     /**
-     * 绘画图层
+     * 绘画
      */
-    interface IFlagwindDrawLayer {
+    interface IFlagwindDraw {
         activate(mode: string, options?: any): void;
         finish(): void;
     }
@@ -189,7 +120,7 @@ declare namespace flagwind {
     /**
      * 绘制图层
      */
-    class EsriDrawLayer implements IFlagwindDrawLayer {
+    class EsriDrawLayer implements IFlagwindDraw {
         private symbolSetting;
         flagwindMap: FlagwindMap;
         draw: any;
@@ -242,7 +173,7 @@ declare namespace flagwind {
      * @export
      * @class FlagwindGroupLayer
      */
-    abstract class FlagwindGroupLayer extends EventProvider {
+    abstract class FlagwindGroupLayer extends EventProvider implements IFlagwindSingleLayer {
         options: any;
         layer: any;
         isShow: boolean;
@@ -286,7 +217,7 @@ declare namespace flagwind {
          * @returns void
          */
         off(type: string, listener: Function, scope?: any): void;
-        abstract onCreateGraphicsLayer(args: any): any;
+        abstract onCreateGraphicsLayer(options: any): any;
     }
 }
 declare namespace flagwind {
@@ -298,11 +229,14 @@ declare namespace flagwind {
     class EsriHeatmapLayer implements IFlagwindHeatmapLayer {
         flagwindMap: FlagwindMap;
         private map;
+        isShow: boolean;
         options: any;
         heatLayer: any;
         heatContainer: HTMLElement;
         constructor(flagwindMap: FlagwindMap, options: any);
         createHeatLayer(): any;
+        appendTo(map: any): void;
+        removeLayer(map: any): void;
         resize(): void;
         clear(): void;
         show(): void;
@@ -330,39 +264,30 @@ declare namespace flagwind {
         onMapLoad(): void;
         onMapZoomEnd(level: number): void;
         onMapClick(evt: any): void;
-        onCreateContextMenu(args: {
-            contextMenu: any[];
-            contextMenuClickEvent: any;
-        }): void;
     };
     abstract class FlagwindMap extends EventProvider {
         mapSetting: IMapSetting;
-        mapEl: any;
+        mapElement: any;
         private featureLayers;
         protected baseLayers: Array<FlagwindTiledLayer>;
         options: any;
         spatial: any;
         innerMap: any;
         loaded: boolean;
-        constructor(mapSetting: IMapSetting, mapEl: any, options: any);
-        onInit(): void;
-        abstract onCenterAt(point: any): void;
-        abstract onCreatePoint(point: any): any;
+        constructor(mapSetting: IMapSetting, mapElement: any, options: any);
+        /**
+         * 坐标点转换成对象
+         * @param point 点
+         */
         onFormPoint(point: any): {
-            longitude: number;
             latitude: number;
+            longitude: number;
         };
-        onToPoint(item: any): any;
-        abstract onCreateMap(): any;
-        abstract onShowInfoWindow(evt: any): void;
-        abstract onCloseInfoWindow(): void;
-        abstract onCreateBaseLayers(): any;
-        abstract onShowTooltip(graphic: any): void;
-        abstract onHideTooltip(graphic: any): void;
-        abstract onCreateContextMenu(options: {
-            contextMenu: Array<any>;
-            contextMenuClickEvent: any;
-        }): void;
+        /**
+         * 对象转换成点
+         * @param item 对象
+         */
+        onToPoint(item: any): FlagwindPoint;
         /**
          * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
          * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
@@ -382,44 +307,158 @@ declare namespace flagwind {
          * @returns void
          */
         off(type: string, listener: Function, scope?: any): void;
+        readonly map: any;
+        /**
+         * 关闭信息窗口
+         */
         closeInfoWindow(): void;
-        goToCenter(): void;
-        getBaseLayerById(id: string): FlagwindTiledLayer | null;
+        /**
+         * @即将废弃
+         */
+        gotoCenter(): void;
+        /**
+         * 定位到配置的地图中心点
+         */
+        centerAtDefault(): void;
         /**
          * 中心定位
          */
-        centerAt(x: number, y: number): void;
+        centerAt(x: number, y: number): Promise<void>;
+        /**
+         * 放大或缩小到指挥zoom级别
+         * @param zoom
+         */
+        setZoom(zoom: number): Promise<void>;
         /**
          * 创建点要素
          */
-        getPoint(item: any): any;
-        addFeatureLayer(deviceLayer: FlagwindFeatureLayer): void;
-        removeFeatureLayer(id: string): boolean;
+        getPoint(item: any): {
+            x: number;
+            y: number;
+            spatial: any;
+        };
+        /**
+         * 底图查找
+         * @param id 底图id
+         */
+        getBaseLayerById(id: string): FlagwindTiledLayer | null;
+        /**
+         * 显示所有底图
+         */
         showBaseLayers(): void;
+        /**
+         * 隐藏所有底图
+         */
         hideBaseLayers(): void;
+        /**
+         * 显示指定id的底图
+         * @param id
+         */
         showBaseLayer(id: string): boolean;
+        /**
+         * 隐藏指定id的底图
+         * @param id
+         */
         hideBaseLayer(id: string): boolean;
+        /**
+         * 获取指定id的功能图层
+         * @param id
+         */
+        getFeatureLayerById(id: string): FlagwindFeatureLayer | null;
+        /**
+         * 增加功能图层
+         * @param featureLayer
+         */
+        addFeatureLayer(featureLayer: FlagwindFeatureLayer): void;
+        /**
+         * 移除功能图层
+         * @param id 图层id
+         */
+        removeFeatureLayer(id: string): boolean;
+        /**
+         * 显示指定id的功能图层
+         * @param id
+         */
+        showFeatureLayer(id: string): boolean;
+        /**
+         * 隐藏指定id的功能图层
+         * @param id
+         */
+        hideFeatureLayer(id: string): boolean;
+        /**
+         * 中心定位
+         * @param point 点
+         */
+        abstract onCenterAt(point: any): Promise<void>;
+        /**
+         * 放大或缩小至指定的级别
+         * @param zoom 级别
+         */
+        abstract onZoom(zoom: number): Promise<void>;
+        /**
+         * 创建要素点
+         * @param point 点
+         */
+        abstract onCreatePoint(item: any): FlagwindPoint;
+        /**
+         * 创建地图对象
+         */
+        abstract onCreateMap(): any;
+        /**
+         * 显示信息窗口
+         * @param event
+         */
+        abstract onShowInfoWindow(event: InfoWindowShowEventArgs): void;
+        /**
+         * 关闭信息窗口
+         */
+        abstract onCloseInfoWindow(): void;
+        /**
+         * 创建底图
+         */
+        abstract onCreateBaseLayers(): Array<FlagwindTiledLayer>;
+        /**
+         * 显示要素tooltip信息
+         * @param graphic 要素对象
+         */
+        abstract onShowTooltip(graphic: any): void;
+        /**
+         * 隐藏要素tooltip信息
+         * @param graphic 要素对象
+         */
+        abstract onHideTooltip(): void;
+        /**
+         * 创建地图右键快捷菜单
+         * @param options 创建菜单的可靠参数
+         */
+        abstract onCreateContextMenu(options: {
+            contextMenu: Array<any>;
+            contextMenuClickEvent: any;
+        }): void;
+        protected onInit(): void;
+        /**
+         * 地图加载回调
+         */
         protected onMapLoad(): void;
-        protected getFeatureLayerById(id: string): FlagwindFeatureLayer | null;
-        protected showFeatureLayer(id: string): boolean;
-        readonly map: any;
-        protected onMapZoomEnd(evt: any): void;
     }
 }
 declare namespace flagwind {
+    /**
+     * 对ArcGIS地图封装
+     */
     class EsriMap extends FlagwindMap {
         mapSetting: EsriSetting;
-        mapEl: any;
-        constructor(mapSetting: EsriSetting, mapEl: any, options: any);
+        constructor(mapSetting: EsriSetting, mapElement: any, options: any);
         onAddEventListener(eventName: string, callBack: Function): void;
-        onCenterAt(point: any): void;
+        onCenterAt(point: any): Promise<void>;
         onCreatePoint(options: any): any;
         onCreateMap(): void;
-        onShowInfoWindow(evt: any): void;
+        onShowInfoWindow(evt: InfoWindowShowEventArgs): void;
         onCloseInfoWindow(): void;
-        onCreateBaseLayers(): FlagwindTiledLayer[];
+        onCreateBaseLayers(): Array<FlagwindTiledLayer>;
+        onZoom(zoom: number): Promise<void>;
         onShowTooltip(graphic: any): void;
-        onHideTooltip(graphic: any): void;
+        onHideTooltip(): void;
         onCreateContextMenu(options: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;
@@ -444,31 +483,43 @@ declare namespace flagwind {
         options: any;
         layerType: string;
         constructor(flagwindMap: FlagwindMap, id: string, options: any);
-        onInit(): void;
-        abstract openInfoWindow(id: string, context: any, options: any): void;
-        abstract onShowInfoWindow(evt: any): void;
-        abstract onCreatGraphicByModel(item: any): any;
-        abstract onUpdateGraphicByModel(item: any): void;
-        onAddLayerBefor(): void;
-        onAddLayerAfter(): void;
-        readonly map: any;
-        readonly spatial: any;
-        closeInfoWindow(): void;
-        gotoCenterById(key: string): void;
-        saveGraphicList(dataList: Array<any>): void;
-        updateGraphicList(dataList: Array<any>): void;
-        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
         /**
-         * 保存要素（如果存在，则修改，否则添加）
+         * 地图原生对象
+         */
+        readonly map: any;
+        /**
+         * 空间坐标系
+         */
+        readonly spatial: any;
+        /**
+         * 根据对象集合构造要素集合（无则新增，有则修改）
+         * @param dataList 对象集合
+         */
+        saveGraphicList(dataList: Array<any>): void;
+        /**
+         * 根据对象集合修改要素集合（无则忽略）
+         * @param dataList 对象集合
+         */
+        updateGraphicList(dataList: Array<any>): void;
+        /**
+         * 保存要素（有则修改，无则增加）
          */
         saveGraphicByModel(item: any): void;
+        /**
+         * 创建并增加要素
+         */
         addGraphicByModel(item: any): void;
+        /**
+         * 创建要素（未添加至图层中）
+         */
         creatGraphicByModel(item: any): any;
         /**
          * 修改要素
          */
         updateGraphicByModel(item: any, graphic?: any | null): void;
         clearSelectStatus(): void;
+        setSelectStatus(item: any, selected: boolean): void;
+        setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
         getSelectedGraphics(): Array<any>;
         /**
          * 创建点要素（把业务数据的坐标转换成地图上的点）
@@ -479,14 +530,38 @@ declare namespace flagwind {
          * @param {*} point
          */
         formPoint(point: any): any;
+        /**
+         * 关闭信息窗口
+         */
+        closeInfoWindow(): void;
+        /**
+         * 定位至指定id的点
+         * @param id
+         */
+        gotoCenterById(id: string): void;
         addToMap(): void;
         removeFormMap(): void;
+        /**
+         * 在指定id的graphic上打开InfoWindow
+         * @param id  grahpic的唯一标识
+         * @param context 内容
+         * @param options 参数
+         */
+        abstract openInfoWindow(id: string, context: any, options: any): void;
+        /**
+         * 显示InfoWindow
+         * @param args
+         */
+        abstract onShowInfoWindow(args: any): void;
+        protected onInit(): void;
+        protected onAddLayerBefor(): void;
+        protected onAddLayerAfter(): void;
         protected onLoad(): void;
         protected onMapLoad(): void;
         protected registerEvent(): void;
         protected onLayerClick(deviceLayer: this, evt: any): void;
         protected fireEvent(eventName: string, event: any): void;
-        protected setSelectStatus(item: any, selected: boolean): void;
+        protected onValidModel(item: any): any;
         /**
          * 变换成标准实体（最好子类重写）
          *
@@ -496,7 +571,16 @@ declare namespace flagwind {
          * @memberof FlagwindBusinessLayer
          */
         protected abstract onChangeStandardModel(item: any): any;
-        protected onValidModel(item: any): any;
+        /**
+         * 创建要素
+         * @param item
+         */
+        protected abstract onCreatGraphicByModel(item: any): any;
+        /**
+         * 修改要素
+         * @param item
+         */
+        protected abstract onUpdateGraphicByModel(item: any): void;
     }
 }
 declare namespace flagwind {
@@ -542,7 +626,7 @@ declare namespace flagwind {
          * 关闭定时器
          */
         stop(): void;
-        protected setSelectStatus(item: any, selected: boolean): void;
+        setSelectStatus(item: any, selected: boolean): void;
         protected onCreateMarkerGraphic(item: any): any;
         protected onUpdateMarkerGraphic(item: any): any;
         /**
@@ -593,7 +677,7 @@ declare namespace flagwind {
          * 关闭定时器
          */
         stop(): void;
-        protected setSelectStatus(item: any, selected: boolean): void;
+        setSelectStatus(item: any, selected: boolean): void;
         protected onCreatePolygonGraphic(item: any): any;
         protected onUpdatePolygonGraphic(item: any): void;
         protected getPolygon(strLine: string): any;
@@ -646,7 +730,7 @@ declare namespace flagwind {
          * 关闭定时器
          */
         stop(): void;
-        protected setSelectStatus(item: any, selected: boolean): void;
+        setSelectStatus(item: any, selected: boolean): void;
         protected onCreateLineGraphic(item: any): any;
         protected onUpdateLineGraphic(item: any): void;
         protected getLineSymbol(symbol: any): any;
@@ -664,10 +748,11 @@ declare namespace flagwind {
 declare namespace flagwind {
     const ROUTE_LAYER_OPTIONS: any;
     const TRACKLINE_OPTIONS: any;
-    abstract class FlagwindRouteLayer {
+    abstract class FlagwindRouteLayer implements IFlagwindCombineLayer {
         flagwindMap: FlagwindMap;
         layerName: string;
         options: any;
+        isShow: boolean;
         moveLineLayer: FlagwindGroupLayer;
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
@@ -713,7 +798,7 @@ declare namespace flagwind {
         /**
          * 向指定线路中增加路段
          */
-        addTrackSegment(name: any, segment: TrackSegment, lineOptions: any): void;
+        addTrackSegment(name: string, segment: TrackSegment, lineOptions: any): void;
         /**
          * 计算线路的下一个路段索引
          */
@@ -766,7 +851,13 @@ declare namespace flagwind {
          * 清除所有
          */
         clearAll(): void;
+        /**
+         * 此方法移至FlagwindTrackLayer(即将废弃)
+         */
         deleteTrackToolBox(): void;
+        /**
+         * 此方法移至FlagwindTrackLayer(即将废弃)
+         */
         showTrackToolBox(): void;
         /*********************播放控制**************************/
         /**
@@ -794,18 +885,18 @@ declare namespace flagwind {
          * @ lineOptions:线路控制的参数
          * @ waypoints:经过的点
          */
-        post(index: number, name: string, start: any, end: any, lineOptions: any, waypoints?: Array<any>): void;
+        protected post(index: number, name: string, start: any, end: any, lineOptions: any, waypoints?: Array<any>): void;
         /**
          * 路由分析完成回调
          */
-        solveComplete(options: {
+        protected solveComplete(options: {
             polyline: any;
             length: number;
         }, segment: TrackSegment): void;
         /**
          * 路由分析失败回调
          */
-        errorHandler(err: any, segment: TrackSegment): void;
+        protected errorHandler(err: any, segment: TrackSegment): void;
         /**
          * 线段创建完成事件回调
          * @param {*} segment
@@ -891,7 +982,7 @@ declare namespace flagwind {
      * @export
      * @class FlagwindTiledLayer
      */
-    abstract class FlagwindTiledLayer {
+    abstract class FlagwindTiledLayer implements IFlagwindSingleLayer {
         id: string;
         url: string | null;
         spatial: any;
@@ -913,7 +1004,7 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     const TRACK_LAYER_OPTIONS: any;
-    class FlagwindTrackLayer {
+    class FlagwindTrackLayer implements IFlagwindCombineLayer {
         businessLayer: FlagwindBusinessLayer;
         routeLayer: FlagwindRouteLayer;
         options: any;
@@ -928,18 +1019,37 @@ declare namespace flagwind {
         isShow: boolean;
         constructor(businessLayer: FlagwindBusinessLayer, routeLayer: FlagwindRouteLayer, options: any);
         readonly flagwindMap: FlagwindMap;
-        showTrack(stopList: Array<any>, trackLineName?: string, options?: any): void;
+        /**
+         * 移动要素是否正在跑
+         */
+        readonly isRunning: boolean;
+        /**
+         * 移动要素是否跑完
+         */
+        readonly isCompleted: boolean;
+        /**
+         * 移动要素是否隐藏
+         */
+        readonly isMovingGraphicHide: boolean;
+        readonly trackLine: TrackLine;
         deleteTrackToolBox(): void;
         showTrackToolBox(): void;
-        readonly trackLine: TrackLine;
+        /**
+         * 显示轨迹线路（不播放）
+         * @param stopList
+         * @param trackLineName
+         * @param options
+         */
+        showTrack(stopList: Array<any>, trackLineName?: string, options?: any): void;
         /**
          * 启动线路播放（起点为线路的始点）
          */
-        startTrack(list: Array<any>, name?: string, options?: any): void;
+        startTrack(stopList: Array<any>, trackLineName?: string, options?: any): void;
         /**
          * 启动线路播放（起点为上次播放的终点）
          */
-        move(list: Array<any>, name?: string): void;
+        move(stopList: Array<any>, trackLineName?: string): void;
+        clearAll(): void;
         /**
          * 清除要素
          */
@@ -960,18 +1070,6 @@ declare namespace flagwind {
          * 停止
          */
         stop(): void;
-        /**
-         * 移动要素是否正在跑
-         */
-        readonly isRunning: boolean;
-        /**
-         * 移动要素是否跑完
-         */
-        readonly isCompleted: boolean;
-        /**
-         * 移动要素是否隐藏
-         */
-        readonly isMovingGraphicHide: boolean;
         /**
          * 暂停
          */
@@ -1063,8 +1161,19 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    /**
+     * 组合类型图层
+     *
+     * @export
+     * @class IFlagwindCombineLayer
+     */
+    interface IFlagwindCombineLayer extends IFlagwindLayer {
+        clearAll(): void;
+    }
+}
+declare namespace flagwind {
     const EDIT_LAYER_OPTIONS: any;
-    interface IFlagwindEditLayer {
+    interface IFlagwindEditLayer extends IFlagwindSingleLayer {
         /**
          * 激活编辑事件
          * @param key 要编辑要素的id
@@ -1074,33 +1183,60 @@ declare namespace flagwind {
          * 取消编辑要素
          */
         cancelEdit(key: string): void;
-        onChanged(options: any, isSave: boolean): Promise<boolean>;
+        onChanged(item: any, isSave: boolean): Promise<boolean>;
     }
 }
 declare namespace flagwind {
     /**
      * 热力图
      */
-    interface IFlagwindHeatmapLayer {
+    interface IFlagwindHeatmapLayer extends IFlagwindSingleLayer {
         clear(): void;
         show(): void;
         hide(): void;
         resize(): void;
-        showDataList(datas: Array<any>, etent: any): void;
+        showDataList(items: Array<any>, changeExtent: boolean): void;
     }
 }
 declare namespace flagwind {
     const LOCATION_LAYER_OPTIONS: {
         onMapClick: (evt: any) => void;
     };
-    interface IFlagwindLocationLayer {
+    interface IFlagwindLocationLayer extends IFlagwindSingleLayer {
         point: any;
         clear(): void;
+        locate(): void;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 单类型图层
+     *
+     * @export
+     * @class IFlagwindSingleLayer
+     */
+    interface IFlagwindSingleLayer extends IFlagwindLayer {
+        appendTo(map: any): void;
+        removeLayer(map: any): void;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 底图包装类
+     *
+     * @export
+     * @class FlagwindTiledLayer
+     */
+    interface IFlagwindLayer {
+        isShow: boolean;
+        show(): void;
+        hide(): void;
     }
 }
 declare namespace flagwind {
     const TRACKSEGMENT_OPTIONS: {
         speed: number;
+        maxSpeed: number;
         numsOfKilometer: number;
         autoShowLine: boolean;
         onShowSegmentLineEvent(segment: TrackSegment): void;
@@ -1108,6 +1244,35 @@ declare namespace flagwind {
         onMoveEndEvent(target: any, endGraphic: any, angle: number): void;
         onMoveEvent(target: any, point: any, angle: number): void;
     };
+    /**
+     * 地图点类型定义
+     */
+    interface FlagwindPoint {
+        x: number;
+        y: number;
+        spatial: any;
+    }
+    /**
+     * 地图打开事件参数
+     */
+    interface InfoWindowShowEventArgs {
+        graphic: any;
+        context: {
+            type: string;
+            title: any;
+            content: any;
+        };
+        options?: any;
+    }
+    enum SelectMode {
+        single = 1,
+        multiple = 2,
+    }
+    enum LayerType {
+        point = "point",
+        polyline = "polyline",
+        polygon = "polygon",
+    }
     /**
      * 对轨迹播放中线路的路段的定义
      *
@@ -1184,6 +1349,26 @@ declare namespace flagwind {
         speed: number | null;
         constructor(flagwindMap: FlagwindMap, name: string, options: any);
         /**
+         * 获取监控最近播放完成的路段线路
+         */
+        readonly activeCompletedSegment: TrackSegment | null;
+        /**
+         * 计算线路的下一个路段索引
+         */
+        readonly nextSegmentIndex: number;
+        /**
+         * 获取最后的一个路段
+         */
+        readonly lastSegment: TrackSegment | null;
+        /**
+         * 若有一个路段正在跑，代表该线路是正在运行
+         */
+        readonly isRunning: boolean;
+        /**
+         * 当所有的路段完成时，说明线路是跑完状态
+         */
+        readonly isCompleted: boolean;
+        /**
          * 隐藏移动要素
          *
          * @memberof TrackLine
@@ -1195,14 +1380,6 @@ declare namespace flagwind {
          * @memberof TrackLine
          */
         showMovingGraphic(): void;
-        /**
-         * 若有一个路段正在跑，代表该线路是正在运行
-         */
-        readonly isRunning: boolean;
-        /**
-         * 当所有的路段完成时，说明线路是跑完状态
-         */
-        readonly isCompleted: boolean;
         /**
          * 调速
          */
@@ -1241,14 +1418,6 @@ declare namespace flagwind {
          */
         add(segment: TrackSegment): void;
         /**
-         * 计算线路的下一个路段索引
-         */
-        readonly nextSegmentIndex: number;
-        /**
-         * 获取最后的一个路段
-         */
-        readonly lastSegment: TrackSegment | null;
-        /**
          * 获取线路的下一路段
          */
         getNextSegment(index: number): TrackSegment | null;
@@ -1256,10 +1425,6 @@ declare namespace flagwind {
          * 获取线路的路段
          */
         getSegment(index: number): TrackSegment | null;
-        /**
-         * 获取监控最近播放完成的路段线路
-         */
-        readonly activeCompletedSegment: TrackSegment | null;
     }
 }
 declare namespace flagwind {
@@ -1288,10 +1453,10 @@ declare namespace flagwind {
          * @param end 终点
          * @param n 增加的点数
          */
-        static density(start: MinemapPoint, end: MinemapPoint, n: number): {
+        static density(start: MinemapPoint, end: MinemapPoint, n: number): (MinemapPoint | {
             x: number;
             y: number;
-        }[];
+        })[];
         /**
          * 把一个直线，切成多个点
          * @param start 始点
@@ -2133,15 +2298,76 @@ declare namespace flagwind {
         private graphic;
         private draggingFlag;
         private cursorOverPointFlag;
+        isShow: boolean;
         options: any;
         constructor(businessLayer: MinemapPointLayer, options: Object);
         readonly map: any;
-        registerEvent(graphic: MinemapMarkerGraphic): void;
+        appendTo(map: any): void;
+        removeLayer(map: any): void;
+        show(): void;
+        hide(): void;
+        registerEvent(graphic: MinemapPointGraphic): void;
         updatePoint(editLayer: this): void;
         mouseMovePoint(e: any): void;
         activateEdit(key: string): void;
         cancelEdit(key: string): void;
         onChanged(options: any, isSave: boolean): Promise<boolean>;
+    }
+}
+declare namespace flagwind {
+    interface IMinemapGraphicsLayer {
+        map: any;
+        graphics: Array<IMinemapGraphic>;
+        show(): void;
+        hide(): void;
+        add(graphic: any): void;
+        remove(graphic: any): void;
+        appendTo(map: any): void;
+        removeLayer(map: any): void;
+        on(eventName: string, callBack: Function): void;
+        dispatchEvent(type: string, data?: any): void;
+    }
+    class MinemapGraphicsLayer extends EventProvider implements IMinemapGraphicsLayer {
+        options: any;
+        private GRAPHICS_MAP;
+        /**
+         * 是否在地图上
+         */
+        _isInsided: boolean;
+        isShow: boolean;
+        id: string;
+        map: any;
+        readonly isInsided: boolean;
+        constructor(options: any);
+        readonly graphics: any;
+        /**
+         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
+         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
+         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
+         * @param  {string} type 事件类型。
+         * @param  {Function} 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
+         * @returns void
+         */
+        on(type: string, listener: Function, scope?: any, once?: boolean): void;
+        /**
+         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
+         * @param  {string} type 事件类型。
+         * @param  {Function} listener 处理事件的侦听器函数。
+         * @param  {any} scope? 侦听函数绑定的 this 对象。
+         * @returns void
+         */
+        off(type: string, listener: Function, scope?: any): void;
+        show(): void;
+        hide(): void;
+        remove(graphic: IMinemapGraphic): void;
+        clear(): void;
+        add(graphic: IMinemapGraphic): void;
+        appendTo(map: any): void;
+        removeLayer(map: any): void;
+        addToMap(map: any): void;
+        removeFromMap(map: any): void;
     }
 }
 declare namespace flagwind {
@@ -2163,6 +2389,8 @@ declare namespace flagwind {
         chartOptions: any;
         readonly echartslayer: any;
         constructor(flagwindMap: FlagwindMap, options: any);
+        appendTo(map: any): void;
+        removeLayer(map: any): void;
         resize(): void;
         clear(): void;
         show(): void;
@@ -2320,57 +2548,6 @@ declare namespace flagwind {
         setGeometry(geometry: MinemapGeometry): void;
         addTo(map: any): void;
     }
-    interface IMinemapGraphicsLayer {
-        map: any;
-        graphics: Array<IMinemapGraphic>;
-        show(): void;
-        hide(): void;
-        add(graphic: any): void;
-        remove(graphic: any): void;
-        addToMap(map: any): void;
-        removeFromMap(map: any): void;
-        on(eventName: string, callBack: Function): void;
-        dispatchEvent(type: string, data?: any): void;
-    }
-    class MinemapGraphicsLayer extends EventProvider implements IMinemapGraphicsLayer {
-        options: any;
-        private GRAPHICS_MAP;
-        /**
-         * 是否在地图上
-         */
-        _isInsided: boolean;
-        id: string;
-        map: any;
-        readonly isInsided: boolean;
-        constructor(options: any);
-        readonly graphics: any;
-        /**
-         * 为指定的事件类型注册一个侦听器，以使侦听器能够接收事件通知。
-         * @summary 如果不再需要某个事件侦听器，可调用 removeListener() 删除它，否则会产生内存问题。
-         * 由于垃圾回收器不会删除仍包含引用的对象，因此不会从内存中自动删除使用已注册事件侦听器的对象。
-         * @param  {string} type 事件类型。
-         * @param  {Function} 处理事件的侦听器函数。
-         * @param  {any} scope? 侦听函数绑定的 this 对象。
-         * @param  {boolean} once? 是否添加仅回调一次的事件侦听器，如果此参数设为 true 则在第一次回调时就自动移除监听。
-         * @returns void
-         */
-        on(type: string, listener: Function, scope?: any, once?: boolean): void;
-        /**
-         * 移除侦听器。如果没有注册任何匹配的侦听器，则对此方法的调用没有任何效果。
-         * @param  {string} type 事件类型。
-         * @param  {Function} listener 处理事件的侦听器函数。
-         * @param  {any} scope? 侦听函数绑定的 this 对象。
-         * @returns void
-         */
-        off(type: string, listener: Function, scope?: any): void;
-        show(): void;
-        hide(): void;
-        remove(graphic: IMinemapGraphic): void;
-        clear(): void;
-        add(graphic: IMinemapGraphic): void;
-        addToMap(map: any): void;
-        removeFromMap(map: any): void;
-    }
 }
 declare namespace flagwind {
     class MinemapLocationLayer extends MinemapGraphicsLayer implements IFlagwindLocationLayer {
@@ -2384,13 +2561,13 @@ declare namespace flagwind {
 declare namespace flagwind {
     class MinemapMap extends FlagwindMap {
         mapSetting: MinemapSetting;
-        mapEl: any;
-        constructor(mapSetting: MinemapSetting, mapEl: any, options: any);
+        constructor(mapSetting: MinemapSetting, mapElement: any, options: any);
+        onZoom(zoom: number): Promise<void>;
         /**
          * 中心定位
          * @param point 坐标点
          */
-        onCenterAt(point: any): void;
+        onCenterAt(point: any): Promise<void>;
         /**
          * 创建点
          * @param options 点属性
@@ -2400,14 +2577,14 @@ declare namespace flagwind {
          * 创建地图对象
          */
         onCreateMap(): any;
-        onShowInfoWindow(evt: any): void;
+        onShowInfoWindow(evt: InfoWindowShowEventArgs): void;
         onCloseInfoWindow(): void;
         /**
          * 创建底图
          */
         onCreateBaseLayers(): FlagwindTiledLayer[];
         onShowTooltip(graphic: any): void;
-        onHideTooltip(graphic: any): void;
+        onHideTooltip(): void;
         onCreateContextMenu(args: {
             contextMenu: Array<any>;
             contextMenuClickEvent: any;
@@ -2415,7 +2592,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
-    class MinemapMarkerGraphic extends EventProvider implements IMinemapGraphic {
+    class MinemapPointGraphic extends EventProvider implements IMinemapGraphic {
         private _kind;
         /**
          * 是否在地图上
@@ -2437,7 +2614,7 @@ declare namespace flagwind {
          * 复制节点
          * @param id 元素ID
          */
-        clone(id: string): MinemapMarkerGraphic;
+        clone(id: string): MinemapPointGraphic;
         readonly kind: string;
         readonly isInsided: boolean;
         /**
@@ -2515,7 +2692,7 @@ declare namespace flagwind {
          * 关闭定时器
          */
         stop(): void;
-        protected setSelectStatus(item: any, selected: boolean): void;
+        setSelectStatus(item: any, selected: boolean): void;
         protected setGraphicStatus(item: any): void;
         /**
          * 更新设备状态
@@ -2662,6 +2839,9 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    /**
+     * 即将废弃
+     */
     class MinemapVehicleRouteLayer extends MinemapRouteLayer {
         showTrack(trackLineName: string, stopList: Array<any>, options: any): void;
         getStopsGraphicList(stopList: Array<any>): any[];

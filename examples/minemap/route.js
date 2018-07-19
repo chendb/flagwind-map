@@ -38,7 +38,7 @@ requirejs(['flagwindMap'],
             routeType: "NA"
         });
 
-        var start = new flagwind.MinemapMarkerGraphic({
+        var start = new flagwind.MinemapPointGraphic({
             id: "1",
             symbol: {
                 imageUrl: "http://113.106.54.47:1180/minemapapi/demo/images/police.png",
@@ -47,7 +47,7 @@ requirejs(['flagwindMap'],
             point: new flagwind.MinemapPoint(116.461, 39.929),
             attributes: {}
         });
-        var middle = new flagwind.MinemapMarkerGraphic({
+        var middle = new flagwind.MinemapPointGraphic({
             id: "2",
             symbol: {
                 imageUrl: "http://113.106.54.47:1180/minemapapi/demo/images/police.png",
@@ -57,7 +57,7 @@ requirejs(['flagwindMap'],
             attributes: {}
         });
 
-        var end = new flagwind.MinemapMarkerGraphic({
+        var end = new flagwind.MinemapPointGraphic({
             id: "3",
             symbol: {
                 imageUrl: "http://113.106.54.47:1180/minemapapi/demo/images/police.png",

@@ -7,7 +7,7 @@ namespace flagwind {
         }
     };
 
-    export interface IFlagwindEditLayer {
+    export interface IFlagwindEditLayer extends IFlagwindSingleLayer {
 
         /**
          * 激活编辑事件
@@ -19,7 +19,7 @@ namespace flagwind {
          */
         cancelEdit(key: string): void;
 
-        onChanged(options: any, isSave: boolean): Promise<boolean>;
+        onChanged(item: any, isSave: boolean): Promise<boolean>;
     }
 
 }

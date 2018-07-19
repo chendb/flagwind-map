@@ -4,28 +4,31 @@ namespace flagwind {
 
         public constructor(
             public mapSetting: MinemapSetting,
-            public mapEl: any,
+            mapElement: any,
             options: any) {
-            super(mapSetting, mapEl, options);
+            super(mapSetting, mapElement, options);
             this.onInit();
+        }
+
+        public onZoom(zoom: number): Promise<void> {
+            throw new Error("Method not implemented.");
         }
 
         /**
          * 中心定位
          * @param point 坐标点
          */
-        public onCenterAt(point: any): void {
-            this.innerMap.flyTo({
-                center: [
-                    point.x,
-                    point.y]
+        public onCenterAt(point: any): Promise<void> {
+            return new Promise<void>(resolve => {
+                this.innerMap.flyTo({center: [point.x, point.y]});
+                resolve();
             });
         }
         /**
          * 创建点
          * @param options 点属性
          */
-        public onCreatePoint(options: any) {
+        public onCreatePoint(options: any): MinemapPoint {
             return new MinemapPoint(options.x, options.y, options.spatial || this.spatial);
         }
 
@@ -39,7 +42,7 @@ namespace flagwind {
             minemap.accessToken = this.mapSetting.accessToken || "25cc55a69ea7422182d00d6b7c0ffa93";
             minemap.solution = this.mapSetting.wkid || 2365;
             const map = new minemap.Map({
-                container: this.mapEl,
+                container: this.mapElement,
                 style: "http://" + this.mapSetting.mapDomain + "/service/solu/style/id/" + minemap.solution,
                 center: this.mapSetting.center || [116.46, 39.92],
                 zoom: this.mapSetting.zoom,
@@ -103,7 +106,7 @@ namespace flagwind {
 
             return map;
         }
-        public onShowInfoWindow(evt: any): void {
+        public onShowInfoWindow(evt: InfoWindowShowEventArgs): void {
             // if (!this.innerMap.infoWindow) {
             //     this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] });
             // }
@@ -184,7 +187,7 @@ namespace flagwind {
             (<any>this).tooltipElement.style.display = "block";
 
         }
-        public onHideTooltip(graphic: any): void {
+        public onHideTooltip(): void {
             (<any>this).tooltipElement.style.display = "none";
         }
         public onCreateContextMenu(args: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {

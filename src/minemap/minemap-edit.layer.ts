@@ -5,10 +5,11 @@ namespace flagwind {
      * 编辑要素图层
      */
     export class MinemapEditLayer implements IFlagwindEditLayer {
-        private graphic: MinemapMarkerGraphic;
+
+        private graphic: MinemapPointGraphic;
         private draggingFlag: boolean = false;
         private cursorOverPointFlag: boolean = false;
-
+        public isShow: boolean = true;
         public options: any;
 
         public constructor(public businessLayer: MinemapPointLayer, options: Object) {
@@ -19,7 +20,25 @@ namespace flagwind {
             return this.businessLayer.flagwindMap.map;
         }
 
-        public registerEvent(graphic: MinemapMarkerGraphic): void {
+        public appendTo(map: any): void {
+            this.graphic.addTo(map);
+        }
+        public removeLayer(map: any): void {
+            this.graphic.remove();
+        }
+      
+        public show(): void {
+
+            this.graphic.show();
+            this.isShow = true;
+        }
+        public hide(): void {
+
+            this.graphic.show();
+            this.isShow = false;
+        }
+
+        public registerEvent(graphic: MinemapPointGraphic): void {
             const me = this;
             graphic.on("onMouseOver", function (args: EventArgs) {
                 // console.log("test--->onMouseOver");
@@ -57,7 +76,7 @@ namespace flagwind {
                 this.cancelEdit(this.graphic.attributes.id);
                 return;
             }
-            let graphic: MinemapMarkerGraphic = this.businessLayer.getGraphicById(this.graphic.attributes.id);
+            let graphic: MinemapPointGraphic = this.businessLayer.getGraphicById(this.graphic.attributes.id);
             graphic.setGeometry(new MinemapPoint(this.graphic.geometry.x, this.graphic.geometry.y));
 
             this.options.onEditInfo(
@@ -87,7 +106,7 @@ namespace flagwind {
         }
 
         public activateEdit(key: string): void {
-            let g: MinemapMarkerGraphic = this.businessLayer.getGraphicById(key);
+            let g: MinemapPointGraphic = this.businessLayer.getGraphicById(key);
             if (g) {
                 this.graphic = g.clone(g.id + "_copy");
             }
