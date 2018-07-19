@@ -165,7 +165,7 @@ namespace flagwind {
          * @param point 位置
          * @param angle 角度
          */
-        public abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
+        public abstract onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number): void;
 
         // #endregion
 
@@ -744,7 +744,7 @@ namespace flagwind {
             });
             let trackline = flagwindRoute.getTrackLine(segment.name);
             if (trackline) {
-                flagwindRoute.onChangeMovingGraphicSymbol(trackline, point, angle);
+                flagwindRoute.onUpdateMoveGraphic(trackline, point, angle);
                 flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
             }
         }

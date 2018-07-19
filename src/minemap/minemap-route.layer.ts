@@ -150,7 +150,7 @@ namespace flagwind {
         /**
          * 每次位置移动线路上的要素样式变换操作
          */
-        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number) {
+        protected onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number) {
             if (trackline === undefined) return;
             trackline.markerGraphic.setAngle(360 - angle);
             trackline.markerGraphic.setGeometry(point);

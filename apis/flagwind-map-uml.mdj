@@ -4407,7 +4407,7 @@
 											"top": 615,
 											"width": 637.15234375,
 											"height": 13,
-											"text": "+onChangeMovingGraphicSymbol()",
+											"text": "+onUpdateMoveGraphic()",
 											"horizontalAlignment": 0
 										},
 										{
@@ -16861,7 +16861,7 @@
 									"_parent": {
 										"$ref": "AAAAAAFkqsrCSX3oNEM="
 									},
-									"name": "onChangeMovingGraphicSymbol"
+									"name": "onUpdateMoveGraphic"
 								},
 								{
 									"_type": "UMLOperation",

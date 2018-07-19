@@ -62,6 +62,18 @@ namespace flagwind {
             this.moveMarkLayer.addGraphic(trackline.name, marker);
         }
 
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        public onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number) {
+            if (trackline === undefined) return;
+            let symbol = trackline.markerGraphic.symbol;
+            symbol.setAngle(360 - angle);
+            trackline.markerGraphic.setSymbol(symbol);
+            trackline.markerGraphic.setGeometry(point);
+            trackline.markerGraphic.draw();// 重绘
+        }
+
         public onCreateLineLayer(id: string): FlagwindGroupLayer {
             return new EsriGroupLayer(id);
         }
@@ -165,18 +177,6 @@ namespace flagwind {
                     __line: graphic.attributes.__line
                 }
             );
-        }
-
-        /**
-         * 每次位置移动线路上的要素样式变换操作
-         */
-        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number) {
-            if (trackline === undefined) return;
-            let symbol = trackline.markerGraphic.symbol;
-            symbol.setAngle(360 - angle);
-            trackline.markerGraphic.setSymbol(symbol);
-            trackline.markerGraphic.setGeometry(point);
-            trackline.markerGraphic.draw();// 重绘
         }
 
     }
