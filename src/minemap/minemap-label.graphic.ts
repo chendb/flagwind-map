@@ -100,6 +100,10 @@ namespace flagwind {
             this._isInsided = true;
             this.label.addTo(map);
         }
+
+        public setAngle(angle: number) {
+            throw new Exception("未实现setAngle方法");
+        }
     }
 
 }

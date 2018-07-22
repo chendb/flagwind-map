@@ -101,6 +101,7 @@ namespace flagwind {
 
         /**
          * 保存要素（有则修改，无则增加）
+         * @param item 原始要素模型
          */
         public saveGraphicByModel(item: any): void {
             item = this.onChangeStandardModel(item);
@@ -155,15 +156,16 @@ namespace flagwind {
                 return;
             }
             item = { ...graphic.attributes, ...item };
-            const pt = this.getPoint(graphic.attributes);
             this.onUpdateGraphicByModel(item);
-            return pt;
         }
 
         // #endregion
 
         // #region 状态管理
 
+        /**
+         * 清除选择状态
+         */
         public clearSelectStatus(): void {
             let graphics: Array<any> = this.layer.graphics;
             for (let i = 0; i < graphics.length; i++) {
@@ -188,12 +190,21 @@ namespace flagwind {
             });
         }
 
+        /**
+         * 设置选中状态
+         * @param item 要素原型
+         * @param selected 是否选中
+         */
         public setSelectStatus(item: any, selected: boolean): void {
             item.selected = selected;
             this.onUpdateGraphicByModel(item);
         }
 
-        // 设置选择状态
+        /**
+         * 设置选择状态
+         * @param dataList 要素模型集合
+         * @param refresh 是否刷新（为true是时，把所有的要素还原再设置;否则，之前的状态保留，然后再追加）
+         */
         public setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void {
             if (refresh) {
                 this.clearSelectStatus();
@@ -223,8 +234,11 @@ namespace flagwind {
             });
         }
 
-        public getSelectedGraphics(): Array<any> {
-            return (<Array<any>>(
+        /**
+         * 获取所有选中的要素
+         */
+        public getSelectedGraphics(): Array<FlagwindGraphic> {
+            return (<Array<FlagwindGraphic>>(
                 this.layer.graphics
             )).filter(g => g.attributes && g.attributes.selected);
         }
@@ -236,7 +250,7 @@ namespace flagwind {
         /**
          * 创建点要素（把业务数据的坐标转换成地图上的点）
          */
-        public getPoint(item: any): any {
+        public getPoint(item: any): FlagwindPoint {
             return this.flagwindMap.getPoint(item);
         }
 
@@ -244,7 +258,7 @@ namespace flagwind {
          * 把地图上的点转换成业务的坐标
          * @param {*} point
          */
-        public formPoint(point: any): any {
+        public formPoint(point: any): { latitude: number; longitude: number } {
             return this.flagwindMap.onFormPoint(point);
         }
 

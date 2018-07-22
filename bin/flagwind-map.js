@@ -239,20 +239,20 @@ var flagwind;
             this.layer.hide();
         };
         /**
-         * 获取资源要素点
+         * 获取指定id的地图要素对象
          */
-        FlagwindFeatureLayer.prototype.getGraphicById = function (key) {
+        FlagwindFeatureLayer.prototype.getGraphicById = function (id) {
             var graphics = this.graphics;
             for (var i = 0; i < graphics.length; i++) {
                 var attrs = graphics[i].attributes;
-                if (attrs.id === key) {
+                if (attrs.id === id) {
                     return graphics[i];
                 }
             }
             return null;
         };
         /**
-         * 删除资源要素点
+         * 删除指定id的地图要素对象
          */
         FlagwindFeatureLayer.prototype.removeGraphicById = function (id) {
             var graphic = this.getGraphicById(id);
@@ -289,103 +289,6 @@ var flagwind;
         return FlagwindFeatureLayer;
     }(flagwind.EventProvider));
     flagwind.FlagwindFeatureLayer = FlagwindFeatureLayer;
-})(flagwind || (flagwind = {}));
-/// <reference path="./flagwind-feature.layer.ts" />import { resolve } from "dns";
-var flagwind;
-(function (flagwind) {
-    flagwind.DRAW_LAYER_OPTIONS = {
-        onDrawCompleteEvent: function (geometry) {
-            // console.log(eventName);
-        }
-    };
-})(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind.draw.ts" />import { resolve } from "url";
-var flagwind;
-(function (flagwind) {
-    /**
-     * 绘制图层
-     */
-    var EsriDrawLayer = /** @class */ (function () {
-        function EsriDrawLayer(flagwindMap, options) {
-            var _this = this;
-            this.options = {
-                drawTime: 75,
-                showTooltips: true,
-                tolerance: 8,
-                tooltipOffset: 15,
-                onEvent: function (eventName, evt) {
-                    // console.log(eventName);
-                }
-            };
-            this.flagwindMap = flagwindMap;
-            this.options = __assign({}, flagwind.DRAW_LAYER_OPTIONS, this.options, options);
-            this.draw = new esri.toolbars.Draw(flagwindMap.map, this.options);
-            this.draw.on("draw-complete", function (evt) { return _this.onDrawComplete(evt); });
-        }
-        EsriDrawLayer.prototype.activate = function (mode, options) {
-            if (this.draw && options) {
-                this.setSymbol(mode, options);
-            }
-            if (this.draw && mode) {
-                var tool = mode.toUpperCase().replace(/ /g, "_");
-                // this.flagwindMap.map.disableMapNavigation();
-                this.draw.activate(esri.toolbars.Draw[tool]);
-            }
-        };
-        EsriDrawLayer.prototype.finish = function () {
-            if (this.draw) {
-                this.draw.deactivate();
-                // this.flagwindMap.map.enableMapNavigation();
-                // this.draw.finishDrawing();
-            }
-        };
-        EsriDrawLayer.prototype.setSymbol = function (mode, options) {
-            this.symbolSetting = __assign({}, options);
-            switch (mode) {
-                case "POLYLINE":
-                    this.draw.setLineSymbol(this.lineSymbol);
-                    break;
-                case "POLYGON":
-                    this.draw.setFillSymbol(this.fillSymbol);
-                    break;
-                case "FREEHAND_POLYGON":
-                    this.draw.setFillSymbol(this.fillSymbol);
-                    break;
-            }
-        };
-        EsriDrawLayer.prototype.onDrawComplete = function (evt) {
-            this.finish();
-            this.options.onEvent("draw-complete", evt.geometry);
-            this.options.onDrawCompleteEvent(evt.geometry);
-        };
-        Object.defineProperty(EsriDrawLayer.prototype, "lineSymbol", {
-            get: function () {
-                var lineColor = this.symbolSetting.lineColor || [255, 0, 0];
-                var lineWidth = this.symbolSetting.lineWidth || 4;
-                var lineType = this.symbolSetting.lineType || "STYLE_DASH";
-                var lineMiterLimit = this.symbolSetting.lineMiterLimit || 2;
-                var lineSymbol = new esri.symbol.CartographicLineSymbol(esri.symbol.CartographicLineSymbol[lineType], new esri.Color(lineColor), lineWidth, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, lineMiterLimit);
-                return lineSymbol;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(EsriDrawLayer.prototype, "fillSymbol", {
-            get: function () {
-                var lineColor = this.symbolSetting.lineColor || [151, 249, 0, .80];
-                var lineWidth = this.symbolSetting.lineWidth || 3;
-                var lineType = this.symbolSetting.lineType || "STYLE_DOT";
-                var fillType = this.symbolSetting.fillType || "STYLE_SOLID";
-                var fillColor = this.symbolSetting.fillColor || [255, 49, 0, 0.45];
-                var polygonSymbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol[fillType], new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol[lineType], new esri.Color(lineColor), lineWidth), new esri.Color(fillColor));
-                return polygonSymbol;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        return EsriDrawLayer;
-    }());
-    flagwind.EsriDrawLayer = EsriDrawLayer;
 })(flagwind || (flagwind = {}));
 /// <reference path="../base/flagwind-feature.layer.ts" />
 var flagwind;
@@ -962,7 +865,7 @@ var flagwind;
         };
         /**
          * 对象转换成点
-         * @param item 对象
+         * @param item 要素原型
          */
         FlagwindMap.prototype.onToPoint = function (item) {
             var lnglat = { lat: item.latitude || item.lat, lon: item.longitude || item.lon };
@@ -1081,7 +984,7 @@ var flagwind;
             return this.onZoom(zoom);
         };
         /**
-         * 创建点要素
+         * 创建几何点
          */
         FlagwindMap.prototype.getPoint = function (item) {
             return this.onToPoint(item);
@@ -1089,7 +992,7 @@ var flagwind;
         // #endregion
         // #region 底图
         /**
-         * 底图查找
+         * 根据id查找底图
          * @param id 底图id
          */
         FlagwindMap.prototype.getBaseLayerById = function (id) {
@@ -1158,7 +1061,7 @@ var flagwind;
             featureLayer.appendTo(this.innerMap);
         };
         /**
-         * 移除功能图层
+         * 移除指定id的功能图层
          * @param id 图层id
          */
         FlagwindMap.prototype.removeFeatureLayer = function (id) {
@@ -1482,8 +1385,8 @@ var flagwind;
         EsriMap.prototype.onHideTooltip = function () {
             this.tooltipElement.style.display = "none";
         };
-        EsriMap.prototype.onCreateContextMenu = function (options) {
-            var menus = options.contextMenu;
+        EsriMap.prototype.onCreateContextMenu = function (eventArgs) {
+            var menus = eventArgs.contextMenu;
             var ctxMenu = this.ctxMenuForMap = new dijit.Menu({
                 onOpen: function (box) {
                     this.currentLocation = this.getMapPointFromMenuPosition(box, this.innerMap);
@@ -1493,7 +1396,7 @@ var flagwind;
                 ctxMenu.addChild(new dijit.MenuItem({
                     label: menus[i],
                     onClick: function (evt) {
-                        options.contextMenuClickEvent(this.label);
+                        eventArgs.contextMenuClickEvent(this.label);
                     }
                 }));
             }
@@ -1735,6 +1638,7 @@ var flagwind;
         };
         /**
          * 保存要素（有则修改，无则增加）
+         * @param item 原始要素模型
          */
         FlagwindBusinessLayer.prototype.saveGraphicByModel = function (item) {
             item = this.onChangeStandardModel(item);
@@ -1789,12 +1693,13 @@ var flagwind;
                 return;
             }
             item = __assign({}, graphic.attributes, item);
-            var pt = this.getPoint(graphic.attributes);
             this.onUpdateGraphicByModel(item);
-            return pt;
         };
         // #endregion
         // #region 状态管理
+        /**
+         * 清除选择状态
+         */
         FlagwindBusinessLayer.prototype.clearSelectStatus = function () {
             var graphics = this.layer.graphics;
             for (var i = 0; i < graphics.length; i++) {
@@ -1814,11 +1719,20 @@ var flagwind;
                 selectedItems: this.getSelectedGraphics().map(function (g) { return g.attributes; })
             });
         };
+        /**
+         * 设置选中状态
+         * @param item 要素原型
+         * @param selected 是否选中
+         */
         FlagwindBusinessLayer.prototype.setSelectStatus = function (item, selected) {
             item.selected = selected;
             this.onUpdateGraphicByModel(item);
         };
-        // 设置选择状态
+        /**
+         * 设置选择状态
+         * @param dataList 要素模型集合
+         * @param refresh 是否刷新（为true是时，把所有的要素还原再设置;否则，之前的状态保留，然后再追加）
+         */
         FlagwindBusinessLayer.prototype.setSelectStatusByModels = function (dataList, refresh) {
             if (refresh) {
                 this.clearSelectStatus();
@@ -1842,8 +1756,11 @@ var flagwind;
                 selectedItems: this.getSelectedGraphics().map(function (g) { return g.attributes; })
             });
         };
+        /**
+         * 获取所有选中的要素
+         */
         FlagwindBusinessLayer.prototype.getSelectedGraphics = function () {
-            return this.layer.graphics.filter(function (g) { return g.attributes && g.attributes.selected; });
+            return (this.layer.graphics).filter(function (g) { return g.attributes && g.attributes.selected; });
         };
         // #endregion
         // #region 坐标转换
@@ -1863,6 +1780,29 @@ var flagwind;
         // #endregion
         // #region 常规操作
         /**
+         * 在指定id的graphic上打开InfoWindow
+         * @param id  grahpic的唯一标识
+         * @param context 内容
+         * @param options 参数
+         */
+        FlagwindBusinessLayer.prototype.openInfoWindow = function (id, context, options) {
+            var graphic = this.getGraphicById(id);
+            if (!graphic) {
+                console.warn("该条数据不在图层内！id:", id);
+                return;
+            }
+            if (context) {
+                this.flagwindMap.onShowInfoWindow({
+                    graphic: graphic,
+                    context: context,
+                    options: options || {}
+                });
+            }
+            else {
+                this.onShowInfoWindow({ graphic: graphic });
+            }
+        };
+        /**
          * 关闭信息窗口
          */
         FlagwindBusinessLayer.prototype.closeInfoWindow = function () {
@@ -1881,11 +1821,17 @@ var flagwind;
             var pt = this.getPoint(graphic.attributes);
             this.flagwindMap.centerAt(pt.x, pt.y);
         };
+        /**
+         * 增加到地图上
+         */
         FlagwindBusinessLayer.prototype.addToMap = function () {
             this.onAddLayerBefor();
             this.flagwindMap.addFeatureLayer(this);
             this.onAddLayerAfter();
         };
+        /**
+         * 从地图移除
+         */
         FlagwindBusinessLayer.prototype.removeFormMap = function () {
             this.flagwindMap.removeFeatureLayer(this.id);
         };
@@ -1927,7 +1873,8 @@ var flagwind;
             this.on("onClick", function (evt) {
                 _this.onLayerClick(_this, evt.data);
             });
-            if (this.options.showTooltipOnHover) { // 如果开启鼠标hover开关
+            if (this.options.showTooltipOnHover) {
+                // 如果开启鼠标hover开关
                 this.on("onMouseOver", function (evt) {
                     _this.flagwindMap.onShowTooltip(evt.data.graphic);
                     _this.fireEvent("onMouseOver", evt.data);
@@ -1979,10 +1926,14 @@ var flagwind;
         };
         FlagwindBusinessLayer.prototype.onValidModel = function (item) {
             switch (this.layerType) {
-                case flagwind.LayerType.point: return item.id && item.longitude && item.latitude;
-                case flagwind.LayerType.polyline: return item.id && item.polyline;
-                case flagwind.LayerType.polygon: return item.id && item.polygon;
-                default: return item.id && item.longitude && item.latitude;
+                case flagwind.LayerType.point:
+                    return item.id && item.longitude && item.latitude;
+                case flagwind.LayerType.polyline:
+                    return item.id && item.polyline;
+                case flagwind.LayerType.polygon:
+                    return item.id && item.polygon;
+                default:
+                    return item.id && item.longitude && item.latitude;
             }
         };
         return FlagwindBusinessLayer;
@@ -2062,25 +2013,6 @@ var flagwind;
             };
             return layer;
             // return new EsriGraphicsLayer(options);
-        };
-        EsriPointLayer.prototype.openInfoWindow = function (id, context, options) {
-            var graphic = this.getGraphicById(id);
-            if (!graphic) {
-                console.warn("该条数据不在图层内！id:", id);
-                return;
-            }
-            if (context) {
-                this.flagwindMap.onShowInfoWindow({
-                    graphic: graphic,
-                    context: context,
-                    options: options || {}
-                });
-            }
-            else {
-                this.onShowInfoWindow({
-                    graphic: graphic
-                });
-            }
         };
         EsriPointLayer.prototype.onShowInfoWindow = function (evt) {
             var context = this.onGetInfoWindowContext(evt.graphic.attributes);
@@ -2305,25 +2237,6 @@ var flagwind;
             return layer;
             // return new EsriGraphicsLayer(options);
         };
-        EsriPolygonLayer.prototype.openInfoWindow = function (id, context, options) {
-            var graphic = this.getGraphicById(id);
-            if (!graphic) {
-                console.warn("该条数据不在图层内！id:", id);
-                return;
-            }
-            if (context) {
-                this.flagwindMap.onShowInfoWindow({
-                    graphic: graphic,
-                    context: context,
-                    options: options || {}
-                });
-            }
-            else {
-                this.onShowInfoWindow({
-                    graphic: graphic
-                });
-            }
-        };
         EsriPolygonLayer.prototype.onShowInfoWindow = function (evt) {
             var context = this.onGetInfoWindowContext(evt.graphic.attributes);
             this.flagwindMap.onShowInfoWindow({
@@ -2514,25 +2427,6 @@ var flagwind;
             };
             return layer;
             // return new EsriGraphicsLayer(options);
-        };
-        EsriPolylineLayer.prototype.openInfoWindow = function (id, context, options) {
-            var graphic = this.getGraphicById(id);
-            if (!graphic) {
-                console.warn("该条数据不在图层内！id:", id);
-                return;
-            }
-            if (context) {
-                this.flagwindMap.onShowInfoWindow({
-                    graphic: graphic,
-                    context: context,
-                    options: options || {}
-                });
-            }
-            else {
-                this.onShowInfoWindow({
-                    graphic: graphic
-                });
-            }
         };
         EsriPolylineLayer.prototype.onShowInfoWindow = function (evt) {
             var context = this.onGetInfoWindowContext(evt.graphic.attributes);
@@ -2735,7 +2629,6 @@ var flagwind;
             this.layerName = layerName;
             this.options = options;
             this.isShow = true;
-            // public moveMarkLayer: { graphics: any; remove: (arg0: any) => void; _map: null; clear: () => void; id: any; add: (arg0: any) => void; show: () => void; hide: () => void; };
             this.trackLines = [];
             this.options = __assign({}, flagwind.ROUTE_LAYER_OPTIONS, options);
             this.moveLineLayer = this.onCreateLineLayer(layerName + "LineLayer");
@@ -2760,6 +2653,11 @@ var flagwind;
             enumerable: true,
             configurable: true
         });
+        // #endregion
+        // #region 接口实现
+        /**
+         * 显示图层
+         */
         FlagwindRouteLayer.prototype.show = function () {
             if (this.moveMarkLayer) { // 移动小车 
                 this.moveMarkLayer.show();
@@ -2768,6 +2666,9 @@ var flagwind;
                 this.moveLineLayer.show();
             }
         };
+        /**
+         * 隐藏图层
+         */
         FlagwindRouteLayer.prototype.hide = function () {
             if (this.moveMarkLayer) { // 移动小车 {
                 this.moveMarkLayer.hide();
@@ -2776,6 +2677,64 @@ var flagwind;
                 this.moveLineLayer.hide();
             }
         };
+        /**
+         * 清除所有
+         */
+        FlagwindRouteLayer.prototype.clearAll = function () {
+            this.checkMapSetting();
+            this.stopAll();
+            if (this.moveMarkLayer) {
+                this.moveMarkLayer.clear();
+            }
+            if (this.moveLineLayer) {
+                this.moveLineLayer.clear();
+            }
+            this.trackLines = [];
+        };
+        /**
+         * 清除指定的线路名的路径和移动要素
+         * @param name 线路名称
+         */
+        FlagwindRouteLayer.prototype.clear = function (name) {
+            if (name) {
+                var trackline = this.getTrackLine(name);
+                if (trackline == null) {
+                    console.warn("无效的路径：" + name);
+                    return;
+                }
+                trackline.stop();
+                this.moveMarkLayer.removeGraphicByName(name);
+                this.moveLineLayer.removeGraphicByName(name);
+                trackline.markerGraphic = null;
+                var index = this.trackLines.indexOf(trackline);
+                if (index >= 0) {
+                    this.trackLines.splice(index, 1);
+                }
+            }
+            else {
+                this.stopAll();
+                if (this.moveMarkLayer) {
+                    this.moveMarkLayer.clear();
+                }
+                if (this.moveLineLayer) {
+                    this.moveLineLayer.clear();
+                }
+                this.trackLines = [];
+            }
+        };
+        /**
+         * 清除指定的线路名的线路
+         * @param name 线路名称
+         */
+        FlagwindRouteLayer.prototype.clearLine = function (name) {
+            if (!name) {
+                console.error("没有指定清除的线路名称");
+                return;
+            }
+            this.moveLineLayer.removeGraphicByName(name);
+        };
+        // #endregion
+        // #region 播放线路
         /**
          * 获取指定名称的线路
          * @param name 指定名称
@@ -2786,6 +2745,9 @@ var flagwind;
         };
         /**
          * 向指定线路中增加路段
+         * @param name 线路名
+         * @param segment 路段
+         * @param lineOptions 线路参数
          */
         FlagwindRouteLayer.prototype.addTrackSegment = function (name, segment, lineOptions) {
             var trackline = this.getTrackLine(name);
@@ -2797,6 +2759,7 @@ var flagwind;
         };
         /**
          * 计算线路的下一个路段索引
+         * @param name 线路名
          */
         FlagwindRouteLayer.prototype.getNextSegmentIndex = function (name) {
             var trackline = this.getTrackLine(name);
@@ -2806,6 +2769,8 @@ var flagwind;
         };
         /**
          * 获取线路的下一路段
+         * @param name 线路名称
+         * @param index 路段索引
          */
         FlagwindRouteLayer.prototype.getNextSegment = function (name, index) {
             var trackline = this.getTrackLine(name);
@@ -2815,6 +2780,7 @@ var flagwind;
         };
         /**
          * 获取线路中的最后一路段
+         * @param name 线路名称
          */
         FlagwindRouteLayer.prototype.getLastSegment = function (name) {
             var trackline = this.getTrackLine(name);
@@ -2824,6 +2790,7 @@ var flagwind;
         };
         /**
          * 获取监控最近播放完成的路段线路
+         * @param name 线路名称
          */
         FlagwindRouteLayer.prototype.getActiveCompletedSegment = function (name) {
             var trackline = this.getTrackLine(name);
@@ -2833,6 +2800,7 @@ var flagwind;
         };
         /**
          * 判断线路是否在运行
+         * @param name 线路名称
          */
         FlagwindRouteLayer.prototype.getIsRunning = function (name) {
             var trackline = this.getTrackLine(name);
@@ -2843,8 +2811,12 @@ var flagwind;
                 return false;
             }
         };
-        /*********************轨迹线路**************************/
-        /*********************播放控制**************************/
+        // #endregion
+        // #region 播放控制
+        /**
+         * 停止指定线路移动要素播放
+         * @param name 线路名称
+         */
         FlagwindRouteLayer.prototype.stop = function (name) {
             var trackline = this.getTrackLine(name);
             if (trackline != null) {
@@ -2854,6 +2826,9 @@ var flagwind;
                 console.warn("无效的路径：" + name);
             }
         };
+        /**
+         * 停止所有线路移动要素播放
+         */
         FlagwindRouteLayer.prototype.stopAll = function () {
             var _this = this;
             if (this.trackLines) {
@@ -2926,6 +2901,10 @@ var flagwind;
                 console.warn("无效的路径：" + name);
             }
         };
+        /**
+         * 加速
+         * @param name 线路名称
+         */
         FlagwindRouteLayer.prototype.speedUp = function (name) {
             var trackline = this.getTrackLine(name);
             if (trackline) {
@@ -2936,6 +2915,10 @@ var flagwind;
                 return "当前路线为空！";
             }
         };
+        /**
+         * 减速
+         * @param name 线路名称
+         */
         FlagwindRouteLayer.prototype.speedDown = function (name) {
             var trackline = this.getTrackLine(name);
             if (trackline) {
@@ -2946,54 +2929,8 @@ var flagwind;
                 return "当前路线为空！";
             }
         };
-        FlagwindRouteLayer.prototype.clear = function (name) {
-            if (name) {
-                var trackline = this.getTrackLine(name);
-                if (trackline == null) {
-                    console.warn("无效的路径：" + name);
-                    return;
-                }
-                trackline.stop();
-                this.moveMarkLayer.removeGraphicByName(name);
-                this.moveLineLayer.removeGraphicByName(name);
-                trackline.markerGraphic = null;
-                var index = this.trackLines.indexOf(trackline);
-                if (index >= 0) {
-                    this.trackLines.splice(index, 1);
-                }
-            }
-            else {
-                this.stopAll();
-                if (this.moveMarkLayer) {
-                    this.moveMarkLayer.clear();
-                }
-                if (this.moveLineLayer) {
-                    this.moveLineLayer.clear();
-                }
-                this.trackLines = [];
-            }
-        };
-        FlagwindRouteLayer.prototype.clearLine = function (name) {
-            if (!name) {
-                console.error("没有指定清除的线路名称");
-                return;
-            }
-            this.moveLineLayer.removeGraphicByName(name);
-        };
-        /**
-         * 清除所有
-         */
-        FlagwindRouteLayer.prototype.clearAll = function () {
-            this.checkMapSetting();
-            this.stopAll();
-            if (this.moveMarkLayer) {
-                this.moveMarkLayer.clear();
-            }
-            if (this.moveLineLayer) {
-                this.moveLineLayer.clear();
-            }
-            this.trackLines = [];
-        };
+        // #endregion
+        // #region 播放控件(即将移除)
         /**
          * 此方法移至FlagwindTrackLayer(即将废弃)
          */
@@ -3045,7 +2982,8 @@ var flagwind;
                 toolBoxTextEle.innerHTML = "";
             };
         };
-        /*********************播放控制**************************/
+        // #endregion
+        // #region 路径求解
         /**
          * 求解最短路径（与solveLine不同，它求解的是一个路段，该路段起点为stops[0],终点为stops[stops.length-1]
          *
@@ -3270,10 +3208,12 @@ var flagwind;
             });
             var trackline = flagwindRoute.getTrackLine(segment.name);
             if (trackline) {
-                flagwindRoute.onChangeMovingGraphicSymbol(trackline, point, angle);
+                flagwindRoute.onUpdateMoveGraphic(trackline, point, angle);
                 flagwindRoute.options.onMoveEvent(segment.name, segment.index, xy, angle);
             }
         };
+        // #endregion
+        // #region 私有方法
         FlagwindRouteLayer.prototype.onAddLayerBefor = function () {
             console.log("onAddLayerBefor");
         };
@@ -3288,12 +3228,18 @@ var flagwind;
                 }
             }, this);
         };
-        // 检测地图设置，防止图层未加载到地图上
+        /**
+         * 检测地图设置，防止图层未加载到地图上
+         */
         FlagwindRouteLayer.prototype.checkMapSetting = function () {
             // if (this.moveMarkLayer._map == null) {
             //     this.moveMarkLayer = this.flagwindMap.innerMap.getLayer(this.moveMarkLayer.id);
             // }
         };
+        /**
+         * 标准化停靠点模型
+         * @param item 原始模型
+         */
         FlagwindRouteLayer.prototype.changeStandardModel = function (item) {
             if (this.options.changeStandardModel) {
                 return this.options.changeStandardModel(item);
@@ -3302,6 +3248,10 @@ var flagwind;
                 return item;
             }
         };
+        /**
+         * 验证停靠点模型
+         * @param item 原始模型
+         */
         FlagwindRouteLayer.prototype.validGeometryModel = function (item) {
             return flagwind.MapUtils.validGeometryModel(item);
         };
@@ -3364,6 +3314,18 @@ var flagwind;
             var marker = new esri.Graphic(graphic.geometry, symbol, { __type: "point", __line: trackline.name });
             trackline.markerGraphic = marker;
             this.moveMarkLayer.addGraphic(trackline.name, marker);
+        };
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        EsriRouteLayer.prototype.onUpdateMoveGraphic = function (trackline, point, angle) {
+            if (trackline === undefined)
+                return;
+            var symbol = trackline.markerGraphic.symbol;
+            symbol.setAngle(360 - angle);
+            trackline.markerGraphic.setSymbol(symbol);
+            trackline.markerGraphic.setGeometry(point);
+            trackline.markerGraphic.draw(); // 重绘
         };
         EsriRouteLayer.prototype.onCreateLineLayer = function (id) {
             return new flagwind.EsriGroupLayer(id);
@@ -3454,18 +3416,6 @@ var flagwind;
                 __model: graphic.attributes.__model,
                 __line: graphic.attributes.__line
             });
-        };
-        /**
-         * 每次位置移动线路上的要素样式变换操作
-         */
-        EsriRouteLayer.prototype.onChangeMovingGraphicSymbol = function (trackline, point, angle) {
-            if (trackline === undefined)
-                return;
-            var symbol = trackline.markerGraphic.symbol;
-            symbol.setAngle(360 - angle);
-            trackline.markerGraphic.setSymbol(symbol);
-            trackline.markerGraphic.setGeometry(point);
-            trackline.markerGraphic.draw(); // 重绘
         };
         return EsriRouteLayer;
     }(flagwind.FlagwindRouteLayer));
@@ -3672,8 +3622,9 @@ var flagwind;
             this.options = __assign({}, flagwind.TRACK_LAYER_OPTIONS, options);
             this.businessLayer.removeFormMap();
             this.businessLayer.addToMap();
-            if (this.options.id) {
-                this.activedTrackLineName = this.options.id + "_track";
+            this.id = this.options.id || "flagwind_track_layer";
+            if (this.id) {
+                this.activedTrackLineName = this.id + "_track";
             }
             /**
              * 当轨迹上的移动物体进出卡口点事件回调
@@ -3705,8 +3656,15 @@ var flagwind;
                 }
             };
         }
-        Object.defineProperty(FlagwindTrackLayer.prototype, "flagwindMap", {
+        Object.defineProperty(FlagwindTrackLayer.prototype, "toolBoxId", {
             // #region 属性
+            get: function () {
+                return this.id + "_toolbox";
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(FlagwindTrackLayer.prototype, "flagwindMap", {
             get: function () {
                 return this.businessLayer.flagwindMap;
             },
@@ -3763,6 +3721,9 @@ var flagwind;
         });
         // #endregion
         // #region TrackToolBox
+        /**
+         * 删除播放控件
+         */
         FlagwindTrackLayer.prototype.deleteTrackToolBox = function () {
             if (this._trackToolBox)
                 this._trackToolBox.parentNode.removeChild(this._trackToolBox);
@@ -3774,15 +3735,18 @@ var flagwind;
             this._clearButton = null;
             this._toolBoxText = null;
         };
+        /**
+         * 显示播放控件
+         */
         FlagwindTrackLayer.prototype.showTrackToolBox = function () {
             var _this = this;
-            if (document.getElementById("route-ctrl-group")) {
+            if (document.getElementById(this.toolBoxId)) {
                 console.log("TrackToolBox已经创建，不可重复创建！");
-                document.getElementById("route-ctrl-group").style.display = "block";
+                document.getElementById(this.toolBoxId).style.display = "block";
                 return;
             }
             this._trackToolBox = document.createElement("div");
-            this._trackToolBox.setAttribute("id", "route-ctrl-group");
+            this._trackToolBox.setAttribute("id", this.toolBoxId);
             this._trackToolBox.innerHTML = "<div class=\"tool-btns\"><span class=\"route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                <span class=\"route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                <span class=\"route-btn icon-speedDown\" title=\"\u51CF\u901F\" data-operate=\"speedDown\"></span>\n                <span class=\"route-btn icon-speedUp\" title=\"\u52A0\u901F\" data-operate=\"speedUp\"></span>\n                <span class=\"route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span></div>\n                <div class=\"tool-text\"><span></span></div>";
             this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
             this._playButton = document.querySelector("#route-ctrl-group .icon-continue");
@@ -3811,9 +3775,9 @@ var flagwind;
         // #region 公共方法
         /**
          * 显示轨迹线路（不播放）
-         * @param stopList
-         * @param trackLineName
-         * @param options
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
+         * @param options 轨迹构建参数
          */
         FlagwindTrackLayer.prototype.showTrack = function (stopList, trackLineName, options) {
             if (trackLineName) {
@@ -3835,6 +3799,9 @@ var flagwind;
         };
         /**
          * 启动线路播放（起点为线路的始点）
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
+         * @param options 轨迹构建参数
          */
         FlagwindTrackLayer.prototype.startTrack = function (stopList, trackLineName, options) {
             if (trackLineName) {
@@ -3856,6 +3823,8 @@ var flagwind;
         };
         /**
          * 启动线路播放（起点为上次播放的终点）
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
          */
         FlagwindTrackLayer.prototype.move = function (stopList, trackLineName) {
             if (name) {
@@ -3867,6 +3836,9 @@ var flagwind;
             this.showTrack(stopList, trackLineName);
             this.routeLayer.move(this.activedTrackLineName);
         };
+        /**
+         * 显示所有
+         */
         FlagwindTrackLayer.prototype.clearAll = function () {
             this.clear();
         };
@@ -3977,7 +3949,7 @@ var flagwind;
         };
         /**
          * 切换线路
-         * @param name 线路
+         * @param name 线路名称
          */
         FlagwindTrackLayer.prototype.changeTrackLine = function (name) {
             this.activedTrackLineName = name;
@@ -4046,6 +4018,101 @@ var flagwind;
         return EsriVehicleRouteLayer;
     }(flagwind.EsriRouteLayer));
     flagwind.EsriVehicleRouteLayer = EsriVehicleRouteLayer;
+})(flagwind || (flagwind = {}));
+/// <reference path="./flagwind-feature.layer.ts" />import { resolve } from "dns";
+var flagwind;
+(function (flagwind) {
+    flagwind.DRAW_LAYER_OPTIONS = {
+        onDrawCompleteEvent: function (geometry) {
+            // console.log(eventName);
+        }
+    };
+})(flagwind || (flagwind = {}));
+/// <reference path="../base/flagwind.draw.ts" />import { resolve } from "url";
+var flagwind;
+(function (flagwind) {
+    /**
+     * 绘制图层
+     */
+    var EsriDraw = /** @class */ (function () {
+        function EsriDraw(flagwindMap, options) {
+            var _this = this;
+            this.options = {
+                drawTime: 75,
+                showTooltips: true,
+                tolerance: 8,
+                tooltipOffset: 15,
+                onEvent: function (eventName, evt) {
+                    // console.log(eventName);
+                }
+            };
+            this.flagwindMap = flagwindMap;
+            this.options = __assign({}, flagwind.DRAW_LAYER_OPTIONS, this.options, options);
+            this.draw = new esri.toolbars.Draw(flagwindMap.map, this.options);
+            this.draw.on("draw-complete", function (evt) { return _this.onDrawComplete(evt); });
+        }
+        EsriDraw.prototype.activate = function (mode, options) {
+            if (this.draw && options) {
+                this.setSymbol(mode, options);
+            }
+            if (this.draw && mode) {
+                var tool = mode.toUpperCase().replace(/ /g, "_");
+                // this.flagwindMap.map.disableMapNavigation();
+                this.draw.activate(esri.toolbars.Draw[tool]);
+            }
+        };
+        EsriDraw.prototype.finish = function () {
+            if (this.draw) {
+                this.draw.deactivate();
+            }
+        };
+        EsriDraw.prototype.setSymbol = function (mode, options) {
+            this.symbolSetting = __assign({}, options);
+            switch (mode) {
+                case "POLYLINE":
+                    this.draw.setLineSymbol(this.lineSymbol);
+                    break;
+                case "POLYGON":
+                    this.draw.setFillSymbol(this.fillSymbol);
+                    break;
+                case "FREEHAND_POLYGON":
+                    this.draw.setFillSymbol(this.fillSymbol);
+                    break;
+            }
+        };
+        EsriDraw.prototype.onDrawComplete = function (evt) {
+            this.finish();
+            this.options.onEvent("draw-complete", evt.geometry);
+            this.options.onDrawCompleteEvent(evt.geometry);
+        };
+        Object.defineProperty(EsriDraw.prototype, "lineSymbol", {
+            get: function () {
+                var lineColor = this.symbolSetting.lineColor || [255, 0, 0];
+                var lineWidth = this.symbolSetting.lineWidth || 4;
+                var lineType = this.symbolSetting.lineType || "STYLE_DASH";
+                var lineMiterLimit = this.symbolSetting.lineMiterLimit || 2;
+                var lineSymbol = new esri.symbol.CartographicLineSymbol(esri.symbol.CartographicLineSymbol[lineType], new esri.Color(lineColor), lineWidth, esri.symbol.CartographicLineSymbol.CAP_ROUND, esri.symbol.CartographicLineSymbol.JOIN_MITER, lineMiterLimit);
+                return lineSymbol;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(EsriDraw.prototype, "fillSymbol", {
+            get: function () {
+                var lineColor = this.symbolSetting.lineColor || [151, 249, 0, .80];
+                var lineWidth = this.symbolSetting.lineWidth || 3;
+                var lineType = this.symbolSetting.lineType || "STYLE_DOT";
+                var fillType = this.symbolSetting.fillType || "STYLE_SOLID";
+                var fillColor = this.symbolSetting.fillColor || [255, 49, 0, 0.45];
+                var polygonSymbol = new esri.symbol.SimpleFillSymbol(esri.symbol.SimpleFillSymbol[fillType], new esri.symbol.SimpleLineSymbol(esri.symbol.SimpleLineSymbol[lineType], new esri.Color(lineColor), lineWidth), new esri.Color(fillColor));
+                return polygonSymbol;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        return EsriDraw;
+    }());
+    flagwind.EsriDraw = EsriDraw;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
@@ -4129,9 +4196,21 @@ var flagwind;
             this.startGraphic = startGraphic;
             this.endGraphic = endGraphic;
             this.options = options;
+            /**
+             * 移动要素在该路段点集合的位置
+             */
             this.position = -1;
+            /**
+             * 是否播放完成
+             */
             this.isCompleted = false;
+            /**
+             * 是否正在运行
+             */
             this.isRunning = false;
+            /**
+             * 定时器时间（ms）
+             */
             this.time = 200;
             /**
              *
@@ -4145,6 +4224,8 @@ var flagwind;
         }
         /**
          * 设置拆线
+         * @param polyline 几何拆线
+         * @param length 线的长度
          */
         TrackSegment.prototype.setPolyLine = function (polyline, length) {
             this.flagwindRouteLayer.onSetSegmentByLine({
@@ -4157,6 +4238,7 @@ var flagwind;
         };
         /**
          * 设置直线
+         * @param points 几何点集
          */
         TrackSegment.prototype.setMultPoints = function (points) {
             this.flagwindRouteLayer.onSetSegmentByPoint({
@@ -4171,6 +4253,10 @@ var flagwind;
             console.debug("路段" + this.index + "定时：" + this.time + "ms");
             this.options.onShowSegmentLineEvent(this);
         };
+        /**
+         * 变换速度
+         * @param speed 速度值
+         */
         TrackSegment.prototype.changeSpeed = function (speed) {
             if (speed === void 0) { speed = null; }
             if (this.options.numsOfKilometer === 0) {
@@ -4187,30 +4273,33 @@ var flagwind;
                 this.start();
             }
         };
-        TrackSegment.prototype.move = function (segment) {
-            segment.position = segment.position + 1;
+        /**
+         * 播放移动要素（起点为上次终点）
+         */
+        TrackSegment.prototype.move = function () {
+            this.position = this.position + 1;
             var angle = 0;
-            if (segment.position === 0) {
-                if (segment.line.length > 1) {
-                    angle = flagwind.MapUtils.getAngle(segment.startGraphic.geometry, {
-                        x: segment.line[0][0], y: segment.line[0][1]
+            if (this.position === 0) {
+                if (this.line.length > 1) {
+                    angle = flagwind.MapUtils.getAngle(this.startGraphic.geometry, {
+                        x: this.line[0][0], y: this.line[0][1]
                     }) || 0;
                 }
-                segment.options.onMoveStartEvent(segment, segment.startGraphic, angle);
-                segment.options.onMoveEvent(segment, [segment.startGraphic.geometry.x, segment.startGraphic.geometry.y], angle);
+                this.options.onMoveStartEvent(this, this.startGraphic, angle);
+                this.options.onMoveEvent(this, [this.startGraphic.geometry.x, this.startGraphic.geometry.y], angle);
                 return;
             }
-            if (segment.position >= segment.line.length) {
+            if (this.position >= this.line.length) {
                 if (this.line.length > 1) {
                     angle = flagwind.MapUtils.getAngle({
-                        x: this.line[segment.line.length - 1][0],
-                        y: this.line[segment.line.length - 1][1]
+                        x: this.line[this.line.length - 1][0],
+                        y: this.line[this.line.length - 1][1]
                     }, this.endGraphic.geometry) || 0;
                 }
-                segment.isCompleted = true;
-                segment.stop();
-                segment.options.onMoveEvent(segment, [segment.endGraphic.geometry.x, segment.endGraphic.geometry.y], angle);
-                segment.options.onMoveEndEvent(segment, segment.endGraphic, angle);
+                this.isCompleted = true;
+                this.stop();
+                this.options.onMoveEvent(this, [this.endGraphic.geometry.x, this.endGraphic.geometry.y], angle);
+                this.options.onMoveEndEvent(this, this.endGraphic, angle);
                 return;
             }
             angle = flagwind.MapUtils.getAngle({
@@ -4220,22 +4309,24 @@ var flagwind;
                 x: this.line[this.position][0],
                 y: this.line[this.position][1]
             });
-            var xx = parseFloat(segment.line[this.position - 1][0]).toFixed(5);
-            var yy = parseFloat(segment.line[this.position - 1][1]).toFixed(5);
-            segment.options.onMoveEvent(segment, [xx, yy], angle);
+            var xx = parseFloat(this.line[this.position - 1][0]).toFixed(5);
+            var yy = parseFloat(this.line[this.position - 1][1]).toFixed(5);
+            this.options.onMoveEvent(this, [xx, yy], angle);
         };
+        /**
+         * 播放移动要素（起点为路段的始点）
+         */
         TrackSegment.prototype.start = function () {
-            // if (!this.line) return false;
+            var _this = this;
             this.isRunning = true;
-            var _segment = this;
-            _segment.timer = window.setInterval(function () {
-                if (!_segment.line) {
-                    console.log("线路" + _segment.name + "的第" + (_segment.index + 1) + "路段等待设置");
+            this.timer = window.setInterval(function () {
+                if (!_this.line) {
+                    console.log("线路" + _this.name + "的第" + (_this.index + 1) + "路段等待设置");
                 }
                 else {
-                    _segment.move(_segment);
+                    _this.move();
                 }
-            }, _segment.time);
+            }, this.time);
             return true;
         };
         Object.defineProperty(TrackSegment.prototype, "isPaused", {
@@ -4248,10 +4339,16 @@ var flagwind;
             enumerable: true,
             configurable: true
         });
+        /**
+         * 暂停
+         */
         TrackSegment.prototype.pause = function () {
             window.clearInterval(this.timer);
             this.timer = null;
         };
+        /**
+         * 停止
+         */
         TrackSegment.prototype.stop = function () {
             if (this.timer) {
                 window.clearInterval(this.timer);
@@ -4260,6 +4357,9 @@ var flagwind;
             this.isRunning = false;
             this.position = -1;
         };
+        /**
+         * 重置
+         */
         TrackSegment.prototype.reset = function () {
             this.timer = null;
             this.isRunning = false;
@@ -4280,7 +4380,13 @@ var flagwind;
             this.flagwindMap = flagwindMap;
             this.name = name;
             this.options = options;
+            /**
+             * 路段集合
+             */
             this.segments = [];
+            /**
+             * 移动要素是否隐藏
+             */
             this.isMovingGraphicHide = false;
             this.options = __assign({}, flagwind.TRACKSEGMENT_OPTIONS, options);
         }
@@ -4460,6 +4566,9 @@ var flagwind;
                 segemtn.stop();
             }
         };
+        /**
+         * 重置
+         */
         TrackLine.prototype.reset = function () {
             for (var i = 0; i < this.segments.length; i++) {
                 var segemtn = this.segments[i];
@@ -4523,6 +4632,7 @@ var flagwind;
         };
         /**
          * 获取线路的下一路段
+         * @param index 路段索引
          */
         TrackLine.prototype.getNextSegment = function (index) {
             if (this.segments.length === 0)
@@ -4530,7 +4640,7 @@ var flagwind;
             return this.getSegment(index + 1);
         };
         /**
-         * 获取线路的路段
+         * 获取线路的指定索引路段
          */
         TrackLine.prototype.getSegment = function (index) {
             var line = null;
@@ -5681,9 +5791,19 @@ var flagwind;
             this.circle.setCenter(geometry.center);
             this.circle.setRadius(geometry.radius);
         };
+        Object.defineProperty(MinemapCircleGraphic.prototype, "geometry", {
+            get: function () {
+                return this._geometry;
+            },
+            enumerable: true,
+            configurable: true
+        });
         MinemapCircleGraphic.prototype.addTo = function (map) {
             this._isInsided = true;
             this.circle.addTo(map);
+        };
+        MinemapCircleGraphic.prototype.setAngle = function (angle) {
+            throw new flagwind.Exception("未实现setAngle方法");
         };
         return MinemapCircleGraphic;
     }(flagwind.EventProvider));
@@ -6145,6 +6265,9 @@ var flagwind;
         MinemapLabelGraphic.prototype.addTo = function (map) {
             this._isInsided = true;
             this.label.addTo(map);
+        };
+        MinemapLabelGraphic.prototype.setAngle = function (angle) {
+            throw new flagwind.Exception("未实现setAngle方法");
         };
         return MinemapLabelGraphic;
     }(flagwind.EventProvider));
@@ -6841,7 +6964,7 @@ var flagwind;
     }(flagwind.EventProvider));
     flagwind.MinemapPointGraphic = MinemapPointGraphic;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -6860,21 +6983,6 @@ var flagwind;
         }
         MinemapPointLayer.prototype.onCreateGraphicsLayer = function (options) {
             return new flagwind.MinemapGraphicsLayer(options);
-        };
-        MinemapPointLayer.prototype.openInfoWindow = function (id, context, options) {
-            var graphic = this.getGraphicById(id);
-            if (context) {
-                this.flagwindMap.onShowInfoWindow({
-                    graphic: graphic,
-                    context: context,
-                    options: options
-                });
-            }
-            else {
-                this.onShowInfoWindow({
-                    graphic: graphic
-                });
-            }
         };
         MinemapPointLayer.prototype.onShowInfoWindow = function (evt) {
             var context = this.onGetInfoWindowContext(evt.graphic.attributes);
@@ -7147,9 +7255,19 @@ var flagwind;
                 this.polygon.setPath([]);
             }
         };
+        Object.defineProperty(MinemapPolygonGraphic.prototype, "geometry", {
+            get: function () {
+                return this._geometry;
+            },
+            enumerable: true,
+            configurable: true
+        });
         MinemapPolygonGraphic.prototype.addTo = function (map) {
             this._isInsided = true;
             this.polygon.addTo(map);
+        };
+        MinemapPolygonGraphic.prototype.setAngle = function (angle) {
+            throw new flagwind.Exception("未实现setAngle方法");
         };
         return MinemapPolygonGraphic;
     }(flagwind.EventProvider));
@@ -7234,9 +7352,19 @@ var flagwind;
             this._geometry = geometry;
             this.polyline.setPath(geometry.path);
         };
+        Object.defineProperty(MinemapPolylineGraphic.prototype, "geometry", {
+            get: function () {
+                return this._geometry;
+            },
+            enumerable: true,
+            configurable: true
+        });
         MinemapPolylineGraphic.prototype.addTo = function (map) {
             this._isInsided = true;
             this.polyline.addTo(map);
+        };
+        MinemapPolylineGraphic.prototype.setAngle = function (angle) {
+            throw new flagwind.Exception("未实现setAngle方法");
         };
         return MinemapPolylineGraphic;
     }(flagwind.EventProvider));
@@ -7390,7 +7518,7 @@ var flagwind;
         /**
          * 每次位置移动线路上的要素样式变换操作
          */
-        MinemapRouteLayer.prototype.onChangeMovingGraphicSymbol = function (trackline, point, angle) {
+        MinemapRouteLayer.prototype.onUpdateMoveGraphic = function (trackline, point, angle) {
             if (trackline === undefined)
                 return;
             trackline.markerGraphic.setAngle(360 - angle);

@@ -71,7 +71,7 @@ namespace flagwind {
 
         /**
          * 对象转换成点
-         * @param item 对象
+         * @param item 要素原型
          */
         public onToPoint(item: any): FlagwindPoint {
             let lnglat = { lat: item.latitude || item.lat, lon: item.longitude || item.lon };
@@ -195,7 +195,7 @@ namespace flagwind {
         }
 
         /**
-         * 创建点要素
+         * 创建几何点
          */
         public getPoint(item: any): FlagwindPoint {
             return this.onToPoint(item);
@@ -206,7 +206,7 @@ namespace flagwind {
         // #region 底图
 
         /**
-         * 底图查找
+         * 根据id查找底图
          * @param id 底图id
          */
         public getBaseLayerById(id: string): FlagwindTiledLayer | null {
@@ -352,7 +352,7 @@ namespace flagwind {
 
         /**
          * 显示信息窗口
-         * @param event
+         * @param event 信息窗口构建参数
          */
         public abstract onShowInfoWindow(event: InfoWindowShowEventArgs): void;
 
@@ -368,13 +368,12 @@ namespace flagwind {
 
         /**
          * 显示要素tooltip信息
-         * @param graphic 要素对象
+         * @param graphic 要显示tootip信息的要素
          */
-        public abstract onShowTooltip(graphic: any): void;
+        public abstract onShowTooltip(graphic: FlagwindGraphic): void;
 
         /**
          * 隐藏要素tooltip信息
-         * @param graphic 要素对象
          */
         public abstract onHideTooltip(): void;
 

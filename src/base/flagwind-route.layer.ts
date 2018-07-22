@@ -154,10 +154,10 @@ namespace flagwind {
         /**
          * 创建移动要素
          * @param {*} trackline 线路
-         * @param {*} graphic 要素
+         * @param {*} graphic 停靠点要素
          * @param {*} angle 偏转角
          */
-        public abstract onCreateMoveMark(trackline: TrackLine, graphic: FlagwindGraphic, angle: number): any;
+        public abstract onCreateMoveMark(trackline: TrackLine, graphic: FlagwindGraphic, angle: number): void;
 
         /**
          * 修改移动要素
@@ -165,12 +165,15 @@ namespace flagwind {
          * @param point 位置
          * @param angle 角度
          */
-        public abstract onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number): void;
+        public abstract onUpdateMoveGraphic(trackline: TrackLine, point: FlagwindPoint, angle: number): void;
 
         // #endregion
 
         // #region 接口实现
 
+        /**
+         * 显示图层
+         */
         public show(): void {
             if (this.moveMarkLayer) {// 移动小车 
                 this.moveMarkLayer.show();
@@ -181,6 +184,9 @@ namespace flagwind {
             }
         }
 
+        /**
+         * 隐藏图层
+         */
         public hide(): void {
             if (this.moveMarkLayer) {// 移动小车 {
                 this.moveMarkLayer.hide();
@@ -208,6 +214,10 @@ namespace flagwind {
             this.trackLines = [];
         }
 
+        /**
+         * 清除指定的线路名的路径和移动要素
+         * @param name 线路名称
+         */
         public clear(name?: string) {
             if (name) {
                 let trackline = this.getTrackLine(name);
@@ -236,6 +246,10 @@ namespace flagwind {
             }
         }
 
+        /**
+         * 清除指定的线路名的线路
+         * @param name 线路名称
+         */
         public clearLine(name: string) {
             if (!name) {
                 console.error("没有指定清除的线路名称");
@@ -248,6 +262,7 @@ namespace flagwind {
         // #endregion
 
         // #region 播放线路
+
         /**
          * 获取指定名称的线路
          * @param name 指定名称
@@ -259,6 +274,9 @@ namespace flagwind {
 
         /**
          * 向指定线路中增加路段
+         * @param name 线路名
+         * @param segment 路段
+         * @param lineOptions 线路参数
          */
         public addTrackSegment(name: string, segment: TrackSegment, lineOptions: any) {
             let trackline = this.getTrackLine(name);
@@ -271,8 +289,9 @@ namespace flagwind {
 
         /**
          * 计算线路的下一个路段索引
+         * @param name 线路名
          */
-        public getNextSegmentIndex(name: string) {
+        public getNextSegmentIndex(name: string): number {
             let trackline = this.getTrackLine(name);
             if (trackline) return trackline.nextSegmentIndex;
             return 0;
@@ -280,8 +299,10 @@ namespace flagwind {
 
         /**
          * 获取线路的下一路段
+         * @param name 线路名称
+         * @param index 路段索引
          */
-        public getNextSegment(name: string, index: number) {
+        public getNextSegment(name: string, index: number): TrackSegment {
             let trackline = this.getTrackLine(name);
             if (trackline) return trackline.getNextSegment(index);
             return undefined;
@@ -289,8 +310,9 @@ namespace flagwind {
 
         /**
          * 获取线路中的最后一路段
+         * @param name 线路名称
          */
-        public getLastSegment(name: string) {
+        public getLastSegment(name: string): TrackSegment {
             let trackline = this.getTrackLine(name);
             if (trackline) return trackline.lastSegment;
             return undefined;
@@ -298,8 +320,9 @@ namespace flagwind {
 
         /**
          * 获取监控最近播放完成的路段线路
+         * @param name 线路名称
          */
-        public getActiveCompletedSegment(name: string) {
+        public getActiveCompletedSegment(name: string): TrackSegment {
             let trackline = this.getTrackLine(name);
             if (trackline) return trackline.activeCompletedSegment;
             return undefined;
@@ -307,6 +330,7 @@ namespace flagwind {
 
         /**
          * 判断线路是否在运行
+         * @param name 线路名称
          */
         public getIsRunning(name: string): boolean {
             let trackline = this.getTrackLine(name);
@@ -322,6 +346,10 @@ namespace flagwind {
 
         // #region 播放控制
 
+        /**
+         * 停止指定线路移动要素播放
+         * @param name 线路名称
+         */
         public stop(name?: string) {
             let trackline = this.getTrackLine(name);
             if (trackline != null) {
@@ -331,6 +359,9 @@ namespace flagwind {
             }
         }
 
+        /**
+         * 停止所有线路移动要素播放
+         */
         public stopAll() {
             if (this.trackLines) {
                 this.trackLines.forEach(line => {
@@ -399,6 +430,10 @@ namespace flagwind {
                 console.warn("无效的路径：" + name);
             }
         }
+        /**
+         * 加速
+         * @param name 线路名称
+         */
         public speedUp(name: string) {
             let trackline = this.getTrackLine(name);
             if (trackline) {
@@ -408,6 +443,11 @@ namespace flagwind {
                 return "当前路线为空！";
             }
         }
+
+        /**
+         * 减速
+         * @param name 线路名称
+         */
         public speedDown(name: string) {
             let trackline = this.getTrackLine(name);
             if (trackline) {
@@ -769,13 +809,19 @@ namespace flagwind {
             }, this);
         }
 
-        // 检测地图设置，防止图层未加载到地图上
+        /**
+         * 检测地图设置，防止图层未加载到地图上
+         */
         protected checkMapSetting() {
             // if (this.moveMarkLayer._map == null) {
             //     this.moveMarkLayer = this.flagwindMap.innerMap.getLayer(this.moveMarkLayer.id);
             // }
         }
 
+        /**
+         * 标准化停靠点模型
+         * @param item 原始模型
+         */
         protected changeStandardModel(item: any): any {
             if (this.options.changeStandardModel) {
                 return this.options.changeStandardModel(item);
@@ -784,6 +830,10 @@ namespace flagwind {
             }
         }
 
+        /**
+         * 验证停靠点模型
+         * @param item 原始模型
+         */
         protected validGeometryModel(item: any) {
             return MapUtils.validGeometryModel(item);
         }

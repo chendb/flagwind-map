@@ -4,7 +4,7 @@ namespace flagwind {
     /**
      * 绘制图层
      */
-    export class EsriDrawLayer implements IFlagwindDraw {
+    export class EsriDraw implements IFlagwindDraw {
 
         private symbolSetting: any;
         public flagwindMap: FlagwindMap;
@@ -42,8 +42,6 @@ namespace flagwind {
         public finish() {
             if (this.draw) {
                 this.draw.deactivate();
-                // this.flagwindMap.map.enableMapNavigation();
-                // this.draw.finishDrawing();
             }
         }
       

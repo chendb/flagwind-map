@@ -75,11 +75,11 @@ declare namespace flagwind {
         show(): void;
         hide(): void;
         /**
-         * 获取资源要素点
+         * 获取指定id的地图要素对象
          */
-        getGraphicById(key: string): any;
+        getGraphicById(id: string): any;
         /**
-         * 删除资源要素点
+         * 删除指定id的地图要素对象
          */
         removeGraphicById(id: string): void;
         /**
@@ -101,38 +101,11 @@ declare namespace flagwind {
          * @returns void
          */
         off(type: string, listener: Function, scope?: any): void;
+        /**
+         * 创建要素图层
+         * @param args 创建要素图层的参数
+         */
         abstract onCreateGraphicsLayer(args: any): any;
-    }
-}
-declare namespace flagwind {
-    const DRAW_LAYER_OPTIONS: {
-        onDrawCompleteEvent: (geometry: any) => void;
-    };
-    /**
-     * 绘画
-     */
-    interface IFlagwindDraw {
-        activate(mode: string, options?: any): void;
-        finish(): void;
-    }
-}
-declare namespace flagwind {
-    /**
-     * 绘制图层
-     */
-    class EsriDrawLayer implements IFlagwindDraw {
-        private symbolSetting;
-        flagwindMap: FlagwindMap;
-        draw: any;
-        mode: any;
-        options: any;
-        constructor(flagwindMap: FlagwindMap, options?: any);
-        activate(mode: string, options?: any): void;
-        finish(): void;
-        private setSymbol(mode, options);
-        private onDrawComplete(evt);
-        private readonly lineSymbol;
-        private readonly fillSymbol;
     }
 }
 declare let esri: any;
@@ -285,7 +258,7 @@ declare namespace flagwind {
         };
         /**
          * 对象转换成点
-         * @param item 对象
+         * @param item 要素原型
          */
         onToPoint(item: any): FlagwindPoint;
         /**
@@ -330,15 +303,11 @@ declare namespace flagwind {
          */
         setZoom(zoom: number): Promise<void>;
         /**
-         * 创建点要素
+         * 创建几何点
          */
-        getPoint(item: any): {
-            x: number;
-            y: number;
-            spatial: any;
-        };
+        getPoint(item: any): FlagwindPoint;
         /**
-         * 底图查找
+         * 根据id查找底图
          * @param id 底图id
          */
         getBaseLayerById(id: string): FlagwindTiledLayer | null;
@@ -371,7 +340,7 @@ declare namespace flagwind {
          */
         addFeatureLayer(featureLayer: FlagwindFeatureLayer): void;
         /**
-         * 移除功能图层
+         * 移除指定id的功能图层
          * @param id 图层id
          */
         removeFeatureLayer(id: string): boolean;
@@ -389,7 +358,7 @@ declare namespace flagwind {
          * 中心定位
          * @param point 点
          */
-        abstract onCenterAt(point: any): Promise<void>;
+        abstract onCenterAt(point: FlagwindPoint): Promise<void>;
         /**
          * 放大或缩小至指定的级别
          * @param zoom 级别
@@ -406,7 +375,7 @@ declare namespace flagwind {
         abstract onCreateMap(): any;
         /**
          * 显示信息窗口
-         * @param event
+         * @param event 信息窗口构建参数
          */
         abstract onShowInfoWindow(event: InfoWindowShowEventArgs): void;
         /**
@@ -419,22 +388,18 @@ declare namespace flagwind {
         abstract onCreateBaseLayers(): Array<FlagwindTiledLayer>;
         /**
          * 显示要素tooltip信息
-         * @param graphic 要素对象
+         * @param graphic 要显示tootip信息的要素
          */
-        abstract onShowTooltip(graphic: any): void;
+        abstract onShowTooltip(graphic: FlagwindGraphic): void;
         /**
          * 隐藏要素tooltip信息
-         * @param graphic 要素对象
          */
         abstract onHideTooltip(): void;
         /**
          * 创建地图右键快捷菜单
-         * @param options 创建菜单的可靠参数
+         * @param eventArgs 创建菜单的参数
          */
-        abstract onCreateContextMenu(options: {
-            contextMenu: Array<any>;
-            contextMenuClickEvent: any;
-        }): void;
+        abstract onCreateContextMenu(eventArgs: ContextMenuCreateEventArgs): void;
         protected onInit(): void;
         /**
          * 地图加载回调
@@ -459,10 +424,7 @@ declare namespace flagwind {
         onZoom(zoom: number): Promise<void>;
         onShowTooltip(graphic: any): void;
         onHideTooltip(): void;
-        onCreateContextMenu(options: {
-            contextMenu: Array<any>;
-            contextMenuClickEvent: any;
-        }): void;
+        onCreateContextMenu(eventArgs: ContextMenuCreateEventArgs): void;
         /**
          * tileInfo必须是单例模式，否则地图无法正常显示
          *
@@ -503,6 +465,7 @@ declare namespace flagwind {
         updateGraphicList(dataList: Array<any>): void;
         /**
          * 保存要素（有则修改，无则增加）
+         * @param item 原始要素模型
          */
         saveGraphicByModel(item: any): void;
         /**
@@ -517,19 +480,45 @@ declare namespace flagwind {
          * 修改要素
          */
         updateGraphicByModel(item: any, graphic?: any | null): void;
+        /**
+         * 清除选择状态
+         */
         clearSelectStatus(): void;
+        /**
+         * 设置选中状态
+         * @param item 要素原型
+         * @param selected 是否选中
+         */
         setSelectStatus(item: any, selected: boolean): void;
+        /**
+         * 设置选择状态
+         * @param dataList 要素模型集合
+         * @param refresh 是否刷新（为true是时，把所有的要素还原再设置;否则，之前的状态保留，然后再追加）
+         */
         setSelectStatusByModels(dataList: Array<any>, refresh: boolean): void;
-        getSelectedGraphics(): Array<any>;
+        /**
+         * 获取所有选中的要素
+         */
+        getSelectedGraphics(): Array<FlagwindGraphic>;
         /**
          * 创建点要素（把业务数据的坐标转换成地图上的点）
          */
-        getPoint(item: any): any;
+        getPoint(item: any): FlagwindPoint;
         /**
          * 把地图上的点转换成业务的坐标
          * @param {*} point
          */
-        formPoint(point: any): any;
+        formPoint(point: any): {
+            latitude: number;
+            longitude: number;
+        };
+        /**
+         * 在指定id的graphic上打开InfoWindow
+         * @param id  grahpic的唯一标识
+         * @param context 内容
+         * @param options 参数
+         */
+        openInfoWindow(id: string, context: any, options: any): void;
         /**
          * 关闭信息窗口
          */
@@ -539,20 +528,21 @@ declare namespace flagwind {
          * @param id
          */
         gotoCenterById(id: string): void;
+        /**
+         * 增加到地图上
+         */
         addToMap(): void;
+        /**
+         * 从地图移除
+         */
         removeFormMap(): void;
         /**
-         * 在指定id的graphic上打开InfoWindow
-         * @param id  grahpic的唯一标识
-         * @param context 内容
-         * @param options 参数
-         */
-        abstract openInfoWindow(id: string, context: any, options: any): void;
-        /**
-         * 显示InfoWindow
+         * 显示InfoWindow（在flagwind包下可用，对外不要调用此方法）
          * @param args
          */
-        abstract onShowInfoWindow(args: any): void;
+        abstract onShowInfoWindow(args: {
+            graphic: FlagwindGraphic;
+        }): void;
         protected onInit(): void;
         protected onAddLayerBefor(): void;
         protected onAddLayerAfter(): void;
@@ -563,7 +553,7 @@ declare namespace flagwind {
         protected fireEvent(eventName: string, event: any): void;
         protected onValidModel(item: any): any;
         /**
-         * 变换成标准实体（最好子类重写）
+         * 变换成标准实体
          *
          * @protected
          * @param {*} item
@@ -593,7 +583,6 @@ declare namespace flagwind {
         isLoading: boolean;
         constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService?: IFlagwindBusinessService);
         onCreateGraphicsLayer(options: any): any;
-        openInfoWindow(id: string, context: any, options: any): void;
         onShowInfoWindow(evt: any): void;
         /**
          * 把实体转换成标准的要素属性信息
@@ -645,7 +634,6 @@ declare namespace flagwind {
         isLoading: boolean;
         constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService?: IFlagwindBusinessService);
         onCreateGraphicsLayer(options: any): any;
-        openInfoWindow(id: string, context: any, options: any): void;
         onShowInfoWindow(evt: any): void;
         /**
          * 把实体转换成标准的要素属性信息
@@ -698,7 +686,6 @@ declare namespace flagwind {
         isLoading: boolean;
         constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService?: IFlagwindBusinessService);
         onCreateGraphicsLayer(options: any): any;
-        openInfoWindow(id: string, context: any, options?: any): void;
         onShowInfoWindow(evt: any): void;
         /**
          * 把实体转换成标准的要素属性信息
@@ -757,16 +744,49 @@ declare namespace flagwind {
         moveMarkLayer: FlagwindGroupLayer;
         trackLines: Array<TrackLine>;
         activedTrackLineName: string;
+        readonly spatial: any;
         constructor(flagwindMap: FlagwindMap, layerName: string, options: any);
+        /**
+         * 创建线路图层
+         * @param id 图层唯一标识
+         */
         abstract onCreateLineLayer(id: string): FlagwindGroupLayer;
+        /**
+         * 创建移动要素图层
+         * @param id 图层唯一标识
+         */
         abstract onCreateMovingLayer(id: string): FlagwindGroupLayer;
-        abstract onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
+        /**
+         * 判断要素是否在同一位置
+         * @param originGraphic 原始坐标要素
+         * @param targetGraphic 修改后的要素
+         */
+        abstract onEqualGraphic(originGraphic: FlagwindGraphic, targetGraphic: FlagwindGraphic): boolean;
+        /**
+         * 在地图显示线路上的路段
+         * @param segment 路段
+         */
         abstract onShowSegmentLine(segment: TrackSegment): void;
+        /**
+         * 构建标准的停靠点
+         * @param name 线路名
+         * @param stops 原始停靠点
+         */
         abstract onGetStandardStops(name: String, stops: Array<any>): Array<any>;
+        /**
+         * 设置路段用几何线
+         * @param options 路段参数
+         * @param segment 路段
+         */
         abstract onSetSegmentByLine(options: any, segment: TrackSegment): any;
+        /**
+         * 设置路段用几何点集合
+         * @param options 路段参数
+         * @param segment 路段
+         */
         abstract onSetSegmentByPoint(options: any, segment: TrackSegment): any;
         /**
-         * 由网络分析服务来求解轨迹并播放
+         * 由网络分析服务来求解轨迹
          *
          * @param {TrackSegment} segment 要播放的路段
          * @param {*} start 起点要素
@@ -783,13 +803,39 @@ declare namespace flagwind {
         /**
          * 创建移动要素
          * @param {*} trackline 线路
-         * @param {*} graphic 要素
+         * @param {*} graphic 停靠点要素
          * @param {*} angle 偏转角
          */
-        abstract onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): any;
-        readonly spatial: any;
+        abstract onCreateMoveMark(trackline: TrackLine, graphic: FlagwindGraphic, angle: number): void;
+        /**
+         * 修改移动要素
+         * @param trackline 线路
+         * @param point 位置
+         * @param angle 角度
+         */
+        abstract onUpdateMoveGraphic(trackline: TrackLine, point: FlagwindPoint, angle: number): void;
+        /**
+         * 显示图层
+         */
         show(): void;
+        /**
+         * 隐藏图层
+         */
         hide(): void;
+        /**
+         * 清除所有
+         */
+        clearAll(): void;
+        /**
+         * 清除指定的线路名的路径和移动要素
+         * @param name 线路名称
+         */
+        clear(name?: string): void;
+        /**
+         * 清除指定的线路名的线路
+         * @param name 线路名称
+         */
+        clearLine(name: string): void;
         /**
          * 获取指定名称的线路
          * @param name 指定名称
@@ -797,31 +843,45 @@ declare namespace flagwind {
         getTrackLine(name: string): TrackLine | null;
         /**
          * 向指定线路中增加路段
+         * @param name 线路名
+         * @param segment 路段
+         * @param lineOptions 线路参数
          */
         addTrackSegment(name: string, segment: TrackSegment, lineOptions: any): void;
         /**
          * 计算线路的下一个路段索引
+         * @param name 线路名
          */
         getNextSegmentIndex(name: string): number;
         /**
          * 获取线路的下一路段
+         * @param name 线路名称
+         * @param index 路段索引
          */
         getNextSegment(name: string, index: number): TrackSegment;
         /**
          * 获取线路中的最后一路段
+         * @param name 线路名称
          */
         getLastSegment(name: string): TrackSegment;
         /**
          * 获取监控最近播放完成的路段线路
+         * @param name 线路名称
          */
         getActiveCompletedSegment(name: string): TrackSegment;
         /**
          * 判断线路是否在运行
+         * @param name 线路名称
          */
         getIsRunning(name: string): boolean;
-        /*********************轨迹线路**************************/
-        /*********************播放控制**************************/
+        /**
+         * 停止指定线路移动要素播放
+         * @param name 线路名称
+         */
         stop(name?: string): void;
+        /**
+         * 停止所有线路移动要素播放
+         */
         stopAll(): void;
         /**
          * 启动线路播放（起点为上次播放的终点）
@@ -843,14 +903,16 @@ declare namespace flagwind {
          * 调速
          */
         changeSpeed(name: string, speed: number): void;
-        speedUp(name: string): string;
-        speedDown(name: string): string;
-        clear(name?: string): void;
-        clearLine(name: string): void;
         /**
-         * 清除所有
+         * 加速
+         * @param name 线路名称
          */
-        clearAll(): void;
+        speedUp(name: string): string;
+        /**
+         * 减速
+         * @param name 线路名称
+         */
+        speedDown(name: string): string;
         /**
          * 此方法移至FlagwindTrackLayer(即将废弃)
          */
@@ -859,7 +921,6 @@ declare namespace flagwind {
          * 此方法移至FlagwindTrackLayer(即将废弃)
          */
         showTrackToolBox(): void;
-        /*********************播放控制**************************/
         /**
          * 求解最短路径（与solveLine不同，它求解的是一个路段，该路段起点为stops[0],终点为stops[stops.length-1]
          *
@@ -925,10 +986,20 @@ declare namespace flagwind {
         protected onAddLayerBefor(): void;
         protected onAddLayerAfter(): void;
         protected onLoad(): void;
+        /**
+         * 检测地图设置，防止图层未加载到地图上
+         */
         protected checkMapSetting(): void;
+        /**
+         * 标准化停靠点模型
+         * @param item 原始模型
+         */
         protected changeStandardModel(item: any): any;
+        /**
+         * 验证停靠点模型
+         * @param item 原始模型
+         */
         protected validGeometryModel(item: any): any;
-        protected abstract onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -940,6 +1011,10 @@ declare namespace flagwind {
         onSetSegmentByPoint(options: any, segment: TrackSegment): void;
         onShowSegmentLine(segment: TrackSegment): void;
         onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number): void;
+        /**
+         * 每次位置移动线路上的要素样式变换操作
+         */
+        onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number): void;
         onCreateLineLayer(id: string): FlagwindGroupLayer;
         onCreateMovingLayer(id: string): FlagwindGroupLayer;
         onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
@@ -949,10 +1024,6 @@ declare namespace flagwind {
         onAddEventListener(groupLayer: FlagwindGroupLayer, eventName: string, callBack: Function): void;
         getSpatialReferenceFormNA(): any;
         protected cloneStopGraphic(graphic: any): any;
-        /**
-         * 每次位置移动线路上的要素样式变换操作
-         */
-        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -1017,7 +1088,9 @@ declare namespace flagwind {
         private _toolBoxText;
         activedTrackLineName: string;
         isShow: boolean;
+        id: string;
         constructor(businessLayer: FlagwindBusinessLayer, routeLayer: FlagwindRouteLayer, options: any);
+        readonly toolBoxId: string;
         readonly flagwindMap: FlagwindMap;
         /**
          * 移动要素是否正在跑
@@ -1032,23 +1105,37 @@ declare namespace flagwind {
          */
         readonly isMovingGraphicHide: boolean;
         readonly trackLine: TrackLine;
+        /**
+         * 删除播放控件
+         */
         deleteTrackToolBox(): void;
+        /**
+         * 显示播放控件
+         */
         showTrackToolBox(): void;
         /**
          * 显示轨迹线路（不播放）
-         * @param stopList
-         * @param trackLineName
-         * @param options
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
+         * @param options 轨迹构建参数
          */
         showTrack(stopList: Array<any>, trackLineName?: string, options?: any): void;
         /**
          * 启动线路播放（起点为线路的始点）
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
+         * @param options 轨迹构建参数
          */
         startTrack(stopList: Array<any>, trackLineName?: string, options?: any): void;
         /**
          * 启动线路播放（起点为上次播放的终点）
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
          */
         move(stopList: Array<any>, trackLineName?: string): void;
+        /**
+         * 显示所有
+         */
         clearAll(): void;
         /**
          * 清除要素
@@ -1092,7 +1179,7 @@ declare namespace flagwind {
         changeSpeed(speed: number): void;
         /**
          * 切换线路
-         * @param name 线路
+         * @param name 线路名称
          */
         changeTrackLine(name: string): void;
     }
@@ -1114,6 +1201,37 @@ declare namespace flagwind {
         showTrack(trackLineName: string, stopList: Array<any>, options: any): void;
         getStopsGraphicList(stopList: Array<any>): any[];
         private toStopPoint(item);
+    }
+}
+declare namespace flagwind {
+    const DRAW_LAYER_OPTIONS: {
+        onDrawCompleteEvent: (geometry: any) => void;
+    };
+    /**
+     * 绘画
+     */
+    interface IFlagwindDraw {
+        activate(mode: string, options?: any): void;
+        finish(): void;
+    }
+}
+declare namespace flagwind {
+    /**
+     * 绘制图层
+     */
+    class EsriDraw implements IFlagwindDraw {
+        private symbolSetting;
+        flagwindMap: FlagwindMap;
+        draw: any;
+        mode: any;
+        options: any;
+        constructor(flagwindMap: FlagwindMap, options?: any);
+        activate(mode: string, options?: any): void;
+        finish(): void;
+        private setSymbol(mode, options);
+        private onDrawComplete(evt);
+        private readonly lineSymbol;
+        private readonly fillSymbol;
     }
 }
 declare var echarts: any;
@@ -1245,6 +1363,26 @@ declare namespace flagwind {
         onMoveEvent(target: any, point: any, angle: number): void;
     };
     /**
+     * 地图图形要素
+     */
+    interface FlagwindGraphic {
+        attributes: any;
+        geometry: any;
+        symbol: any;
+        show(): void;
+        hide(): void;
+        setAngle(angle: number): void;
+        setSymbol(symbol: any): void;
+        setGeometry(geometry: any): void;
+    }
+    /**
+     * 地图右键菜单创建事件参数
+     */
+    interface ContextMenuCreateEventArgs {
+        contextMenu: Array<any>;
+        contextMenuClickEvent: any;
+    }
+    /**
      * 地图点类型定义
      */
     interface FlagwindPoint {
@@ -1283,20 +1421,44 @@ declare namespace flagwind {
         flagwindRouteLayer: FlagwindRouteLayer;
         index: number;
         name: string;
-        startGraphic: any;
-        endGraphic: any;
+        startGraphic: FlagwindGraphic;
+        endGraphic: FlagwindGraphic;
         options: any;
         timer: any;
+        /**
+         * 移动要素在该路段点集合的位置
+         */
         position: number;
+        /**
+         * 线段长度
+         */
         length: number | null;
+        /**
+         * 线段速度
+         */
         speed: number | null;
+        /**
+         * 是否播放完成
+         */
         isCompleted: boolean;
+        /**
+         * 是否正在运行
+         */
         isRunning: boolean;
-        line: any | null;
+        /**
+         * 线路点集合
+         */
+        line: Array<any>;
+        /**
+         * 几何线
+         */
         polyline: any | null;
+        /**
+         * 定时器时间（ms）
+         */
         time: number;
         /**
-         * 由外部使用
+         * 要素线（由外部使用）
          *
          * @type {*}
          * @memberof TrackSegment
@@ -1310,24 +1472,46 @@ declare namespace flagwind {
          * @memberof TrackSegment
          */
         waypoints: Array<any>;
-        constructor(flagwindRouteLayer: FlagwindRouteLayer, index: number, name: string, startGraphic: any, endGraphic: any, options: any);
+        constructor(flagwindRouteLayer: FlagwindRouteLayer, index: number, name: string, startGraphic: FlagwindGraphic, endGraphic: FlagwindGraphic, options: any);
         /**
          * 设置拆线
+         * @param polyline 几何拆线
+         * @param length 线的长度
          */
         setPolyLine(polyline: any, length: number): void;
         /**
          * 设置直线
+         * @param points 几何点集
          */
         setMultPoints(points: Array<any>): void;
+        /**
+         * 变换速度
+         * @param speed 速度值
+         */
         changeSpeed(speed?: number | null): void;
-        move(segment: TrackSegment): void;
+        /**
+         * 播放移动要素（起点为上次终点）
+         */
+        move(): void;
+        /**
+         * 播放移动要素（起点为路段的始点）
+         */
         start(): boolean;
         /**
          * 当定时器为空，且运行状态为true时表示是暂停
          */
         readonly isPaused: boolean;
+        /**
+         * 暂停
+         */
         pause(): void;
+        /**
+         * 停止
+         */
         stop(): void;
+        /**
+         * 重置
+         */
         reset(): void;
     }
     /**
@@ -1343,9 +1527,18 @@ declare namespace flagwind {
         /**
          * 设置线路上移动要素(如：车辆图标)
          */
-        markerGraphic: any;
+        markerGraphic: FlagwindGraphic;
+        /**
+         * 路段集合
+         */
         segments: Array<TrackSegment>;
+        /**
+         * 移动要素是否隐藏
+         */
         isMovingGraphicHide: boolean;
+        /**
+         * 当前速度
+         */
         speed: number | null;
         constructor(flagwindMap: FlagwindMap, name: string, options: any);
         /**
@@ -1400,6 +1593,9 @@ declare namespace flagwind {
          * 停止线路
          */
         stop(): void;
+        /**
+         * 重置
+         */
         reset(): void;
         /**
          * 暂停
@@ -1419,10 +1615,11 @@ declare namespace flagwind {
         add(segment: TrackSegment): void;
         /**
          * 获取线路的下一路段
+         * @param index 路段索引
          */
         getNextSegment(index: number): TrackSegment | null;
         /**
-         * 获取线路的路段
+         * 获取线路的指定索引路段
          */
         getSegment(index: number): TrackSegment | null;
     }
@@ -1479,7 +1676,7 @@ declare namespace flagwind {
          * @param length 长度
          * @param numsOfKilometer 公里点数
          */
-        static vacuate(paths: Array<Array<any>>, length: number, numsOfKilometer: number): any[];
+        static vacuate(paths: Array<Array<any>>, length: number, numsOfKilometer: number): Array<any>;
         /**
          * 判断原始点坐标与目标点坐标是否一样
          *
@@ -2286,7 +2483,9 @@ declare namespace flagwind {
         delete(): void;
         setSymbol(symbol: any): void;
         setGeometry(geometry: MinemapCircle): void;
+        readonly geometry: MinemapCircle;
         addTo(map: any): void;
+        setAngle(angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -2423,6 +2622,7 @@ declare namespace flagwind {
         setSymbol(symbol: any): void;
         setGeometry(geometry: MinemapPoint): void;
         addTo(map: any): void;
+        setAngle(angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -2533,7 +2733,7 @@ declare namespace flagwind {
         wkid: number;
         constructor(wkid: number);
     }
-    interface IMinemapGraphic {
+    interface IMinemapGraphic extends FlagwindGraphic {
         id: string;
         attributes: any;
         isShow: boolean;
@@ -2658,7 +2858,6 @@ declare namespace flagwind {
         isLoading: boolean;
         constructor(flagwindMap: FlagwindMap, id: string, options: any, businessService: IFlagwindBusinessService);
         onCreateGraphicsLayer(options: any): MinemapGraphicsLayer;
-        openInfoWindow(id: string, context: any, options: any): void;
         onShowInfoWindow(evt: any): void;
         /**
          * 把实体转换成标准的要素属性信息
@@ -2722,7 +2921,9 @@ declare namespace flagwind {
         delete(): void;
         setSymbol(symbol: any): void;
         setGeometry(geometry: MinemapPolygon): void;
+        readonly geometry: MinemapPolygon;
         addTo(map: any): void;
+        setAngle(angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -2747,7 +2948,9 @@ declare namespace flagwind {
         delete(): void;
         setSymbol(symbol: any): void;
         setGeometry(geometry: MinemapPolyline): void;
+        readonly geometry: MinemapPolyline;
         addTo(map: any): void;
+        setAngle(angle: number): void;
     }
 }
 declare namespace flagwind {
@@ -2776,7 +2979,7 @@ declare namespace flagwind {
         /**
          * 每次位置移动线路上的要素样式变换操作
          */
-        protected onChangeMovingGraphicSymbol(trackline: TrackLine, point: any, angle: number): void;
+        onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number): void;
     }
 }
 declare namespace flagwind {

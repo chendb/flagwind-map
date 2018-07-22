@@ -71,7 +71,7 @@ namespace flagwind {
             symbol.setAngle(360 - angle);
             trackline.markerGraphic.setSymbol(symbol);
             trackline.markerGraphic.setGeometry(point);
-            trackline.markerGraphic.draw();// 重绘
+            (<any>trackline.markerGraphic).draw();// 重绘
         }
 
         public onCreateLineLayer(id: string): FlagwindGroupLayer {

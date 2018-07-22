@@ -70,7 +70,7 @@ namespace flagwind {
          * @param length 长度
          * @param numsOfKilometer 公里点数
          */
-        public static vacuate(paths: Array<Array<any>>, length: number, numsOfKilometer: number) {
+        public static vacuate(paths: Array<Array<any>>, length: number, numsOfKilometer: number): Array<any> {
 
             if (numsOfKilometer === 0) {
                 let startPath = paths[0];

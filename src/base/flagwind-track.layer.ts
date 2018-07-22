@@ -33,13 +33,15 @@ namespace flagwind {
         public activedTrackLineName: string;
 
         public isShow: boolean = true;
+        public id: string;
 
         public constructor(public businessLayer: FlagwindBusinessLayer, public routeLayer: FlagwindRouteLayer, public options: any) {
             this.options = { ...TRACK_LAYER_OPTIONS, ...options };
             this.businessLayer.removeFormMap();
             this.businessLayer.addToMap();
-            if (this.options.id) {
-                this.activedTrackLineName = this.options.id + "_track";
+            this.id = this.options.id || "flagwind_track_layer";
+            if (this.id) {
+                this.activedTrackLineName = this.id + "_track";
             }
 
             /**
@@ -73,6 +75,10 @@ namespace flagwind {
         }
 
         // #region 属性
+
+        public get toolBoxId(): string {
+            return this.id + "_toolbox";
+        }
 
         public get flagwindMap(): FlagwindMap {
             return this.businessLayer.flagwindMap;
@@ -114,6 +120,9 @@ namespace flagwind {
 
         // #region TrackToolBox
 
+        /**
+         * 删除播放控件
+         */
         public deleteTrackToolBox(): void {
             if (this._trackToolBox) this._trackToolBox.parentNode.removeChild(this._trackToolBox);
             this._trackToolBox = null;
@@ -125,14 +134,17 @@ namespace flagwind {
             this._toolBoxText = null;
         }
 
+        /**
+         * 显示播放控件
+         */
         public showTrackToolBox(): void {
-            if (document.getElementById("route-ctrl-group")) {
+            if (document.getElementById(this.toolBoxId)) {
                 console.log("TrackToolBox已经创建，不可重复创建！");
-                document.getElementById("route-ctrl-group").style.display = "block";
+                document.getElementById(this.toolBoxId).style.display = "block";
                 return;
             }
             this._trackToolBox = document.createElement("div");
-            this._trackToolBox.setAttribute("id", "route-ctrl-group");
+            this._trackToolBox.setAttribute("id", this.toolBoxId);
             this._trackToolBox.innerHTML = `<div class="tool-btns"><span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
                 <span class="route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
                 <span class="route-btn icon-speedDown" title="减速" data-operate="speedDown"></span>
@@ -170,9 +182,9 @@ namespace flagwind {
 
         /**
          * 显示轨迹线路（不播放）
-         * @param stopList 
-         * @param trackLineName 
-         * @param options 
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
+         * @param options 轨迹构建参数
          */
         public showTrack(stopList: Array<any>, trackLineName?: string, options?: any): void {
             if (trackLineName) {
@@ -195,6 +207,9 @@ namespace flagwind {
 
         /**
          * 启动线路播放（起点为线路的始点）
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
+         * @param options 轨迹构建参数
          */
         public startTrack(stopList: Array<any>, trackLineName?: string, options?: any) {
             if (trackLineName) {
@@ -216,6 +231,8 @@ namespace flagwind {
 
         /**
          * 启动线路播放（起点为上次播放的终点）
+         * @param stopList 停靠点原型数据集合
+         * @param trackLineName 线路名称
          */
         public move(stopList: Array<any>, trackLineName?: string): void {
             if (name) {
@@ -227,6 +244,9 @@ namespace flagwind {
             this.routeLayer.move(this.activedTrackLineName);
         }
 
+        /**
+         * 显示所有
+         */
         public clearAll(): void {
             this.clear();
         }
@@ -347,7 +367,7 @@ namespace flagwind {
 
         /**
          * 切换线路
-         * @param name 线路
+         * @param name 线路名称
          */
         public changeTrackLine(name: string): void {
             this.activedTrackLineName = name;

@@ -94,6 +94,10 @@ namespace flagwind {
             this._isInsided = true;
             this.polygon.addTo(map);
         }
+
+        public setAngle(angle: number) {
+            throw new Exception("未实现setAngle方法");
+        }
     }
 
 }
