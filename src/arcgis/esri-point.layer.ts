@@ -95,7 +95,7 @@ namespace flagwind {
 
         public getImageUrl(item: any): string {
             let imageUrl = this.options.symbol.imageUrl;
-            if (typeof imageUrl === "string" && imageUrl.indexOf("base64") === -1) {
+            if (typeof imageUrl === "string" && imageUrl) {
                 const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;
                 let statusImageUrl: string = this.options[key] || this.options.symbol[key] || imageUrl;
                 let suffixIndex = statusImageUrl.lastIndexOf(".");
@@ -107,10 +107,12 @@ namespace flagwind {
                     return `${path}"."${suffix}`;
                 }
             } else {
+                let status = item.status;
+                if (status === undefined || status === null) {
+                    status = "";
+                }
                 const key =
-                    "image" +
-                    (item.status || "") +
-                    (item.selected ? "checked" : "");
+                    "image" + status + (item.selected ? "checked" : "");
                 return (
                     this.options[key] ||
                     this.options.symbol[key] ||
@@ -238,17 +240,13 @@ namespace flagwind {
                 .then(dataList => {
                     this.isLoading = false;
                     this.saveGraphicList(dataList);
-                    this.fireEvent("updateStatus", {
-                        action: "end",
-                        attributes: dataList
-                    });
+                    this.fireEvent("updateStatus", { action: "end", attributes: dataList });
                 })
                 .catch(error => {
                     this.isLoading = false;
                     console.log("加载状态时发生了错误：", error);
                     this.fireEvent("updateStatus", {
-                        action: "error",
-                        attributes: error
+                        action: "error", attributes: error
                     });
                 });
         }

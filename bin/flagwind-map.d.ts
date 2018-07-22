@@ -202,11 +202,12 @@ declare namespace flagwind {
     class EsriHeatmapLayer implements IFlagwindHeatmapLayer {
         flagwindMap: FlagwindMap;
         private map;
-        isShow: boolean;
-        options: any;
         heatLayer: any;
-        heatContainer: HTMLElement;
-        constructor(flagwindMap: FlagwindMap, options: any);
+        isShow: boolean;
+        id: string;
+        options: any;
+        heatmapRenderer: any;
+        constructor(flagwindMap: FlagwindMap, id: string, options: any);
         createHeatLayer(): any;
         appendTo(map: any): void;
         removeLayer(map: any): void;
@@ -214,7 +215,8 @@ declare namespace flagwind {
         clear(): void;
         show(): void;
         hide(): void;
-        showDataList(data: Array<any>, changeExtent: boolean): void;
+        setMaxPixelIntensity(value: number): void;
+        showDataList(data: Array<any>): void;
         onChangeStandardModel(data: Array<any>): any[];
     }
 }
@@ -999,7 +1001,7 @@ declare namespace flagwind {
          * 验证停靠点模型
          * @param item 原始模型
          */
-        protected validGeometryModel(item: any): any;
+        protected validGeometryModel(item: any): boolean;
     }
 }
 declare namespace flagwind {
@@ -1015,6 +1017,7 @@ declare namespace flagwind {
          * 每次位置移动线路上的要素样式变换操作
          */
         onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number): void;
+        getImageUrl(trackline: TrackLine, angle: number): any;
         onCreateLineLayer(id: string): FlagwindGroupLayer;
         onCreateMovingLayer(id: string): FlagwindGroupLayer;
         onEqualGraphic(originGraphic: any, targetGraphic: any): boolean;
@@ -1540,6 +1543,8 @@ declare namespace flagwind {
          * 当前速度
          */
         speed: number | null;
+        direction: number | null;
+        step: number | null;
         constructor(flagwindMap: FlagwindMap, name: string, options: any);
         /**
          * 获取监控最近播放完成的路段线路
@@ -1697,7 +1702,7 @@ declare namespace flagwind {
             x: number;
             y: number;
         }): number;
-        static validGeometryModel(item: any): any;
+        static validGeometryModel(item: any): boolean;
         static delta(lat: any, lon: any): {
             "lat": number;
             "lon": number;
@@ -2506,7 +2511,7 @@ declare namespace flagwind {
         show(): void;
         hide(): void;
         registerEvent(graphic: MinemapPointGraphic): void;
-        updatePoint(editLayer: this): void;
+        updatePoint(): void;
         mouseMovePoint(e: any): void;
         activateEdit(key: string): void;
         cancelEdit(key: string): void;

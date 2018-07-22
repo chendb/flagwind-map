@@ -108,7 +108,7 @@ namespace flagwind {
         /**
          * 线路点集合
          */
-        public line: Array<any>;
+        public line: Array<any> ;
 
         /**
          * 几何线
@@ -184,7 +184,7 @@ namespace flagwind {
          * @param speed 速度值 
          */
         public changeSpeed(speed: number | null = null) {
-            if (this.options.numsOfKilometer === 0) {
+            if (this.options.numsOfKilometer === 0 || this.line.length === 0) {
                 this.speed = 10000000;
                 this.time = 1;
             } else {
@@ -324,6 +324,8 @@ namespace flagwind {
          * 当前速度
          */
         public speed: number | null;
+        public direction: number | null;
+        public step: number | null;
 
         public constructor(
             public flagwindMap: FlagwindMap,

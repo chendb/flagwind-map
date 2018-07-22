@@ -75,7 +75,7 @@ namespace flagwind {
          */
         public onToPoint(item: any): FlagwindPoint {
             let lnglat = { lat: item.latitude || item.lat, lon: item.longitude || item.lon };
-            if (!MapUtils.validGeometryModel(item)) {
+            if (!this.validGeometryModel(item)) {
                 lnglat.lon = item.x || lnglat.lon;
                 lnglat.lat = item.y || lnglat.lat;
             }
@@ -108,6 +108,10 @@ namespace flagwind {
                 y: lnglat.lat,
                 spatial: this.spatial
             });
+        }
+
+        public validGeometryModel(item: any) {
+            return MapUtils.validGeometryModel(item);
         }
 
         // #endregion

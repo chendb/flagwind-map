@@ -9,27 +9,25 @@ namespace flagwind {
 
     export class EsriEditLayer extends FlagwindFeatureLayer implements IFlagwindEditLayer {
 
+        private graphic: any = null;
+        private originInfo: any = {};
         public editObj: any;
         public options: any;
         public businessLayer: FlagwindBusinessLayer;
         public flagwindMap: FlagwindMap;
 
         public constructor(businessLayer: FlagwindBusinessLayer, options: any) {
-            options = { ...EDIT_LAYER_OPTIONS, ...options };
             super("edit_" + businessLayer.id, "编辑图层");
+            this.options = { ...EDIT_LAYER_OPTIONS, ...options };
             this.businessLayer = businessLayer;
             this.flagwindMap = businessLayer.flagwindMap;
-            this.options = options;
 
             this.editObj = new esri.toolbars.Edit(this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
             this.flagwindMap.addFeatureLayer(this);
             if (this.flagwindMap.innerMap.loaded) {
                 this.onLoad();
             } else {
-                const me = this;
-                this.flagwindMap.innerMap.on("load", function () {
-                    me.onLoad();
-                });
+                this.flagwindMap.innerMap.on("load", () => {this.onLoad();});
             }
         }
 
@@ -52,9 +50,9 @@ namespace flagwind {
             let tool = esri.toolbars.Edit.MOVE;
             // map.disableDoubleClickZoom();//禁掉鼠标双击事件
             this.editObj.activate(tool, editGraphic, null); // 激活编辑工具
-            this.businessLayer.onShowInfoWindow({
-                graphic: graphic
-            });
+            this.graphic = editGraphic;
+            this.originInfo = editGraphic.attributes;
+            this.showInfoWindow();
         }
 
         /**
@@ -71,22 +69,6 @@ namespace flagwind {
             graphic.attributes.eventName = "delete";
             this.businessLayer.onShowInfoWindow({
                 graphic: graphic
-            });
-        }
-
-        public registerModifyEvent(modifySeletor: string): void {
-            const me = this;
-            dojo.connect(dojo.byId(modifySeletor), "onclick", function (evt: any) {
-                const key = evt.target.attributes["key"].value;
-                me.activateEdit(key);
-            });
-        }
-
-        public registerDeleteEvent(deleteSeletor: string): void {
-            const _editLayer = this;
-            dojo.connect(dojo.byId(deleteSeletor), "onclick", function (evt: any) {
-                const key = evt.target.attributes["key"].value;
-                _editLayer.cancelEdit(key);
             });
         }
 
@@ -124,60 +106,82 @@ namespace flagwind {
             return this.options.onEditInfo(options, isSave);
         }
 
+        public showInfoWindow() {
+            const title = this.businessLayer.title;
+            this.map.infoWindow.setTitle(title);
+            let content = "";
+            content = "<div><span class='opertate-tooltip'>操作提示：请拖动图标至目标位置，点击 \"完成\" 会提示保存修改，点击\"取消\"将取消修改！</span></div><br/>";
+            content += "<a><span id='resetOrdinate'  class='btn btn-primary btn-transparent outline mt5 deleteOrdinate' " + "key=" + this.graphic.attributes.id + ">取消</span></a>";
+            content += "<a><span id='applyOrdinate'  class='btn btn-primary btn-transparent outline mt5 deleteOrdinate' " + "key=" + this.graphic.attributes.id + ">完成</span></a>";
+            this.map.infoWindow.setContent(content);
+            const pt = this.graphic.geometry;
+            this.map.infoWindow.show(pt);
+            dojo.connect(dojo.byId("resetOrdinate"), "onclick", (evt: any) => {
+                const key = evt.target.attributes["key"].value;
+                this.cancelEdit(key);
+            });
+            dojo.connect(dojo.byId("applyOrdinate"), "onclick", (evt: any) => {
+                const key = evt.target.attributes["key"].value;
+                this.confirm(key);
+            });
+
+        }
+
+        public confirm(key: string) {
+            (<any>window).$Modal.confirm({
+                title: "确定要进行更改吗？",
+                content: "初始坐标值（经度）:" + this.originInfo.longitude +
+                    ",（纬度）:" + this.originInfo.latitude +
+                    "\r当前坐标值（经度）:" + this.graphic.geometry.x.toFixed(8) +
+                    ",（纬度）:" + this.graphic.geometry.y.toFixed(8),
+                onOk: () => {
+                    let pt = this.graphic.geometry;
+                    let lonlat = this.businessLayer.formPoint(pt);
+                    let changeInfo = { ...this.graphic.attributes, ...lonlat};
+    
+                    // 异步更新，请求成功才更新位置，否则不处理，
+                    this.options.onEditInfo({
+                        id: key,
+                        latitude: changeInfo.latitude,
+                        longitude: changeInfo.longitude
+                    }, true).then((res: any) => {
+                        this.businessLayer.removeGraphicById(changeInfo.id);
+                        this.businessLayer.addGraphicByModel(changeInfo);
+                    });
+                },
+                onCancel: () => {
+                    this.options.onEditInfo({
+                        id: key,
+                        latitude: this.originInfo.latitude,
+                        longitude: this.originInfo.longitude
+                    }, false);
+                }
+            });
+    
+            this.graphic.attributes.eventName = "stop";
+            this.clear();
+            this.hide();
+            this.map.infoWindow.hide();
+            this.businessLayer.show();
+        }
+
         protected registerEvent(): void {
-            let _editLayer = this;
-            dojo.connect(this.layer, "onClick", function (evt: any) {
-                _editLayer.onLayerClick(_editLayer, evt);
+
+            dojo.connect(this.layer, "onClick", (evt: any) => {
+                this.graphic = evt.graphic;
+                this.onLayerClick(this, evt);
             });
 
-            let originInfo: any = {}; // 存放资源的初始值		
             console.log("编辑对象：" + this.editObj);
-            dojo.on(this.editObj, "graphic-first-move", function (ev: any) {
+            dojo.on(this.editObj, "graphic-first-move", (ev: any) => {
                 console.log("要素移动---------graphic-first-move");
-                _editLayer.flagwindMap.innerMap.infoWindow.hide();
-                originInfo = ev.graphic.attributes;
+                this.flagwindMap.innerMap.infoWindow.hide();
             });
-            dojo.on(this.editObj, "graphic-move-stop", function (ev: any) { // 这里要更新一下属性值	
-                console.log("要素移动---------graphic-move-stop");
-                _editLayer.editObj.deactivate();
-                let key = ev.graphic.attributes.id;
-
-                (<any>window).$Modal.confirm({
-                    title: "确定要进行更改吗？",
-                    content: "初始坐标值（经度）:" + originInfo.longitude +
-                        ",（纬度）:" + originInfo.latitude +
-                        "\r当前坐标值（经度）:" + ev.graphic.geometry.x.toFixed(8) +
-                        ",（纬度）:" + ev.graphic.geometry.y.toFixed(8),
-                    onOk: () => {
-                        let pt = ev.graphic.geometry;
-                        let lonlat = _editLayer.businessLayer.formPoint(pt);
-                        let changeInfo = { ...ev.graphic.attributes, ...lonlat };
-
-                        // 异步更新，请求成功才更新位置，否则不处理，
-                        _editLayer.onChanged({
-                            id: key,
-                            latitude: changeInfo.latitude,
-                            longitude: changeInfo.longitude
-                        }, true).then(success => {
-                            if (success) {
-                                _editLayer.businessLayer.removeGraphicById(changeInfo.id);
-                                _editLayer.businessLayer.addGraphicByModel(changeInfo);
-                            }
-                        });
-                    },
-                    onCancel: () => {
-                        _editLayer.onChanged({
-                            id: key,
-                            latitude: originInfo.latitude,
-                            longitude: originInfo.longitude
-                        }, false);
-                    }
-                });
-                ev.graphic.attributes.eventName = "stop";
-                _editLayer.clear();
-                _editLayer.hide();
-                _editLayer.flagwindMap.innerMap.infoWindow.hide();
-                _editLayer.businessLayer.show();
+            dojo.on(this.editObj, "graphic-click", (evt: any) => {
+                this.showInfoWindow();
+            });
+            dojo.on(this.editObj, "graphic-move-stop", (evt: any) => {
+                this.showInfoWindow();
             });
         }
 

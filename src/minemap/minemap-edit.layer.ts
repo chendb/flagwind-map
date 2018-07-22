@@ -39,57 +39,53 @@ namespace flagwind {
         }
 
         public registerEvent(graphic: MinemapPointGraphic): void {
-            const me = this;
-            graphic.on("onMouseOver", function (args: EventArgs) {
+      
+            graphic.on("onMouseOver", (args: EventArgs) => {
                 // console.log("test--->onMouseOver");
-                me.cursorOverPointFlag = true;
+                this.cursorOverPointFlag = true;
                 // me.map.dragPan.disable();
             });
-            graphic.on("onMouseOut", function (args: EventArgs) {
+            graphic.on("onMouseOut", (args: EventArgs) => {
                 // console.log("test--->onMouseOut");
-                me.cursorOverPointFlag = false;
-                me.map.dragPan.enable();
+                this.cursorOverPointFlag = false;
+                this.map.dragPan.enable();
             });
-            graphic.on("onMouseDown", function (args: EventArgs) {
-                if (!me.cursorOverPointFlag) return;
-                me.draggingFlag = true;
+            graphic.on("onMouseDown", (args: EventArgs) => {
+                if (!this.cursorOverPointFlag) return;
+                this.draggingFlag = true;
                 console.log("test--->onMouseDown");
-                (<any>window)._editLayer = me;
+                (<any>window)._editLayer = this;
                 console.log("test--->map.on.mousemove");
-                me.map.on("mousemove", me.mouseMovePoint);
-                me.map.dragPan.disable();
+                this.map.on("mousemove", this.mouseMovePoint);
+                this.map.dragPan.disable();
             });
-            graphic.on("onMouseUp", function (args: EventArgs) {
+            graphic.on("onMouseUp",  (args: EventArgs) => {
                 console.log("test--->onMouseUp");
-                if (!me.draggingFlag) return;
-                me.draggingFlag = false;
+                if (!this.draggingFlag) return;
+                this.draggingFlag = false;
                 console.log("test--->map.off.mousemove");
-                me.map.off("mousemove", me.mouseMovePoint);
+                this.map.off("mousemove", this.mouseMovePoint);
                 (<any>window)._editLayer = null;
-                me.updatePoint(me);
+                this.updatePoint();
             });
         }
 
-        public updatePoint(editLayer: this) {
-            let isOK = confirm("确定要更新坐标为x:" + editLayer.graphic.geometry.x + ",y:" + editLayer.graphic.geometry.y);
+        public updatePoint() {
+            let isOK = confirm("确定要更新坐标为x:" + this.graphic.geometry.x + ",y:" + this.graphic.geometry.y);
             if (!isOK) {
                 this.cancelEdit(this.graphic.attributes.id);
                 return;
             }
             let graphic: MinemapPointGraphic = this.businessLayer.getGraphicById(this.graphic.attributes.id);
-            graphic.setGeometry(new MinemapPoint(this.graphic.geometry.x, this.graphic.geometry.y));
+            graphic.setGeometry(new MinemapPoint(this.graphic.geometry.x, this.graphic.geometry.y,graphic.geometry.spatial));
+  
+            let lnglat =  this.businessLayer.flagwindMap.onFormPoint(this.graphic.geometry);
 
-            this.options.onEditInfo(
-                editLayer.graphic.attributes.id,
-                editLayer.graphic.geometry.x,
-                editLayer.graphic.geometry.y,
-                isOK
-            );
-            // editLayer.onChanged({
-            //     key: editLayer.graphic.attributes.id,
-            //     longitude: editLayer.graphic.geometry.x,
-            //     latitude: editLayer.graphic.geometry.y
-            // }, isOK);
+            this.onChanged({
+                key: this.graphic.attributes.id,
+                longitude: lnglat.longitude,
+                latitude: lnglat.latitude
+            }, isOK);
 
         }
 
@@ -123,6 +119,7 @@ namespace flagwind {
             this.cursorOverPointFlag = false;
             this.draggingFlag = false;
         }
+        
         public onChanged(options: any, isSave: boolean): Promise<boolean> {
             return new Promise<boolean>((resolve, reject) => {
                 resolve(true);

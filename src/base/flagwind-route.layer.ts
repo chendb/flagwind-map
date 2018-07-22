@@ -6,7 +6,7 @@ namespace flagwind {
         // 路由方式（Line:连线，NA:网络路径分析）
         routeType: "Line",
         // 路由服务地址(当routeType为NA时设置)
-        routeUrl: "http://27.17.34.22:6080/arcgis/rest/services/Features/NAServer/Route",
+        routeUrl: "http://120.202.26.98:6080/arcgis/rest/services/Features/NAServer/Route",
         // 行驶速度
         speed: 100,
         minSpeedRatio: 0.25,
@@ -482,7 +482,8 @@ namespace flagwind {
             const me = this;
             let trackToolBox = document.createElement("div");
             trackToolBox.setAttribute("id", "route-ctrl-group");
-            trackToolBox.innerHTML = `<div class="tool-btns"><span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
+            trackToolBox.innerHTML = `<div class="tool-btns">
+                <span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
                 <span class="route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
                 <span class="route-btn icon-speedDown" title="减速" data-operate="speedDown"></span>
                 <span class="route-btn icon-speedUp" title="加速" data-operate="speedUp"></span>
@@ -690,7 +691,7 @@ namespace flagwind {
          * 路由分析失败回调
          */
         protected errorHandler(err: any, segment: TrackSegment) {
-            console.log("路由分析异常" + err + "");
+            console.log("路由分析异常" + err);
             const points = [];
             points.push(segment.startGraphic.geometry);
             if (segment.waypoints) {
@@ -770,6 +771,13 @@ namespace flagwind {
                 segment.stop();
                 // 如果没有下一条线路，说明线路播放结束，此时调用线路播放结束回调
                 flagwindRoute.options.onLineEndEvent(segment.name, segment.index, currentLine);
+
+                let toolBoxTextEle: HTMLElement = document.querySelector("#route-ctrl-group .tool-text span");
+                let playBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-continue");
+                let pauseBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-pause");
+                toolBoxTextEle.innerHTML = "当前状态：已结束";
+                playBtn.style.display = "block";
+                pauseBtn.style.display = "none";
             }
         }
 
