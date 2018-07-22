@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>FlagwindRouteLayer</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic|Source+Code+Pro:300,400,700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="../assets/css/bootstrap.css">
+<link rel="stylesheet" href="../assets/css/jquery.bonsai.css">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="../assets/icon-font/icons.css">
+<script type="text/javascript" src="../assets/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript" src="../assets/js/bootstrap.js"></script>
+<script type="text/javascript" src="../assets/js/jquery.bonsai.js"></script>
+
+  </head>
+  <body>
+    <div>
+
+      <!-- Name Title -->
+
+      <h1>FlagwindRouteLayer</h1>
+
+      <!-- Type and Stereotype -->
+
+      <section style="margin-top: .5em;">
+        <span class="alert alert-info">
+          <span class="node-icon staruml-icon icon-UMLClass"></span>
+          UMLClass
+        </span>
+        
+      </section>
+
+      <!-- Path -->
+
+      <section style="margin-top: 10px">
+        
+        
+        
+          
+          <span class="label label-info"><a href='cf9c8b720f3815adeccaf3ef6e48c6c4.html'><span class='node-icon staruml-icon icon-Project'></span>flagwind-map</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='594af663de577680f35b13183109d675.html'><span class='node-icon staruml-icon icon-UMLModel'></span>Model</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='9961bc62befe61612aa7f9739fa50129.html'><span class='node-icon staruml-icon icon-UMLPackage'></span>base</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='3322ba18296169f4c6120d592e5c3af3.html'><span class='node-icon staruml-icon icon-UMLClass'></span>FlagwindRouteLayer</a></span>
+        
+      </section>
+
+      <!-- Diagram -->
+
+      
+
+      <!-- Description -->
+
+      
+      <section>
+        <h3>Description</h3>
+        <div>
+          
+            <p>路由图层，主要解决多个停靠之间线路规划问题，常用于轨迹回放等场景</p>
+          
+        </div>
+      </section>
+      
+
+      <!-- Specification -->
+
+      
+
+      <!-- Directed Relationship -->
+
+      
+
+      <!-- Undirected Relationship -->
+
+      
+
+      <!-- Classifier -->
+
+      
+        
+        
+<section class="element-list">
+    <h3>Generalized Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='8c384073b8f0ba6a13b6b7d0cb10f42a.html'><span class='node-icon staruml-icon icon-UMLInterface'></span>IFlagwindCombineLayer</a></li>
+        
+    </ul>
+</section>
+
+
+
+        
+        
+<section class="element-list">
+    <h3>Specialized Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='a0927f3c6ce685108b1ceb842e02678e.html'><span class='node-icon staruml-icon icon-UMLClass'></span>EsriRouteLayer</a></li>
+        
+    </ul>
+</section>
+
+
+
+        
+        
+
+
+        
+        
+
+
+        
+        
+
+      
+
+      <!-- Interface -->
+
+      
+
+      <!-- Component -->
+
+      
+
+      <!-- Node -->
+
+      
+
+      <!-- Actor -->
+
+      
+
+      <!-- Use Case -->
+
+      
+
+      <!-- Template Parameters -->
+
+      
+
+      <!-- Literals -->
+
+      
+
+      <!-- Attributes -->
+
+      
+      <section>
+        <h3>Attributes</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Visibility</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="ec070d48e71f40850ada5af3cc5995c2.html">moveLineLayer</a></td>
+            <td><span class='label label-info'>none</span></td>
+            <td><p>线路图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="b934fa8ea682f4e1ab53535c9db8aa04.html">moveMarkLayer</a></td>
+            <td><span class='label label-info'>none</span></td>
+            <td><p>线路上移动要素图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="c3da0eb2b1531edbf724917afc13808b.html">trackLines</a></td>
+            <td><span class='label label-info'>none</span></td>
+            <td><p>线路组</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="e169e04d22f9d559b2f807e78f40cf1a.html">activedTrackLineName</a></td>
+            <td><span class='label label-info'>none</span></td>
+            <td><p>当前活跃线路</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f8bbb9d69fa359adafd0e8fd37c385ff.html">spatial</a></td>
+            <td><span class='label label-info'>none</span></td>
+            <td><p>空间投影</p></td>
+          </tr>
+          
+        </table>
+      </section>
+      
+
+      <!-- Operations -->
+
+      
+      <section>
+        <h3>Operations</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Visibility</th>
+            <th>Name</th>
+            <th>Description</th>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="e41e68236c66e5835b179582e46cfb42.html">onCreateLineLayer(id: string): FlagwindGroupLayer</a></td>
+            <td><p>创建线路图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="687fcfee3b51f730b652ddaf85b2284d.html">onCreateMovingLayer(id: string): FlagwindGroupLayer</a></td>
+            <td><p>创建移动要素图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f8c713e0a8797726928ab5b590c79611.html">onEqualGraphic(originGraphic: FlagwindGraphic, targetGraphic: FlagwindGraphic): null</a></td>
+            <td><p>判断两个移动要素是否在同一位置</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="7df4f8a86ca8957f6f94363ac045acf6.html">onShowSegmentLine(segment: TrackSegment)</a></td>
+            <td><p>在地图显示线路上的路段</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="58aaf93a6c4adf9b390cf604c7c518ac.html">onGetStandardStops(name: string, stops: Array): Array&lt;any&gt;</a></td>
+            <td><p>构建标准的停靠点</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="511dfadf5ffb3964a7f920a23e21a44b.html">onSetSegmentByLine(name: string, segment: TrackSegment)</a></td>
+            <td><p>设置路段用几何线</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f06d60e1f660d0779a75477f1e410d19.html">onSetSegmentByPoint(name: string, segment: TrackSegment)</a></td>
+            <td><p>设置路段用几何点集合</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="95b60f3456dcd2161413e2700732894c.html">onSolveByService(segment: TrackSegment, start: FlagwindGraphic, end: FlagwindGraphic, waypoints: Array)</a></td>
+            <td><p>由网络分析服务来求解轨迹</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="d924eff2ecb6cc0362ac3086954c45bb.html">onSolveByJoinPoint(segment: TrackSegment)</a></td>
+            <td><p>由连线求解轨迹</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="466cc3a981c428a225f37bf1d66d66e9.html">onCreateMoveMark(trackline: TrackLine, graphic: FlagwindGraphic, angle: number): void</a></td>
+            <td><p>创建移动要素</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="baeb01a6822f9f4c3b916494a3af3596.html">onUpdateMoveGraphic(trackline: TrackLine, point: FlagwindPoint, angle: number): void</a></td>
+            <td><p>修改移动要素</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="7111ac006babf46a14d8ae66e4fa7a17.html">show()</a></td>
+            <td><p>显示图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="dc8e301a5f3aa3ed529eb5791bcbdf84.html">hide()</a></td>
+            <td><p>隐藏图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="e347b06dad2b143de1db9da642a99512.html">clearAll()</a></td>
+            <td><p>清除图层所有要素</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="d181feaa8b662eadaeca81f500aff066.html">getTrackLine(name: string): TrackLine</a></td>
+            <td><p>根据名称获取线路</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="b6a7efbd1ff04be15e975c0011ba95d4.html">addTrackSegment(name: string, segment: TrackSegment, lineOptions: any)</a></td>
+            <td><p>根据名称与索引获取线路的路段</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="451f3409bc8426f409b1efaef11d8b16.html">getNextSegmentIndex(name: string): number</a></td>
+            <td><p>计算线路的下一个路段索引</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="3a718455c10a37f3600a87e8fa6fc790.html">getNextSegment(name: string, index: number): TrackSegment</a></td>
+            <td><p>获取线路的下一路段</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="84f0e38d469e698cbd707b7e59e85dba.html">getLastSegment(name: string): TrackSegment</a></td>
+            <td><p>获取线路中的最后一路段</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="8b8ad166e42e319b410c91b0b992f5c9.html">getActiveCompletedSegment(name: string): TrackSegment</a></td>
+            <td><p>获取监控最近播放完成的路段线路</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="c32e2fe93ceeafba09a77e12e9c0a161.html">getIsRunning(name: string): boolean</a></td>
+            <td><p>判断线路是否在运行</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="795ced11e941ef2c5dc2eb519c98fdc9.html">stop(name: string)</a></td>
+            <td><p>停止指定线路移动要素播放</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="27aad541350a13f77bc8fb4cc36308da.html">stopAll()</a></td>
+            <td><p>停止所有线路移动要素播放</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="70072a744b11433e88f6faae01e8cbea.html">move(name: string)</a></td>
+            <td><p>启动线路播放（起点为上次播放的终点）</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="1d96bb78e3e1c715bd2b96f1c4ebab21.html">start(name: string)</a></td>
+            <td><p>启动线路播放（起点为线路的始点）</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="8b940beb6f770fa38b6617fd9507326e.html">pause(name: string)</a></td>
+            <td><p>暂停</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="9a309c133a19323157249c4aa0d51709.html">continue(name: string)</a></td>
+            <td><p>继续</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="ba9fde83ce7d0ad69a9225cc40035408.html">changeSpeed(name: string, speed: number)</a></td>
+            <td><p>加速</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="2815126a8cd4aeb66ab5315f5aeb0c24.html">speedUp(name: string): string</a></td>
+            <td></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="b75663af277bfe359dd98c1a4ae66ea8.html">speedDown(name: string): string</a></td>
+            <td><p>减速</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="23ba43d633286a72f927040dfaede450.html">clear(name: string)</a></td>
+            <td><p>清除指挥线路的相关要素</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="305c71256303ccb4e56dd84e3a53cd21.html">clearLine(name: string)</a></td>
+            <td><p>清除指定的线路要素（只清除线）</p></td>
+          </tr>
+          
+          <tr>
+            <td>protected</td>
+            <td><a href="fb79564618422158f2e28158f27fb888.html">solveSegment(name: string, stops: Array, options: any)</a></td>
+            <td><p>求解最短路径（与solveLine不同，它求解的是一个路段，该路段起点为stops[0],终点为stops[stops.length-1]</p></td>
+          </tr>
+          
+          <tr>
+            <td>protected</td>
+            <td><a href="b85e7e148c2d5467e71607ed7627c3d9.html">solveLine(name: string, stops: Array, options: any)</a></td>
+            <td><p>求解最短路径(根据stops数量设置多个多个路段，相连的两点组成一个路段)</p></td>
+          </tr>
+          
+          <tr>
+            <td>protected</td>
+            <td><a href="793094df8b214d97b7c4511a82df2e75.html">changeStandardModel(item: any): any</a></td>
+            <td><p>标准化停靠点模型</p></td>
+          </tr>
+          
+          <tr>
+            <td>protected</td>
+            <td><a href="1ec28420528118f455e85ec8c677e95e.html">validGeometryModel(item: any)</a></td>
+            <td><p>验证停靠点模型</p></td>
+          </tr>
+          
+        </table>
+      </section>
+      
+
+      <!-- Receptions -->
+
+      
+
+      <!-- Extension Points -->
+
+      
+
+      <!-- Parameters -->
+
+      
+
+      <!-- Diagrams -->
+
+      
+      
+
+      <!-- Behavior -->
+
+      
+
+      <!-- Action -->
+
+      
+
+      <!-- Interaction -->
+
+      
+
+      <!-- CombinedFragment -->
+
+      
+
+      <!-- Activity -->
+
+      
+
+      <!-- State Machine -->
+
+      
+
+      <!-- State Machine -->
+
+      
+
+      <!-- State -->
+
+      
+
+      <!-- Vertex -->
+
+      
+
+      <!-- Transition -->
+
+      
+
+      <!-- Data Model (ERD) -->
+
+      
+
+      <!-- Columns (ERD) -->
+
+      
+
+      <!-- Related Entities (ERD) -->
+
+      
+
+      <!-- Data Flows (DFD) -->
+
+      
+
+      <!-- Flows (Flowchart) -->
+
+      
+
+      <!-- Properties -->
+
+      <section>
+        <h3>Properties</h3>
+        
+        <table class="table table-striped table-bordered">
+    <tr>
+        <th width="50%">Name</th>
+        <th width="50%">Value</th>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>name</td>
+        <td>FlagwindRouteLayer</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>stereotype</td>
+        <td><span class='label label-info'>null</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>visibility</td>
+        <td>public</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>isAbstract</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isFinalSpecialization</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isLeaf</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isActive</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+</table>                
+
+      </section>
+
+      <!-- Tags -->
+
+      
+
+      <!-- Constraints, Dependencies, Dependants -->
+
+      
+        
+        
+
+
+        
+        
+
+
+        
+        
+<section class="element-list">
+    <h3>Dependants</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='280af2f2c46b9fe9b866a9599bdb271f.html'><span class='node-icon staruml-icon icon-UMLClass'></span>FlagwindTrackLayer</a></li>
+        
+    </ul>
+</section>
+
+
+      
+
+      <!-- Relationships -->
+
+      
+      
+<section class="element-list">
+    <h3>Relationships</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='dfc610b81ef09b508dd779d6feb3e708.html'><span class='node-icon staruml-icon icon-UMLGeneralization'></span>(EsriRouteLayer→FlagwindRouteLayer)</a></li>
+        
+        <li><a href='2adc92d8cc9eac03a91ba2d77b162568.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(TrackLine—FlagwindRouteLayer)</a></li>
+        
+        <li><a href='746af88821dc7298ba3106a9da321323.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>moveLineLayer (FlagwindRouteLayer—FlagwindGroupLayer)</a></li>
+        
+        <li><a href='dde9dd4a2cd134c6dd8cf2bccf39b3e9.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>moveMarkLayer (FlagwindRouteLayer—FlagwindGroupLayer)</a></li>
+        
+        <li><a href='b5d2e50436856e79518bbb3bb086c968.html'><span class='node-icon staruml-icon icon-UMLGeneralization'></span>(FlagwindRouteLayer→IFlagwindCombineLayer)</a></li>
+        
+        <li><a href='4d3a265b1cbcffee606cc7593971c94f.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(FlagwindRouteLayer—FlagwindTrackLayer)</a></li>
+        
+        <li><a href='eef674360da53b9adae6fd6b9a412d26.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>trackLines (FlagwindRouteLayer—TrackLine)</a></li>
+        
+        <li><a href='695fa75b460f2d3a34cfd4856f85c6f1.html'><span class='node-icon staruml-icon icon-UMLDependency'></span>(FlagwindTrackLayer→FlagwindRouteLayer)</a></li>
+        
+        <li><a href='1f2f91bdca98bc0c02b416f1ea634433.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(FlagwindTrackLayer—FlagwindRouteLayer)</a></li>
+        
+    </ul>
+</section>
+
+
+
+      <!-- Owned Elements -->
+
+      
+      
+<section class="element-list">
+    <h3>Owned Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='746af88821dc7298ba3106a9da321323.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>moveLineLayer (FlagwindRouteLayer—FlagwindGroupLayer)</a></li>
+        
+        <li><a href='dde9dd4a2cd134c6dd8cf2bccf39b3e9.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>moveMarkLayer (FlagwindRouteLayer—FlagwindGroupLayer)</a></li>
+        
+        <li><a href='b5d2e50436856e79518bbb3bb086c968.html'><span class='node-icon staruml-icon icon-UMLGeneralization'></span>(FlagwindRouteLayer→IFlagwindCombineLayer)</a></li>
+        
+        <li><a href='4d3a265b1cbcffee606cc7593971c94f.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(FlagwindRouteLayer—FlagwindTrackLayer)</a></li>
+        
+        <li><a href='eef674360da53b9adae6fd6b9a412d26.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>trackLines (FlagwindRouteLayer—TrackLine)</a></li>
+        
+    </ul>
+</section>
+
+
+
+    </div>
+  </body>
+</html>

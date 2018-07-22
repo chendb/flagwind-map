@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>FlagwindTrackLayer</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic|Source+Code+Pro:300,400,700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="../assets/css/bootstrap.css">
+<link rel="stylesheet" href="../assets/css/jquery.bonsai.css">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="../assets/icon-font/icons.css">
+<script type="text/javascript" src="../assets/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript" src="../assets/js/bootstrap.js"></script>
+<script type="text/javascript" src="../assets/js/jquery.bonsai.js"></script>
+
+  </head>
+  <body>
+    <div>
+
+      <!-- Name Title -->
+
+      <h1>FlagwindTrackLayer</h1>
+
+      <!-- Type and Stereotype -->
+
+      <section style="margin-top: .5em;">
+        <span class="alert alert-info">
+          <span class="node-icon staruml-icon icon-UMLClass"></span>
+          UMLClass
+        </span>
+        
+      </section>
+
+      <!-- Path -->
+
+      <section style="margin-top: 10px">
+        
+        
+        
+          
+          <span class="label label-info"><a href='cf9c8b720f3815adeccaf3ef6e48c6c4.html'><span class='node-icon staruml-icon icon-Project'></span>flagwind-map</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='594af663de577680f35b13183109d675.html'><span class='node-icon staruml-icon icon-UMLModel'></span>Model</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='9961bc62befe61612aa7f9739fa50129.html'><span class='node-icon staruml-icon icon-UMLPackage'></span>base</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='280af2f2c46b9fe9b866a9599bdb271f.html'><span class='node-icon staruml-icon icon-UMLClass'></span>FlagwindTrackLayer</a></span>
+        
+      </section>
+
+      <!-- Diagram -->
+
+      
+
+      <!-- Description -->
+
+      
+      <section>
+        <h3>Description</h3>
+        <div>
+          
+            <p>轨迹图层</p>
+          
+        </div>
+      </section>
+      
+
+      <!-- Specification -->
+
+      
+
+      <!-- Directed Relationship -->
+
+      
+
+      <!-- Undirected Relationship -->
+
+      
+
+      <!-- Classifier -->
+
+      
+        
+        
+
+
+        
+        
+<section class="element-list">
+    <h3>Specialized Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='f27d448a7919a65a04e192b71a80b522.html'><span class='node-icon staruml-icon icon-UMLClass'></span>EsriTrackLayer</a></li>
+        
+    </ul>
+</section>
+
+
+
+        
+        
+<section class="element-list">
+    <h3>Interfaces</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='8c384073b8f0ba6a13b6b7d0cb10f42a.html'><span class='node-icon staruml-icon icon-UMLInterface'></span>IFlagwindCombineLayer</a></li>
+        
+    </ul>
+</section>
+
+
+
+        
+        
+
+
+        
+        
+
+      
+
+      <!-- Interface -->
+
+      
+
+      <!-- Component -->
+
+      
+
+      <!-- Node -->
+
+      
+
+      <!-- Actor -->
+
+      
+
+      <!-- Use Case -->
+
+      
+
+      <!-- Template Parameters -->
+
+      
+
+      <!-- Literals -->
+
+      
+
+      <!-- Attributes -->
+
+      
+      <section>
+        <h3>Attributes</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Visibility</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="826c3b27100b1711e1b6c1ed7bd52e4c.html">activedTrackLineName</a></td>
+            <td><a href='7d71ead313270271b93d423639fe345c.html'>string</a></td>
+            <td><p>当前线路名称</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="93ea6be463d6ca466ea0bbdb2d11038f.html">isShow</a></td>
+            <td><a href='1d03f1e808b1bf99e69145e1828fffbb.html'>boolean</a></td>
+            <td><p>是否显示</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="d781e0e58c08e602283d3f9a0a973678.html">flagwindMap</a></td>
+            <td><a href='569bb65f64d0ae16fb49eb70b4ceba2a.html'>FlagwindMap</a></td>
+            <td><p>flagwind标准地图对象</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="d4d7688048e777472e1c588af2f28a76.html">trackLine</a></td>
+            <td><a href='c25e79265968bc6f4e31033d68795ebf.html'>TrackLine</a></td>
+            <td><p>当前线路</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="0767df224c4a7d94197ae260fba26199.html">isRunning</a></td>
+            <td><span class='label label-info'>none</span></td>
+            <td><p>是否正在播放</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="7d4d2f9459d23131e2dd6b56fdd6152d.html">isCompleted</a></td>
+            <td><span class='label label-info'>none</span></td>
+            <td><p>是否播放完成</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="a7ff110cdafafb9da837e4c2b609557d.html">isMovingGraphicHide</a></td>
+            <td><span class='label label-info'>none</span></td>
+            <td><p>移动要素是否隐藏</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="e6c10e750fe2e7c82f8852bf7221634f.html">id</a></td>
+            <td><a href='7d71ead313270271b93d423639fe345c.html'>string</a></td>
+            <td><p>图层唯一标识</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="07e38612e89c544ce5ec257afef1c142.html">toolBoxId</a></td>
+            <td><a href='7d71ead313270271b93d423639fe345c.html'>string</a></td>
+            <td><p>播放控件唯一标识</p></td>
+          </tr>
+          
+        </table>
+      </section>
+      
+
+      <!-- Operations -->
+
+      
+      <section>
+        <h3>Operations</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Visibility</th>
+            <th>Name</th>
+            <th>Description</th>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="85ba04e35df542d05f3019eea3a0a240.html">deleteTrackToolBox()</a></td>
+            <td><p>删除播放控件</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="966e3478d531bc8fb3888fb02d396faf.html">showTrackToolBox()</a></td>
+            <td><p>显示播放控件</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="75b1a3b306e19d9bc744ad30a491941d.html">showTrack(stopList: Array&lt;any&gt;, trackLineName: string, options: any)</a></td>
+            <td><p>显示轨迹线路（不播放）</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f0bd3dd8a994151048c9843c3e1ebc32.html">startTrack(stopList: Array&lt;any&gt;, trackLineName: string, options: any)</a></td>
+            <td><p>启动线路播放（起点为线路的始点）</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="472950c8c2deb04332a059c74981adfb.html">move(stopList: Array&lt;any&gt;, trackLineName: string)</a></td>
+            <td><p>启动线路播放（起点为上次播放的终点）</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f25554b5ade47cd6873675c3b688e335.html">clear()</a></td>
+            <td><p>清除所有</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="e2581a7f5ec7e24f59e87d3eede6c009.html">show()</a></td>
+            <td><p>显示图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="31580ffd8f7e3da062da7dbc5014bc2f.html">hide()</a></td>
+            <td><p>隐藏</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="3e88b08b19b16a8820d61b5869c28f87.html">start()</a></td>
+            <td><p>重新播放</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="4684e57c6d5b6136761b4df6fc6bfe1d.html">stop()</a></td>
+            <td><p>停止</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="c315a4605c20bfc70ca844017ee9f611.html">pause()</a></td>
+            <td><p>暂停</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="80bc53024099e6bafde4aff9a3f76a0d.html">continue()</a></td>
+            <td><p>继续</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="2dd6540cf9e5573d024106fd98a677b3.html">speedUp(): string</a></td>
+            <td><p>加速</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="6cc3d7fc90c1d975627c4ba9288d7b3f.html">speedDown(): string</a></td>
+            <td><p>减速</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="dc2b62bb84123f8561f4cdfac0fcc9f5.html">changeSpeed(speed: number)</a></td>
+            <td><p>调速</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="e3b243a0d56eef20c2a9d3894225e389.html">changeTrackLine(name: string)</a></td>
+            <td><p>切换线路</p></td>
+          </tr>
+          
+        </table>
+      </section>
+      
+
+      <!-- Receptions -->
+
+      
+
+      <!-- Extension Points -->
+
+      
+
+      <!-- Parameters -->
+
+      
+
+      <!-- Diagrams -->
+
+      
+      
+
+      <!-- Behavior -->
+
+      
+
+      <!-- Action -->
+
+      
+
+      <!-- Interaction -->
+
+      
+
+      <!-- CombinedFragment -->
+
+      
+
+      <!-- Activity -->
+
+      
+
+      <!-- State Machine -->
+
+      
+
+      <!-- State Machine -->
+
+      
+
+      <!-- State -->
+
+      
+
+      <!-- Vertex -->
+
+      
+
+      <!-- Transition -->
+
+      
+
+      <!-- Data Model (ERD) -->
+
+      
+
+      <!-- Columns (ERD) -->
+
+      
+
+      <!-- Related Entities (ERD) -->
+
+      
+
+      <!-- Data Flows (DFD) -->
+
+      
+
+      <!-- Flows (Flowchart) -->
+
+      
+
+      <!-- Properties -->
+
+      <section>
+        <h3>Properties</h3>
+        
+        <table class="table table-striped table-bordered">
+    <tr>
+        <th width="50%">Name</th>
+        <th width="50%">Value</th>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>name</td>
+        <td>FlagwindTrackLayer</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>stereotype</td>
+        <td><span class='label label-info'>null</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>visibility</td>
+        <td>public</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>isAbstract</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isFinalSpecialization</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isLeaf</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isActive</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+</table>                
+
+      </section>
+
+      <!-- Tags -->
+
+      
+
+      <!-- Constraints, Dependencies, Dependants -->
+
+      
+        
+        
+
+
+        
+        
+<section class="element-list">
+    <h3>Dependencies</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='3322ba18296169f4c6120d592e5c3af3.html'><span class='node-icon staruml-icon icon-UMLClass'></span>FlagwindRouteLayer</a></li>
+        
+        <li><a href='8c384073b8f0ba6a13b6b7d0cb10f42a.html'><span class='node-icon staruml-icon icon-UMLInterface'></span>IFlagwindCombineLayer</a></li>
+        
+    </ul>
+</section>
+
+
+
+        
+        
+
+      
+
+      <!-- Relationships -->
+
+      
+      
+<section class="element-list">
+    <h3>Relationships</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='e485f56ba6b816f3f29f6f13fe70cd26.html'><span class='node-icon staruml-icon icon-UMLGeneralization'></span>(EsriTrackLayer→FlagwindTrackLayer)</a></li>
+        
+        <li><a href='4d3a265b1cbcffee606cc7593971c94f.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(FlagwindRouteLayer—FlagwindTrackLayer)</a></li>
+        
+        <li><a href='695fa75b460f2d3a34cfd4856f85c6f1.html'><span class='node-icon staruml-icon icon-UMLDependency'></span>(FlagwindTrackLayer→FlagwindRouteLayer)</a></li>
+        
+        <li><a href='1f2f91bdca98bc0c02b416f1ea634433.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(FlagwindTrackLayer—FlagwindRouteLayer)</a></li>
+        
+        <li><a href='a0e97094f115bb5de4e2b95998ac3f50.html'><span class='node-icon staruml-icon icon-UMLInterfaceRealization'></span>(FlagwindTrackLayer→IFlagwindCombineLayer)</a></li>
+        
+    </ul>
+</section>
+
+
+
+      <!-- Owned Elements -->
+
+      
+      
+<section class="element-list">
+    <h3>Owned Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='695fa75b460f2d3a34cfd4856f85c6f1.html'><span class='node-icon staruml-icon icon-UMLDependency'></span>(FlagwindTrackLayer→FlagwindRouteLayer)</a></li>
+        
+        <li><a href='1f2f91bdca98bc0c02b416f1ea634433.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(FlagwindTrackLayer—FlagwindRouteLayer)</a></li>
+        
+        <li><a href='a0e97094f115bb5de4e2b95998ac3f50.html'><span class='node-icon staruml-icon icon-UMLInterfaceRealization'></span>(FlagwindTrackLayer→IFlagwindCombineLayer)</a></li>
+        
+    </ul>
+</section>
+
+
+
+    </div>
+  </body>
+</html>

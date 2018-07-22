@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>TrackLine</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic|Source+Code+Pro:300,400,700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="../assets/css/bootstrap.css">
+<link rel="stylesheet" href="../assets/css/jquery.bonsai.css">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="../assets/icon-font/icons.css">
+<script type="text/javascript" src="../assets/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript" src="../assets/js/bootstrap.js"></script>
+<script type="text/javascript" src="../assets/js/jquery.bonsai.js"></script>
+
+  </head>
+  <body>
+    <div>
+
+      <!-- Name Title -->
+
+      <h1>TrackLine</h1>
+
+      <!-- Type and Stereotype -->
+
+      <section style="margin-top: .5em;">
+        <span class="alert alert-info">
+          <span class="node-icon staruml-icon icon-UMLClass"></span>
+          UMLClass
+        </span>
+        
+      </section>
+
+      <!-- Path -->
+
+      <section style="margin-top: 10px">
+        
+        
+        
+          
+          <span class="label label-info"><a href='cf9c8b720f3815adeccaf3ef6e48c6c4.html'><span class='node-icon staruml-icon icon-Project'></span>flagwind-map</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='594af663de577680f35b13183109d675.html'><span class='node-icon staruml-icon icon-UMLModel'></span>Model</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='9961bc62befe61612aa7f9739fa50129.html'><span class='node-icon staruml-icon icon-UMLPackage'></span>base</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='c25e79265968bc6f4e31033d68795ebf.html'><span class='node-icon staruml-icon icon-UMLClass'></span>TrackLine</a></span>
+        
+      </section>
+
+      <!-- Diagram -->
+
+      
+
+      <!-- Description -->
+
+      
+      <section>
+        <h3>Description</h3>
+        <div>
+          
+            <p>线路</p>
+          
+        </div>
+      </section>
+      
+
+      <!-- Specification -->
+
+      
+
+      <!-- Directed Relationship -->
+
+      
+
+      <!-- Undirected Relationship -->
+
+      
+
+      <!-- Classifier -->
+
+      
+        
+        
+
+
+        
+        
+
+
+        
+        
+
+
+        
+        
+
+
+        
+        
+
+      
+
+      <!-- Interface -->
+
+      
+
+      <!-- Component -->
+
+      
+
+      <!-- Node -->
+
+      
+
+      <!-- Actor -->
+
+      
+
+      <!-- Use Case -->
+
+      
+
+      <!-- Template Parameters -->
+
+      
+
+      <!-- Literals -->
+
+      
+
+      <!-- Attributes -->
+
+      
+      <section>
+        <h3>Attributes</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Visibility</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f69bbdd9a514f60913c673ed0f1932c7.html">markerGraphic</a></td>
+            <td><a href='9748d0bd6a253be52847490708127698.html'>FlagwindGraphic</a></td>
+            <td><p>设置线路上移动要素(如：车辆图标)</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="756bcbd097d6e6e6f4560bec9d8997b5.html">isMovingGraphicHide</a></td>
+            <td><a href='1d03f1e808b1bf99e69145e1828fffbb.html'>boolean</a></td>
+            <td></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="3a410db0659934f1ad4b729ab4dc23ba.html">name</a></td>
+            <td><a href='7d71ead313270271b93d423639fe345c.html'>string</a></td>
+            <td><p>线路名称</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="8826f84c3c9970f79825a84989e593d3.html">options</a></td>
+            <td><a href='aa076e9385bb09fd925028f3d27e1fb9.html'>any</a></td>
+            <td><p>路段的参数</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f8790b92f7bfcaf5f039dda932c290a6.html">isRunning</a></td>
+            <td><a href='1d03f1e808b1bf99e69145e1828fffbb.html'>boolean</a></td>
+            <td><p>若有一个路段正在跑，代表该线路是正在运行</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="cf44b0779b65593bbf8c2135bcd329ae.html">isCompleted</a></td>
+            <td><a href='1d03f1e808b1bf99e69145e1828fffbb.html'>boolean</a></td>
+            <td><p>当所有的路段完成时，说明线路是跑完状态</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="1e74be04f7dd2b6047e1d97dec231220.html">nextSegmentIndex</a></td>
+            <td><a href='e2a76bf3e4bdc6a14a01224aa586167b.html'>number</a></td>
+            <td><p>计算线路的下一个路段索引</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="4f6cf42c0825fd66c9041372dbb9db3b.html">lastSegment</a></td>
+            <td><a href='c5740f6d02454919a4f650224d2e3ced.html'>TrackSegment</a></td>
+            <td><p>获取最后的一个路段</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="a9d2dc79ae560fbcd88425884f04c857.html">activeCompletedSegment</a></td>
+            <td><a href='c5740f6d02454919a4f650224d2e3ced.html'>TrackSegment</a></td>
+            <td><p>获取监控最近播放完成的路段线路</p></td>
+          </tr>
+          
+        </table>
+      </section>
+      
+
+      <!-- Operations -->
+
+      
+      <section>
+        <h3>Operations</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Visibility</th>
+            <th>Name</th>
+            <th>Description</th>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="178c6387a93ceef104db34f0981e88b9.html">hideMovingGraphic()</a></td>
+            <td><p>隐藏移动要素</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="677e6bf9c6b57cba005bbc8b3e4f5006.html">showMovingGraphic()</a></td>
+            <td><p>显示移动要素</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="2fd18a7fcf0efe7a33168a3cdb479122.html">changeSpeed(speed: number)</a></td>
+            <td><p>调速</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="c642b86b2191103ad2ff865242e07b50.html">speedUp(): null</a></td>
+            <td><p>增速</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="12c333d976f20fb7d5b2a5edbde52e4b.html">speedDown(): null</a></td>
+            <td><p>减速</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="c534106983798d5de5c32af42a4a9694.html">start()</a></td>
+            <td><p>启动线路播放（从第一个路段的起点开始）</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="75795a744356c2595b85b3607996bfda.html">stop()</a></td>
+            <td><p>停止线路</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="b857e047bd30037ef53b6458c3a5f3bf.html">reset()</a></td>
+            <td><p>重置</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="88a408efaf1a2ef0e25ca785785fd94c.html">pause()</a></td>
+            <td><p>暂停</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="352f941a53ff70233d0a52343d31a277.html">continue()</a></td>
+            <td><p>继续（与 暂停 是操作对，只能是在调用了暂停 才可以启用它）</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="6a1a21dfc6ee93163c74a35f03e3ddeb.html">move()</a></td>
+            <td><p>移动(起点为上一次的终点，如果之前没有播放过，则从线路的起点开始)</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="ea007091e118c6a59a0c0d7380720eb0.html">add(segment: TrackSegment)</a></td>
+            <td><p>增加路段</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="2efac5057b29ccbbb8ff885d8d674d44.html">getNextSegment(index: number): TrackSegment</a></td>
+            <td><p>获取线路的下一路段</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="fc6922a6ed40322920869b47a25ef7c7.html">getSegment(index: number): TrackSegment</a></td>
+            <td><p>获取线路的指定索引路段</p></td>
+          </tr>
+          
+        </table>
+      </section>
+      
+
+      <!-- Receptions -->
+
+      
+
+      <!-- Extension Points -->
+
+      
+
+      <!-- Parameters -->
+
+      
+
+      <!-- Diagrams -->
+
+      
+      
+
+      <!-- Behavior -->
+
+      
+
+      <!-- Action -->
+
+      
+
+      <!-- Interaction -->
+
+      
+
+      <!-- CombinedFragment -->
+
+      
+
+      <!-- Activity -->
+
+      
+
+      <!-- State Machine -->
+
+      
+
+      <!-- State Machine -->
+
+      
+
+      <!-- State -->
+
+      
+
+      <!-- Vertex -->
+
+      
+
+      <!-- Transition -->
+
+      
+
+      <!-- Data Model (ERD) -->
+
+      
+
+      <!-- Columns (ERD) -->
+
+      
+
+      <!-- Related Entities (ERD) -->
+
+      
+
+      <!-- Data Flows (DFD) -->
+
+      
+
+      <!-- Flows (Flowchart) -->
+
+      
+
+      <!-- Properties -->
+
+      <section>
+        <h3>Properties</h3>
+        
+        <table class="table table-striped table-bordered">
+    <tr>
+        <th width="50%">Name</th>
+        <th width="50%">Value</th>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>name</td>
+        <td>TrackLine</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>stereotype</td>
+        <td><span class='label label-info'>null</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>visibility</td>
+        <td>public</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>isAbstract</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isFinalSpecialization</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isLeaf</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isActive</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+</table>                
+
+      </section>
+
+      <!-- Tags -->
+
+      
+
+      <!-- Constraints, Dependencies, Dependants -->
+
+      
+        
+        
+
+
+        
+        
+
+
+        
+        
+
+      
+
+      <!-- Relationships -->
+
+      
+      
+<section class="element-list">
+    <h3>Relationships</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='059385ef8934c74274fe782dfec43052.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(TrackSegment—TrackLine)</a></li>
+        
+        <li><a href='2adc92d8cc9eac03a91ba2d77b162568.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(TrackLine—FlagwindRouteLayer)</a></li>
+        
+        <li><a href='eef674360da53b9adae6fd6b9a412d26.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>trackLines (FlagwindRouteLayer—TrackLine)</a></li>
+        
+    </ul>
+</section>
+
+
+
+      <!-- Owned Elements -->
+
+      
+      
+<section class="element-list">
+    <h3>Owned Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='2adc92d8cc9eac03a91ba2d77b162568.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(TrackLine—FlagwindRouteLayer)</a></li>
+        
+    </ul>
+</section>
+
+
+
+    </div>
+  </body>
+</html>

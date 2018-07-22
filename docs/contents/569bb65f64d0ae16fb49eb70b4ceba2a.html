@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>FlagwindMap</title>
+    <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,300italic,400italic,700italic|Source+Code+Pro:300,400,700' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="../assets/css/bootstrap.css">
+<link rel="stylesheet" href="../assets/css/jquery.bonsai.css">
+<link rel="stylesheet" href="../assets/css/main.css">
+<link rel="stylesheet" href="../assets/icon-font/icons.css">
+<script type="text/javascript" src="../assets/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript" src="../assets/js/bootstrap.js"></script>
+<script type="text/javascript" src="../assets/js/jquery.bonsai.js"></script>
+
+  </head>
+  <body>
+    <div>
+
+      <!-- Name Title -->
+
+      <h1>FlagwindMap</h1>
+
+      <!-- Type and Stereotype -->
+
+      <section style="margin-top: .5em;">
+        <span class="alert alert-info">
+          <span class="node-icon staruml-icon icon-UMLClass"></span>
+          UMLClass
+        </span>
+        
+      </section>
+
+      <!-- Path -->
+
+      <section style="margin-top: 10px">
+        
+        
+        
+          
+          <span class="label label-info"><a href='cf9c8b720f3815adeccaf3ef6e48c6c4.html'><span class='node-icon staruml-icon icon-Project'></span>flagwind-map</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='594af663de577680f35b13183109d675.html'><span class='node-icon staruml-icon icon-UMLModel'></span>Model</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='9961bc62befe61612aa7f9739fa50129.html'><span class='node-icon staruml-icon icon-UMLPackage'></span>base</a></span>
+        
+          <span>::</span>
+          <span class="label label-info"><a href='569bb65f64d0ae16fb49eb70b4ceba2a.html'><span class='node-icon staruml-icon icon-UMLClass'></span>FlagwindMap</a></span>
+        
+      </section>
+
+      <!-- Diagram -->
+
+      
+
+      <!-- Description -->
+
+      
+      <section>
+        <h3>Description</h3>
+        <div>
+          
+            <p>地图</p>
+          
+        </div>
+      </section>
+      
+
+      <!-- Specification -->
+
+      
+
+      <!-- Directed Relationship -->
+
+      
+
+      <!-- Undirected Relationship -->
+
+      
+
+      <!-- Classifier -->
+
+      
+        
+        
+
+
+        
+        
+<section class="element-list">
+    <h3>Specialized Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='806e3f4145d471b150d60e3b11da7a6d.html'><span class='node-icon staruml-icon icon-UMLClass'></span>EsriMap</a></li>
+        
+    </ul>
+</section>
+
+
+
+        
+        
+
+
+        
+        
+
+
+        
+        
+
+      
+
+      <!-- Interface -->
+
+      
+
+      <!-- Component -->
+
+      
+
+      <!-- Node -->
+
+      
+
+      <!-- Actor -->
+
+      
+
+      <!-- Use Case -->
+
+      
+
+      <!-- Template Parameters -->
+
+      
+
+      <!-- Literals -->
+
+      
+
+      <!-- Attributes -->
+
+      
+      <section>
+        <h3>Attributes</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Visibility</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="408c44fd30c748c014e2739fb3203281.html">options</a></td>
+            <td><a href='aa076e9385bb09fd925028f3d27e1fb9.html'>any</a></td>
+            <td><p>地图参数</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="3f7048987749c9c8d84cef63bd63cc40.html">spatial</a></td>
+            <td><a href='aa076e9385bb09fd925028f3d27e1fb9.html'>any</a></td>
+            <td><p>空间坐标系</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="321d0c803a2369166153bf995784461c.html">baseLayers</a></td>
+            <td>Array&lt;FlagwindTitledLayer&gt;</td>
+            <td><p>瓦片、影像、标识底图图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="3f3775e8767fe4217c73f89a5be37364.html">featureLayers</a></td>
+            <td>Array&lt;FlagwindFeatureLayer&gt;</td>
+            <td><p>点、线、面功能图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="3fd317aee8fd94dfd54b15f52d5f7e23.html">map</a></td>
+            <td><a href='aa076e9385bb09fd925028f3d27e1fb9.html'>any</a></td>
+            <td><p>地图原生对象</p></td>
+          </tr>
+          
+        </table>
+      </section>
+      
+
+      <!-- Operations -->
+
+      
+      <section>
+        <h3>Operations</h3>
+        <table class="table table-striped table-bordered">
+          <tr>
+            <th>Visibility</th>
+            <th>Name</th>
+            <th>Description</th>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f5e2c4468b4ea8981702fdbd9b10a912.html">onFormPoint(point: any)</a></td>
+            <td><p>坐标点转换成对象</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="dc5652cb93eb7cb0615516f2a2e7a9b9.html">onToPoint(item: any)</a></td>
+            <td><p>对象转换成点</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f5f78af9bd033d0eae881d1e8093dd16.html">closeInfoWindow()</a></td>
+            <td><p>关闭信息窗口</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="79e26af065630527894eef867ebfb767.html">centerAtDefault()</a></td>
+            <td><p>定位到配置的地图中心点</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="3a3eb93fbd5fc811aa06bb4abe7fded0.html">centerAt(x: number, y: number)</a></td>
+            <td><p>中心定位</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="a34821f981f75bf915d42a3b0f7b12d2.html">setZoom(zoom: number)</a></td>
+            <td><p>放大或缩小到指挥zoom级别</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="1cd26b259752ad9a0e8841f70b36a9b1.html">getPoint(item: any): FlagwindPoint</a></td>
+            <td><p>创建几何点</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="2ecd4f6c933110ead84b0f8a7b2518eb.html">getBaseLayerById(id: string)</a></td>
+            <td><p>根据id查找底图</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="9801547f87c90e821956e2e7d6ec2edd.html">showBaseLayers()</a></td>
+            <td><p>显示所有底图</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="82fd2457e1d7a1d173891052049423dd.html">hideBaseLayers()</a></td>
+            <td><p>隐藏所有底图</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="7c44a91658eda36d2b7b23c775792089.html">showBaseLayer(id: string)</a></td>
+            <td><p>显示指定id的底图</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="fcb19a8f05fe16586e9782d5f2f008c6.html">hideBaseLayer(id: string)</a></td>
+            <td><p>隐藏指定id的底图</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f880b4e689dfe3a0df55b82e71f9160c.html">getFeatureLayerById(id: string)</a></td>
+            <td></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="e6842828d748b7c4db78508c3f9d6c5a.html">addFeatureLayer(featureLayer: FlagwindFeatureLayer)</a></td>
+            <td><p>增加功能图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="93ae417b6760bc6e190f560b1e086cb8.html">removeFeatureLayer(id: string)</a></td>
+            <td><p>移除指定id的功能图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="6469d60893cd2f0c3161461502bc460a.html">showFeatureLayer(id: string)</a></td>
+            <td><p>显示指定id的功能图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="9e064c5e8127710ea2a4ce52f89d3a94.html">hideFeatureLayer(id: string)</a></td>
+            <td><p>隐藏指定id的功能图层</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="d94809bef4ba8d7f67c1afc54c092dd4.html">onCenterAt(point: FlagwindPoint)</a></td>
+            <td><p>中心定位</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="5cce60a0f7de0a99e9a2e936a26b7591.html">onZoom(zoom: number)</a></td>
+            <td><p>放大或缩小至指定的级别</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="cae464a71f57250bc9e8121b64a73d46.html">onCreatePoint(item: any)</a></td>
+            <td><p>创建要素点</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="f6bcba00e22a366ac27877021cd1cc33.html">onCreateMap()</a></td>
+            <td><p>创建地图对象</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="8b421565e70e60e64aee4c9d557bc4d0.html">onShowInfoWindow(event: InfoWindowShowEventArgs)</a></td>
+            <td><p>显示信息窗口</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="51e366f8d643c9a05ac87035fd297971.html">onCloseInfoWindow()</a></td>
+            <td><p>关闭信息窗口</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="d23f217c92b5f9bd7f30ef3f94944a52.html">onCreateBaseLayers()</a></td>
+            <td><p>创建底图</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="698228601e7ff032a64dd55de91479bb.html">onShowTooltip(graphic: FlagwindGraphic)</a></td>
+            <td><p>显示要素tooltip信息</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="3b9aadf0195d90864f2d402269515063.html">onHideTooltip()</a></td>
+            <td><p>隐藏要素tooltip信息</p></td>
+          </tr>
+          
+          <tr>
+            <td>public</td>
+            <td><a href="473d6d47e3a151ae94429a1a5246d4f9.html">onCreateContextMenu(eventArgs: ContextMenuCreateEventArgs)</a></td>
+            <td><p>创建地图右键快捷菜单</p></td>
+          </tr>
+          
+        </table>
+      </section>
+      
+
+      <!-- Receptions -->
+
+      
+
+      <!-- Extension Points -->
+
+      
+
+      <!-- Parameters -->
+
+      
+
+      <!-- Diagrams -->
+
+      
+      
+
+      <!-- Behavior -->
+
+      
+
+      <!-- Action -->
+
+      
+
+      <!-- Interaction -->
+
+      
+
+      <!-- CombinedFragment -->
+
+      
+
+      <!-- Activity -->
+
+      
+
+      <!-- State Machine -->
+
+      
+
+      <!-- State Machine -->
+
+      
+
+      <!-- State -->
+
+      
+
+      <!-- Vertex -->
+
+      
+
+      <!-- Transition -->
+
+      
+
+      <!-- Data Model (ERD) -->
+
+      
+
+      <!-- Columns (ERD) -->
+
+      
+
+      <!-- Related Entities (ERD) -->
+
+      
+
+      <!-- Data Flows (DFD) -->
+
+      
+
+      <!-- Flows (Flowchart) -->
+
+      
+
+      <!-- Properties -->
+
+      <section>
+        <h3>Properties</h3>
+        
+        <table class="table table-striped table-bordered">
+    <tr>
+        <th width="50%">Name</th>
+        <th width="50%">Value</th>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>name</td>
+        <td>FlagwindMap</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>stereotype</td>
+        <td><span class='label label-info'>null</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>visibility</td>
+        <td>public</td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    <tr>
+        <td>isAbstract</td>
+        <td><span class='label label-info'>true</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isFinalSpecialization</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isLeaf</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+    
+    
+    <tr>
+        <td>isActive</td>
+        <td><span class='label label-info'>false</span></td>
+    </tr>
+    
+    
+    
+</table>                
+
+      </section>
+
+      <!-- Tags -->
+
+      
+
+      <!-- Constraints, Dependencies, Dependants -->
+
+      
+        
+        
+
+
+        
+        
+
+
+        
+        
+
+      
+
+      <!-- Relationships -->
+
+      
+      
+<section class="element-list">
+    <h3>Relationships</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='9896a4b64391294aa168552f861151e8.html'><span class='node-icon staruml-icon icon-UMLGeneralization'></span>(EsriMap→FlagwindMap)</a></li>
+        
+        <li><a href='ac03ebf0cc06de0d3321798f29d6c5eb.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>featureLayers (FlagwindMap—FlagwindFeatureLayer)</a></li>
+        
+        <li><a href='11ec526e0de636ea566a773da79e8e5c.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>baseLayers (FlagwindMap—FlagwindTiledLayer)</a></li>
+        
+        <li><a href='07711ec0237f175bda594bbd2c4ba114.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>featureLayers (FlagwindMap—FlagwindFeatureLayer)</a></li>
+        
+        <li><a href='5faa816341cd6d1bee66dcbb9ff19c04.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>featureLayers (FlagwindFeatureLayer—FlagwindMap)</a></li>
+        
+        <li><a href='6a9978d333770426244f4daf602becc2.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>(FlagwindTiledLayer—FlagwindMap)</a></li>
+        
+    </ul>
+</section>
+
+
+
+      <!-- Owned Elements -->
+
+      
+      
+<section class="element-list">
+    <h3>Owned Elements</h3>
+    <ul class="nav nav-list">
+        
+        <li><a href='9221c58c16852944bac59648bc489de6.html'><span class='node-icon staruml-icon icon-UMLDataType'></span>void</a></li>
+        
+        <li><a href='ac03ebf0cc06de0d3321798f29d6c5eb.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>featureLayers (FlagwindMap—FlagwindFeatureLayer)</a></li>
+        
+        <li><a href='11ec526e0de636ea566a773da79e8e5c.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>baseLayers (FlagwindMap—FlagwindTiledLayer)</a></li>
+        
+        <li><a href='07711ec0237f175bda594bbd2c4ba114.html'><span class='node-icon staruml-icon icon-UMLAssociation'></span>featureLayers (FlagwindMap—FlagwindFeatureLayer)</a></li>
+        
+    </ul>
+</section>
+
+
+
+    </div>
+  </body>
+</html>
