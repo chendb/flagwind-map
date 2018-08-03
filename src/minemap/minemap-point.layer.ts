@@ -182,9 +182,8 @@ namespace flagwind {
          * 开启定时器
          */
         public start() {
-            let me = this;
             (<any>this).timer = setInterval(() => {
-                me.updateStatus();
+                this.updateStatus();
             }, this.options.timeout || 20000);
         }
 

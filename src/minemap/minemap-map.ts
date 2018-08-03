@@ -62,54 +62,50 @@ namespace flagwind {
             div.classList.add("flagwind-map-tooltip");
             map._container.appendChild(div);
             this.innerMap = map;
-            const me = this;
 
-            map.on("load", function (args: any) {
-                me.dispatchEvent("onLoad", args);
+            map.on("load", (args: any) => {
+                this.dispatchEvent("onLoad", args);
             });
 
             // #region click event
-            map.on("click", function (args: any) {
-                me.dispatchEvent("onClick", args);
+            map.on("click", (args: any) => {
+                this.dispatchEvent("onClick", args);
             });
-            map.on("dbclick", function (args: any) {
-                me.dispatchEvent("onDbClick", args);
+            map.on("dbclick", (args: any) => {
+                this.dispatchEvent("onDbClick", args);
             });
             // #endregion
 
             // #region mouse event
-            map.on("mouseout", function (args: any) {
-                me.dispatchEvent("onMouseOut", args);
+            map.on("mouseout", (args: any) => {
+                this.dispatchEvent("onMouseOut", args);
             });
-            map.on("mousedown", function (args: any) {
-                me.dispatchEvent("onMouseDown", args);
+            map.on("mousedown", (args: any) => {
+                this.dispatchEvent("onMouseDown", args);
             });
-            map.on("mousemove", function (args: any) {
-                me.dispatchEvent("onMouseMove", args);
+            map.on("mousemove", (args: any) => {
+                this.dispatchEvent("onMouseMove", args);
             });
-            map.on("mouseup", function (args: any) {
-                me.dispatchEvent("onMouseUp", args);
+            map.on("mouseup", (args: any) => {
+                this.dispatchEvent("onMouseUp", args);
             });
             // #endregion
 
             // #region move event
-            map.on("movestart", function (args: any) {
-                me.dispatchEvent("onMoveStart", args);
+            map.on("movestart", (args: any) => {
+                this.dispatchEvent("onMoveStart", args);
             });
-            map.on("move", function (args: any) {
-                me.dispatchEvent("onMove", args);
+            map.on("move", (args: any) => {
+                this.dispatchEvent("onMove", args);
             });
-            map.on("moveend", function (args: any) {
-                me.dispatchEvent("onMoveEnd", args);
+            map.on("moveend", (args: any) => {
+                this.dispatchEvent("onMoveEnd", args);
             });
             // #endregionn
 
             return map;
         }
         public onShowInfoWindow(evt: InfoWindowShowEventArgs): void {
-            // if (!this.innerMap.infoWindow) {
-            //     this.innerMap.infoWindow = new minemap.Popup({ closeOnClick: false, closeButton: true, offset: [0, -35] });
-            // }
             if (this.innerMap.infoWindow) {
                 this.innerMap.infoWindow.remove();
             }
@@ -154,7 +150,6 @@ namespace flagwind {
                 }
             }
 
-            // this.onCenterAt({x: evt.graphic.geometry.x, y: evt.graphic.geometry.y});
             this.innerMap.infoWindow.setLngLat([evt.graphic.geometry.x, evt.graphic.geometry.y]);
             let popup: any = document.querySelector(".minemap-map .minemap-popup");
             if (popup) {

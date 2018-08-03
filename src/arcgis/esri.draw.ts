@@ -1,11 +1,10 @@
-/// <reference path="../base/flagwind.draw.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind.draw.ts" />
 
 namespace flagwind {
     /**
      * 绘制图层
      */
     export class EsriDraw implements IFlagwindDraw {
-
         private symbolSetting: any;
         public flagwindMap: FlagwindMap;
         public draw: any;
@@ -15,17 +14,23 @@ namespace flagwind {
             showTooltips: true,
             tolerance: 8,
             tooltipOffset: 15,
-            onEvent: function (eventName: string, evt: any) {
+            onEvent: (eventName: string, evt: any) => {
                 // console.log(eventName);
             }
         };
 
         public constructor(flagwindMap: FlagwindMap, options?: any) {
             this.flagwindMap = flagwindMap;
-            this.options = {...DRAW_LAYER_OPTIONS, ...this.options, ...options };
+            this.options = {
+                ...DRAW_LAYER_OPTIONS,
+                ...this.options,
+                ...options
+            };
 
             this.draw = new esri.toolbars.Draw(flagwindMap.map, this.options);
-            this.draw.on("draw-complete", (evt: any) => this.onDrawComplete(evt));
+            this.draw.on("draw-complete", (evt: any) =>
+                this.onDrawComplete(evt)
+            );
         }
 
         public activate(mode: string, options?: any) {
@@ -34,7 +39,6 @@ namespace flagwind {
             }
             if (this.draw && mode) {
                 let tool = mode.toUpperCase().replace(/ /g, "_");
-                // this.flagwindMap.map.disableMapNavigation();
                 this.draw.activate(esri.toolbars.Draw[tool]);
             }
         }
@@ -44,13 +48,19 @@ namespace flagwind {
                 this.draw.deactivate();
             }
         }
-      
+
         private setSymbol(mode: string, options: any) {
             this.symbolSetting = { ...{}, ...options };
             switch (mode) {
-                case "POLYLINE": this.draw.setLineSymbol(this.lineSymbol); break;
-                case "POLYGON": this.draw.setFillSymbol(this.fillSymbol); break;
-                case "FREEHAND_POLYGON": this.draw.setFillSymbol(this.fillSymbol); break;
+                case "POLYLINE":
+                    this.draw.setLineSymbol(this.lineSymbol);
+                    break;
+                case "POLYGON":
+                    this.draw.setFillSymbol(this.fillSymbol);
+                    break;
+                case "FREEHAND_POLYGON":
+                    this.draw.setFillSymbol(this.fillSymbol);
+                    break;
             }
         }
 
@@ -67,14 +77,18 @@ namespace flagwind {
             let lineMiterLimit = this.symbolSetting.lineMiterLimit || 2;
 
             let lineSymbol = new esri.symbol.CartographicLineSymbol(
-                esri.symbol.CartographicLineSymbol[lineType], new esri.Color(lineColor), lineWidth,
+                esri.symbol.CartographicLineSymbol[lineType],
+                new esri.Color(lineColor),
+                lineWidth,
                 esri.symbol.CartographicLineSymbol.CAP_ROUND,
-                esri.symbol.CartographicLineSymbol.JOIN_MITER, lineMiterLimit);
+                esri.symbol.CartographicLineSymbol.JOIN_MITER,
+                lineMiterLimit
+            );
             return lineSymbol;
         }
 
         private get fillSymbol() {
-            let lineColor = this.symbolSetting.lineColor || [151, 249, 0, .80];
+            let lineColor = this.symbolSetting.lineColor || [151, 249, 0, 0.8];
             let lineWidth = this.symbolSetting.lineWidth || 3;
             let lineType = this.symbolSetting.lineType || "STYLE_DOT";
             let fillType = this.symbolSetting.fillType || "STYLE_SOLID";
@@ -91,6 +105,5 @@ namespace flagwind {
             );
             return polygonSymbol;
         }
-
     }
 }

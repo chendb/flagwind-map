@@ -140,7 +140,6 @@ namespace flagwind {
         /**
          * 加载并显示设备点位
          *
-         * @memberof TollgateLayer
          */
         public showDataList() {
             if (!this.businessService) {

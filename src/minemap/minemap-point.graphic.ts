@@ -218,56 +218,56 @@ namespace flagwind {
         public addTo(map: any) {
             this._isInsided = true;
             this.marker.addTo(map);
-            let me = this;
-            this.marker.on("mouseover", function (args: any) {
+
+            this.marker.on("mouseover", (args: any) => {
                 console.log("fire marker onMouseOver");
-                me.fireEvent("onMouseOver", {
-                    graphic: me,
-                    mapPoint: me.geometry,
+                this.fireEvent("onMouseOver", {
+                    graphic: this,
+                    mapPoint: this.geometry,
                     orgion: args
                 });
             });
 
-            this.marker.on("mouseout", function (args: any) {
+            this.marker.on("mouseout", (args: any) => {
                 console.log("fire marker onMouseOut");
-                me.fireEvent("onMouseOut", {
-                    graphic: me,
-                    mapPoint: me.geometry,
+                this.fireEvent("onMouseOut", {
+                    graphic: this,
+                    mapPoint: this.geometry,
                     orgion: args
                 });
             });
 
-            this.marker.on("mouseup", function (args: any) {
+            this.marker.on("mouseup", (args: any) => {
                 console.log("fire marker onMouseUp");
-                me.fireEvent("onMouseUp", {
-                    graphic: me,
-                    mapPoint: me.geometry,
+                this.fireEvent("onMouseUp", {
+                    graphic: this,
+                    mapPoint: this.geometry,
                     orgion: args
                 });
             });
 
-            this.marker.on("mousedown", function (args: any) {
+            this.marker.on("mousedown", (args: any) => {
                 console.log("fire marker onMouseDown");
-                me.fireEvent("onMouseDown", {
-                    graphic: me,
-                    mapPoint: me.geometry,
+                this.fireEvent("onMouseDown", {
+                    graphic: this,
+                    mapPoint: this.geometry,
                     orgion: args
                 });
             });
 
-            this.marker.on("dblclick", function (args: any) {
+            this.marker.on("dblclick", (args: any) => {
                 console.log("fire marker onClick");
-                me.fireEvent("onDblClick", {
-                    graphic: me,
-                    mapPoint: me.geometry,
+                this.fireEvent("onDblClick", {
+                    graphic: this,
+                    mapPoint: this.geometry,
                     orgion: args
                 });
             });
-            this.marker.on("click", function (args: any) {
+            this.marker.on("click", (args: any) => {
                 console.log("fire marker onClick");
-                me.fireEvent("onClick", {
-                    graphic: me,
-                    mapPoint: me.geometry,
+                this.fireEvent("onClick", {
+                    graphic: this,
+                    mapPoint: this.geometry,
                     orgion: args
                 });
             });

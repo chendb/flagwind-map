@@ -11,10 +11,9 @@ namespace flagwind {
         }
 
         public registerEvent(): void {
-            const me = this;
-            this.flagwindMap.on("onClick", function (args: EventArgs) {
-                me.point = args.data.mapPoint;
-                me.locate();
+            this.flagwindMap.on("onClick", (args: EventArgs) => {
+                this.point = args.data.mapPoint;
+                this.locate();
             }, this);
         }
 

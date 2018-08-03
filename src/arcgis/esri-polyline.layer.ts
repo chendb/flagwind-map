@@ -89,17 +89,16 @@ namespace flagwind {
          * @memberof TollgateLayer
          */
         public showDataList() {
-            const me = this;
-            me.isLoading = true;
-            me.fireEvent("showDataList", { action: "start" });
+            this.isLoading = true;
+            this.fireEvent("showDataList", { action: "start" });
             return this.businessService.getDataList().then(dataList => {
-                me.isLoading = false;
-                me.saveGraphicList(dataList);
-                me.fireEvent("showDataList", { action: "end", attributes: dataList });
+                this.isLoading = false;
+                this.saveGraphicList(dataList);
+                this.fireEvent("showDataList", { action: "end", attributes: dataList });
             }).catch(error => {
-                me.isLoading = false;
+                this.isLoading = false;
                 console.log("加载卡口数据时发生了错误：", error);
-                me.fireEvent("showDataList", { action: "error", attributes: error });
+                this.fireEvent("showDataList", { action: "error", attributes: error });
             });
         }
 
@@ -107,9 +106,8 @@ namespace flagwind {
          * 开启定时器
          */
         public start() {
-            let me = this;
             (<any>this).timer = setInterval(() => {
-                me.updateStatus();
+                this.updateStatus();
             }, this.options.timeout || 20000);
         }
 
@@ -181,17 +179,16 @@ namespace flagwind {
          * 更新设备状态
          */
         private updateStatus(): void {
-            const me = this;
-            me.isLoading = true;
-            me.fireEvent("updateStatus", { action: "start" });
+            this.isLoading = true;
+            this.fireEvent("updateStatus", { action: "start" });
             this.businessService.getLastStatus().then(dataList => {
-                me.isLoading = false;
-                me.saveGraphicList(dataList);
-                me.fireEvent("updateStatus", { action: "end", attributes: dataList });
+                this.isLoading = false;
+                this.saveGraphicList(dataList);
+                this.fireEvent("updateStatus", { action: "end", attributes: dataList });
             }).catch(error => {
-                me.isLoading = false;
+                this.isLoading = false;
                 console.log("加载卡口状态时发生了错误：", error);
-                me.fireEvent("updateStatus", { action: "error", attributes: error });
+                this.fireEvent("updateStatus", { action: "error", attributes: error });
             });
         }
 

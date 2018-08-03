@@ -13,10 +13,9 @@ namespace flagwind {
         }
         
         public registerEvent() {
-            const me = this;
-            this.flagwindMap.on("onClick", function (args: EventArgs) {
-                me.point = new MinemapPoint(args.data.lngLat.lng, args.data.lngLat.lat);
-                me.locate();
+            this.flagwindMap.on("onClick",  (args: EventArgs) => {
+                this.point = new MinemapPoint(args.data.lngLat.lng, args.data.lngLat.lat);
+                this.locate();
             }, this);
         }
 

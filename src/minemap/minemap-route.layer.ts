@@ -33,15 +33,13 @@ namespace flagwind {
 
         public onCreateMovingLayer(id: string): FlagwindGroupLayer {
             return new MinemapGroupLayer({
-                id: id,
-                kind: "point"
+                id: id
             });
         }
 
         public onCreateLineLayer(id: string): FlagwindGroupLayer {
             return new MinemapGroupLayer({
-                id: id,
-                kind: "geojson"
+                id: id
             });
         }
 
@@ -94,19 +92,18 @@ namespace flagwind {
                 wayXY = waypoints.join(",");
             }
 
-            const me = this;
-            minemap.service.queryRouteDrivingResult3(startXY, endXY, wayXY, 2, "", function (error: any, results: any) {
+            minemap.service.queryRouteDrivingResult3(startXY, endXY, wayXY, 2, "", (error: any, results: any) => {
                 if (error) {
-                    me.errorHandler(error, segment);
+                    this.errorHandler(error, segment);
                 } else {
                     if (results.errcode === 0 && results.data) {
                         let routeResult = new RouteResult(results);
-                        me.solveComplete({
-                            polyline: routeResult.getLine(me.spatial),
+                        this.solveComplete({
+                            polyline: routeResult.getLine(this.spatial),
                             length: routeResult.data.rows[0].distance
                         }, segment);
                     } else {
-                        me.errorHandler(results.errmsg, segment);
+                        this.errorHandler(results.errmsg, segment);
                     }
                 }
             });

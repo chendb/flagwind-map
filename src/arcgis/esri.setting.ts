@@ -7,9 +7,6 @@ namespace flagwind {
         public imageUrl: string;
         public zhujiImageUrl: string;
         public tiledUrls: Array<{ id: string; url: string; title: string }>;
-        // public mapDomain: string = "minedata.cn";
-        // public mapVersion: string = "v1.3";
-        // public accessToken: string = "25cc55a69ea7422182d00d6b7c0ffa93";
         public arcgisApi: string;
         public wkid: number;
         public routeUrl: string;
@@ -25,7 +22,6 @@ namespace flagwind {
         public zoom: number;
         public logo: boolean = false;
         public slider: boolean = true;
-        // public sliderStyle: string = "small";
         public sliderPosition: string = "bottom-left";
 
     }
