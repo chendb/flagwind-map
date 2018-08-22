@@ -66,7 +66,7 @@ namespace flagwind {
     // tslint:disable-next-line:interface-name
     export interface FlagwindContextMenu {
         enabled: boolean;
-        create(eventArgs: ContextMenuCreateEventArgs): void;
+        startup(eventArgs: ContextMenuEventArgs): void;
         enable(): void;
         disable(): void;
     }
@@ -75,7 +75,7 @@ namespace flagwind {
      * 地图右键菜单创建事件参数
      */
     // tslint:disable-next-line:interface-name
-    export interface ContextMenuCreateEventArgs {
+    export interface ContextMenuEventArgs {
         menus: Array<any>;
         onClick: Function;
     }

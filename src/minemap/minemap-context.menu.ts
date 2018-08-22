@@ -10,9 +10,9 @@ namespace flagwind {
 
         public menu: any;
 
-        public constructor(public map: any) {}
+        public constructor(public flagwindMap: FlagwindMap) {}
 
-        public create(eventArgs: ContextMenuCreateEventArgs): void {
+        public startup(eventArgs: ContextMenuEventArgs): void {
             throw new Error("未实现");
         }
 

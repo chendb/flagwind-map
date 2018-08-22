@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.19 
+* flagwind-map v1.0.20 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -1337,7 +1337,6 @@ var flagwind;
             _this.featureLayers = [];
             _this.baseLayers = [];
             _this.loaded = false;
-            _this.contextMenu = _this.onCreateContextMenu();
             _this.options = __assign({}, flagwind.MAP_OPTIONS, options);
             return _this;
         }
@@ -1668,16 +1667,16 @@ var flagwind;
      * 对ArcGIS右键菜单实现
      */
     var EsriContextMenu = /** @class */ (function () {
-        function EsriContextMenu(map) {
-            this.map = map;
+        function EsriContextMenu(flagwindMap) {
+            this.flagwindMap = flagwindMap;
             this.enabled = false;
         }
-        EsriContextMenu.prototype.create = function (eventArgs) {
+        EsriContextMenu.prototype.startup = function (eventArgs) {
             var _this = this;
             var menus = eventArgs.menus;
             this.menu = new dijit.Menu({
                 onOpen: function (box) {
-                    _this.point = _this.getMapPointFromMenuPosition(box, _this.map);
+                    _this.point = _this.getMapPointFromMenuPosition(box, _this.flagwindMap.innerMap);
                 }
             });
             for (var i = 0; i < menus.length; i++) {
@@ -1689,6 +1688,18 @@ var flagwind;
                 }));
             }
             this.menu.startup();
+        };
+        EsriContextMenu.prototype.enable = function () {
+            if (this.enabled) {
+                console.warn("已经开启快捷菜单");
+                return;
+            }
+            this.enabled = true;
+            this.menu.bindDomNode(this.flagwindMap.innerMap.container);
+        };
+        EsriContextMenu.prototype.disable = function () {
+            this.enabled = false;
+            this.menu.unBindDomNode(this.flagwindMap.innerMap.container);
         };
         /**
          * 获取菜单单击的坐标信息
@@ -1709,18 +1720,6 @@ var flagwind;
             }
             var screenPoint = new esri.geometry.Point(x - map.position.x, y - map.position.y);
             return map.toMap(screenPoint);
-        };
-        EsriContextMenu.prototype.enable = function () {
-            if (this.enabled) {
-                console.warn("已经开启快捷菜单");
-                return;
-            }
-            this.enabled = true;
-            this.menu.bindDomNode(this.map.container);
-        };
-        EsriContextMenu.prototype.disable = function () {
-            this.enabled = false;
-            this.menu.unBindDomNode(this.map.container);
         };
         return EsriContextMenu;
     }());
@@ -2473,9 +2472,6 @@ var flagwind;
         };
         EsriMap.prototype.onHideTooltip = function () {
             this.tooltipElement.style.display = "none";
-        };
-        EsriMap.prototype.onCreateContextMenu = function () {
-            return new flagwind.EsriContextMenu(this.innerMap);
         };
         EsriMap.prototype.onDestroy = function () {
             try {
@@ -6098,11 +6094,11 @@ var flagwind;
      * 对Minemap地图封装
      */
     var MinemapContextMenu = /** @class */ (function () {
-        function MinemapContextMenu(map) {
-            this.map = map;
+        function MinemapContextMenu(flagwindMap) {
+            this.flagwindMap = flagwindMap;
             this.enabled = false;
         }
-        MinemapContextMenu.prototype.create = function (eventArgs) {
+        MinemapContextMenu.prototype.startup = function (eventArgs) {
             throw new Error("未实现");
         };
         MinemapContextMenu.prototype.enable = function () {
@@ -7007,9 +7003,6 @@ var flagwind;
         };
         MinemapMap.prototype.onHideTooltip = function () {
             this.tooltipElement.style.display = "none";
-        };
-        MinemapMap.prototype.onCreateContextMenu = function () {
-            return new flagwind.MinemapContextMenu(this.innerMap);
         };
         MinemapMap.prototype.onDestroy = function () {
             try {

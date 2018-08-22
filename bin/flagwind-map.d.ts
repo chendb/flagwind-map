@@ -361,7 +361,6 @@ declare namespace flagwind {
         spatial: any;
         innerMap: any;
         loaded: boolean;
-        contextMenu: FlagwindContextMenu;
         constructor(mapSetting: IMapSetting, mapElement: any, options: any);
         /**
          * 坐标点转换成对象
@@ -509,11 +508,6 @@ declare namespace flagwind {
          * 隐藏要素tooltip信息
          */
         abstract onHideTooltip(): void;
-        /**
-         * 创建地图右键快捷菜单对象
-         * @param eventArgs 创建菜单的参数
-         */
-        abstract onCreateContextMenu(): FlagwindContextMenu;
         abstract onDestroy(): void;
         protected onInit(): void;
         /**
@@ -527,18 +521,18 @@ declare namespace flagwind {
      * 对ArcGIS右键菜单实现
      */
     class EsriContextMenu implements FlagwindContextMenu {
-        map: any;
+        flagwindMap: EsriMap;
         enabled: boolean;
         point: FlagwindPoint;
         menu: any;
-        constructor(map: any);
-        create(eventArgs: ContextMenuCreateEventArgs): void;
+        constructor(flagwindMap: EsriMap);
+        startup(eventArgs: ContextMenuEventArgs): void;
+        enable(): void;
+        disable(): void;
         /**
          * 获取菜单单击的坐标信息
          */
         getMapPointFromMenuPosition(box: any, map: any): FlagwindPoint;
-        enable(): void;
-        disable(): void;
     }
 }
 declare let esri: any;
@@ -688,7 +682,6 @@ declare namespace flagwind {
         onZoom(zoom: number): Promise<void>;
         onShowTooltip(graphic: any): void;
         onHideTooltip(): void;
-        onCreateContextMenu(): FlagwindContextMenu;
         onDestroy(): void;
     }
 }
@@ -1439,14 +1432,14 @@ declare namespace flagwind {
     }
     interface FlagwindContextMenu {
         enabled: boolean;
-        create(eventArgs: ContextMenuCreateEventArgs): void;
+        startup(eventArgs: ContextMenuEventArgs): void;
         enable(): void;
         disable(): void;
     }
     /**
      * 地图右键菜单创建事件参数
      */
-    interface ContextMenuCreateEventArgs {
+    interface ContextMenuEventArgs {
         menus: Array<any>;
         onClick: Function;
     }
@@ -2563,12 +2556,12 @@ declare namespace flagwind {
      * 对Minemap地图封装
      */
     class MinemapContextMenu implements FlagwindContextMenu {
-        map: any;
+        flagwindMap: FlagwindMap;
         enabled: boolean;
         point: FlagwindPoint;
         menu: any;
-        constructor(map: any);
-        create(eventArgs: ContextMenuCreateEventArgs): void;
+        constructor(flagwindMap: FlagwindMap);
+        startup(eventArgs: ContextMenuEventArgs): void;
         enable(): void;
         disable(): void;
     }
@@ -2872,7 +2865,6 @@ declare namespace flagwind {
         onCreateBaseLayers(): FlagwindTiledLayer[];
         onShowTooltip(graphic: any): void;
         onHideTooltip(): void;
-        onCreateContextMenu(): FlagwindContextMenu;
         onDestroy(): void;
     }
 }

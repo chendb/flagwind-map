@@ -57,8 +57,6 @@ namespace flagwind {
         public innerMap: any;
         public loaded: boolean = false;
 
-        public contextMenu: FlagwindContextMenu = this.onCreateContextMenu();
-
         public constructor(public mapSetting: IMapSetting, public mapElement: any, options: any) {
             super();
             this.options = { ...MAP_OPTIONS, ...options };
@@ -412,12 +410,6 @@ namespace flagwind {
          * 隐藏要素tooltip信息
          */
         public abstract onHideTooltip(): void;
-
-        /**
-         * 创建地图右键快捷菜单对象
-         * @param eventArgs 创建菜单的参数
-         */
-        public abstract onCreateContextMenu(): FlagwindContextMenu;
 
         public abstract onDestroy(): void;
 

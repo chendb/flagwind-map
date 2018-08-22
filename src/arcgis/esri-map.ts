@@ -243,10 +243,6 @@ namespace flagwind {
             this.tooltipElement.style.display = "none";
         }
 
-        public onCreateContextMenu(): FlagwindContextMenu {
-            return new EsriContextMenu(this.innerMap);
-        }
-
         public onDestroy(): void {
             try {
                 if (this.tooltipElement) {
