@@ -5,6 +5,7 @@ namespace flagwind {
      */
     export class EsriMap extends FlagwindMap {
 
+        protected tooltipElement: HTMLDivElement;
         public constructor(
             public mapSetting: EsriSetting,
             mapElement: any,
@@ -40,18 +41,23 @@ namespace flagwind {
             this.spatial = new esri.SpatialReference({
                 wkid: this.mapSetting.wkid || 4326
             });
-            // let infoWindow = new esri.dijit.InfoWindow({}, document.getElementById("dispatchInfoWindow"));
-            // infoWindow.startup();
+
             let setting = this.mapSetting;
-            let mapArguments = <any>{ wkid: setting.wkid, center: setting.center, logo: setting.logo, slider: setting.slider, sliderPosition: setting.sliderPosition, zoom: setting.zoom, minZoom: setting.minZoom, maxZoom: setting.maxZoom };
-                // infoWindow: infoWindow
-            if (setting.zoom) {
+            let mapArguments = <any>{
+                wkid: setting.wkid,
+                center: setting.center,
+                logo: setting.logo,
+                slider: setting.slider,
+                sliderPosition: setting.sliderPosition
+            };
+
+            if (setting.zoom !== undefined) {
                 mapArguments.zoom = setting.zoom;
             }
-            if (setting.minZoom) {
+            if (setting.minZoom !== undefined) {
                 mapArguments.minZoom = setting.minZoom;
             }
-            if (setting.maxZoom) {
+            if (setting.maxZoom !== undefined) {
                 mapArguments.maxZoom = setting.maxZoom;
             }
             if (setting.basemap) {
@@ -67,25 +73,18 @@ namespace flagwind {
                     x: setting.extent[2],
                     y: setting.extent[3]
                 });
-                // let tileExtent = new esri.geometry.Extent({xmin: setting.extent[0],ymin: setting.extent[1],xmax: setting.extent[2],ymax: setting.extent[3],spatialReference: {wkid: mapArguments.wkid}});
                 let tileExtent = new esri.geometry.Extent(minXY.x, minXY.y, maxXY.x, maxXY.y, this.spatial);
-                // mapArguments.extent = esri.geometry.geographicToWebMercator(tileExtent);
                 mapArguments.extent = tileExtent;
             }
 
-            if (setting.webTiledUrl) {
-                mapArguments.lods = this.getTileInfo().lods;
-            }
             // 地图对象
             const map = new esri.Map(this.mapElement, mapArguments);
             map.infoWindow.anchor = "top";
             this.innerMap = map;
 
-            let div = ((<any>(
-                this
-            )).tooltipElement = document.createElement("div"));
-            div.classList.add("flagwind-map-tooltip");
-            (<any>this).innerMap.root.appendChild(div);
+            this.tooltipElement = document.createElement("div");
+            this.tooltipElement.classList.add("flagwind-map-tooltip");
+            (<any>this).innerMap.root.appendChild(this.tooltipElement);
 
             // #region click event
 
@@ -167,6 +166,7 @@ namespace flagwind {
         }
 
         public onShowInfoWindow(evt: InfoWindowShowEventArgs): void {
+            
             if (this.innerMap.infoWindow) {
                 this.innerMap.infoWindow.hide();
             }
@@ -204,16 +204,6 @@ namespace flagwind {
                 baseLayers.push(layer);
             }
 
-            if (this.mapSetting.zhujiImageUrl) {
-                const layer = new EsriTiledLayer("base_arcgis_zhuji", this.mapSetting.zhujiImageUrl, this.spatial, "瓦片图层");
-                baseLayers.push(layer);
-            }
-
-            if (this.mapSetting.imageUrl) {
-                const layer = new EsriTiledLayer("base_arcgis_image", this.mapSetting.imageUrl, this.spatial, "影像图层");
-                baseLayers.push(layer);
-            }
-
             if (this.mapSetting.tiledUrls) {
                 this.mapSetting.tiledUrls.forEach(l => {
                     if (!l.url) return;
@@ -221,20 +211,10 @@ namespace flagwind {
                     baseLayers.push(layer);
                 });
             }
-            if (this.mapSetting.webTiledUrl) {
-                const tileInfo1 = this.getTileInfo();
 
-                const cycleLayer = new esri.layers.WebTiledLayer(this.mapSetting.webTiledUrl, {
-                    tileInfo: tileInfo1
-                });
-                const layer = new EsriTiledLayer("base_arcgis_tiled", null, this.spatial, "瓦片图层");
-                layer.layer = cycleLayer;
-                baseLayers.push(layer);
-            }
             this.baseLayers = baseLayers;
             this.baseLayers.forEach(g => {
                 g.appendTo(this.innerMap);
-                // g.show(); // 默认全部打开
             });
 
             return baseLayers;
@@ -253,159 +233,42 @@ namespace flagwind {
             let pt = new esri.geometry.Point(info.longitude, info.latitude, this.spatial);
             let screenpt = this.innerMap.toScreen(pt);
             let title = info.name;
-            (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
-            (<any>this).tooltipElement.style.left = (screenpt.x + 15) + "px";
-            (<any>this).tooltipElement.style.top = (screenpt.y + 15) + "px";
-            (<any>this).tooltipElement.style.display = "block";
+            this.tooltipElement.innerHTML = "<div>" + title + "</div>";
+            this.tooltipElement.style.left = (screenpt.x + 15) + "px";
+            this.tooltipElement.style.top = (screenpt.y + 15) + "px";
+            this.tooltipElement.style.display = "block";
         }
 
         public onHideTooltip(): void {
-            (<any>this).tooltipElement.style.display = "none";
+            this.tooltipElement.style.display = "none";
         }
 
-        public onCreateContextMenu(eventArgs: ContextMenuCreateEventArgs): void {
-            const menus = eventArgs.contextMenu;
-            let ctxMenu = (<any>this).ctxMenuForMap = new dijit.Menu({
-                onOpen: function (box: any) {
-                    (<any>this).currentLocation = this.getMapPointFromMenuPosition(box, this.innerMap);
+        public onCreateContextMenu(): FlagwindContextMenu {
+            return new EsriContextMenu(this.innerMap);
+        }
+
+        public onDestroy(): void {
+            try {
+                if (this.tooltipElement) {
+                    this.tooltipElement.remove();
+                    this.tooltipElement = null;
                 }
-            });
-            for (let i = 0; i < menus.length; i++) {
-                ctxMenu.addChild(new dijit.MenuItem({
-                    label: menus[i],
-                    onClick: function (evt: any) {
-                        eventArgs.contextMenuClickEvent(this.label);
-                    }
-                }));
+                if (this.featureLayers) {
+                    this.featureLayers.forEach(l => {
+                        l.clear();
+                    });
+                    this.featureLayers = [];
+                }
+                if (this.baseLayers) {
+                    this.baseLayers = [];
+                }
+                if (this.innerMap && this.innerMap.destroy) {
+                    this.innerMap.destroy();
+                    this.innerMap = null;
+                }
+            } catch (error) {
+                console.error(error);
             }
-            ctxMenu.startup();
-            ctxMenu.bindDomNode(this.innerMap.container);
         }
-
-        /**
-         * tileInfo必须是单例模式，否则地图无法正常显示
-         * 
-         * @returns 
-         * @memberof FlagwindMap
-         */
-        protected getTileInfo() {
-            if ((<any>this).tileInfo) return (<any>this).tileInfo;
-            // tslint:disable-next-line:align
-            let tileInfo = new esri.layers.TileInfo({
-                "dpi": 96,
-                "spatialReference": this.spatial,
-                "rows": 256,
-                "cols": 256,
-                "origin": {
-                    "x": -2.0037508342787E7,
-                    "y": 2.0037508342787E7,
-                    "spatialReference": this.spatial
-                },
-                "lods": [
-                    {
-                        "level": "0",
-                        "scale": 5.91657527591555E8,
-                        "resolution": 156543.03392800014
-                    },
-                    {
-                        "level": "1",
-                        "scale": 2.95828763795777E8,
-                        "resolution": 78271.51696399994
-                    },
-                    {
-                        "level": "2",
-                        "scale": 1.47914381897889E8,
-                        "resolution": 39135.75848200009
-                    },
-                    {
-                        "level": "3",
-                        "scale": 7.3957190948944E7,
-                        "resolution": 19567.87924099992
-                    },
-                    {
-                        "level": "4",
-                        "scale": 3.6978595474472E7,
-                        "resolution": 9783.93962049996
-                    },
-                    {
-                        "level": "5",
-                        "scale": 1.8489297737236E7,
-                        "resolution": 4891.96981024998
-                    },
-                    {
-                        "level": "6",
-                        "scale": 9244648.868618,
-                        "resolution": 2445.98490512499
-                    },
-                    {
-                        "level": "7",
-                        "scale": 4622324.434309,
-                        "resolution": 1222.992452562495
-                    },
-                    {
-                        "level": "8",
-                        "scale": 2311162.217155,
-                        "resolution": 611.4962262813797
-                    },
-                    {
-                        "level": "9",
-                        "scale": 305.74811314055756,
-                        "resolution": 1155581.108577
-                    },
-                    {
-                        "level": "10",
-                        "scale": 577790.554289,
-                        "resolution": 152.87405657041106
-                    },
-                    {
-                        "level": "11",
-                        "scale": 288895.277144,
-                        "resolution": 76.43702828507324
-                    },
-                    {
-                        "level": "12",
-                        "scale": 144447.638572,
-                        "resolution": 38.21851414253662
-                    },
-                    {
-                        "level": "13",
-                        "scale": 72223.819286,
-                        "resolution": 19.10925707126831
-                    },
-                    {
-                        "level": "14",
-                        "scale": 36111.909643,
-                        "resolution": 9.554628535634155
-                    },
-                    {
-                        "level": "15",
-                        "scale": 18055.954822,
-                        "resolution": 4.77731426794937
-                    },
-                    {
-                        "level": "16",
-                        "scale": 9027.977411,
-                        "resolution": 2.388657133974685
-                    },
-                    {
-                        "level": "17",
-                        "scale": 4513.988705,
-                        "resolution": 1.1943285668550503
-                    },
-                    {
-                        "level": "18",
-                        "scale": 2256.994353,
-                        "resolution": 0.5971642835598172
-                    },
-                    {
-                        "level": "19",
-                        "scale": 1128.497176,
-                        "resolution": 0.29858214164761665
-                    }]
-            });
-            (<any>this).tileInfo = tileInfo;
-            return tileInfo;
-        }
-
     }
 }

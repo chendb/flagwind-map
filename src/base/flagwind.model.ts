@@ -1,5 +1,32 @@
 namespace flagwind {
 
+    // tslint:disable-next-line:interface-name
+    export interface BusinessLayerOptions {
+        autoInit: boolean;
+        symbol: any;
+        timeout: number;
+        enableEdit: boolean;    // 启用要素编辑功能
+        selectMode: number;     // 0为不启用选择功能 1为多选，2为单选
+        showTooltip: boolean;
+        showInfoWindow: boolean;
+        dataType: String;
+        changeStandardModel(model: any): void;
+        getInfoWindowContext(mode: any): any;
+        getDataList(): Promise<Array<any>>;
+        getLastStatus(): Promise<Array<any>>;
+        onLayerClick(evt: any): void;
+        onMapLoad(): void;
+        onEvent(eventName: string, evt: any): void;
+        onCheckChanged(evt: {
+            target: Array<any>;
+            check: boolean;
+            selectedItems: Array<any>;
+        }): void;
+        showInfoWindowCompleted(model: any): void;
+        onPositionChanged(currentPoint: any, originPoint: any, item: any): void;
+        onVisibleChanged(isShow: boolean): void;
+    }
+
     export const TRACKSEGMENT_OPTIONS = {
         speed: 100,
         maxSpeed: 800,
@@ -36,13 +63,21 @@ namespace flagwind {
         setGeometry(geometry: any): void;
     }
 
+    // tslint:disable-next-line:interface-name
+    export interface FlagwindContextMenu {
+        enabled: boolean;
+        create(eventArgs: ContextMenuCreateEventArgs): void;
+        enable(): void;
+        disable(): void;
+    }
+
     /**
      * 地图右键菜单创建事件参数
      */
     // tslint:disable-next-line:interface-name
-    export interface ContextMenuCreateEventArgs{
-        contextMenu: Array<any>;
-        contextMenuClickEvent: any;
+    export interface ContextMenuCreateEventArgs {
+        menus: Array<any>;
+        onClick: Function;
     }
 
     /**
@@ -65,16 +100,20 @@ namespace flagwind {
     }
 
     export enum SelectMode {
-        single = 1, multiple = 2
+        none = 0,
+        single = 1,
+        multiple = 2
     }
 
     export enum LayerType {
-        point = "point", polyline = "polyline", polygon = "polygon"
+        point = "point",
+        polyline = "polyline",
+        polygon = "polygon"
     }
 
     /**
      * 对轨迹播放中线路的路段的定义
-     * 
+     *
      * @export
      * @class TrackSegment
      */
@@ -84,7 +123,7 @@ namespace flagwind {
          * 移动要素在该路段点集合的位置
          */
         public position = -1;
-        
+
         /**
          * 线段长度
          */
@@ -108,7 +147,7 @@ namespace flagwind {
         /**
          * 线路点集合
          */
-        public line: Array<any> ;
+        public line: Array<any>;
 
         /**
          * 几何线
@@ -122,16 +161,16 @@ namespace flagwind {
 
         /**
          * 要素线（由外部使用）
-         * 
+         *
          * @type {*}
          * @memberof TrackSegment
          */
         public lineGraphic: any;
 
         /**
-         * 
+         *
          * 途经的点
-         * 
+         *
          * @type {any[]}
          * @memberof TrackSegment
          */
@@ -139,11 +178,12 @@ namespace flagwind {
 
         public constructor(
             public flagwindRouteLayer: FlagwindRouteLayer,
-            public index: number,    // 线路对应路段索引
-            public name: string,         // 线路名
-            public startGraphic: FlagwindGraphic,     // 起点要素
-            public endGraphic: FlagwindGraphic,       // 终点要素
-            public options: any) {
+            public index: number, // 线路对应路段索引
+            public name: string, // 线路名
+            public startGraphic: FlagwindGraphic, // 起点要素
+            public endGraphic: FlagwindGraphic, // 终点要素
+            public options: any
+        ) {
             this.options = { ...TRACKSEGMENT_OPTIONS, ...options };
         }
 
@@ -153,10 +193,13 @@ namespace flagwind {
          * @param length 线的长度
          */
         public setPolyLine(polyline: any, length: number) {
-            this.flagwindRouteLayer.onSetSegmentByLine({
-                polyline: polyline,
-                length: length
-            }, this);
+            this.flagwindRouteLayer.onSetSegmentByLine(
+                {
+                    polyline: polyline,
+                    length: length
+                },
+                this
+            );
             if (!this.speed) this.changeSpeed();
             this.options.onShowSegmentLineEvent(this);
         }
@@ -166,14 +209,18 @@ namespace flagwind {
          * @param points 几何点集
          */
         public setMultPoints(points: Array<any>) {
-
-            this.flagwindRouteLayer.onSetSegmentByPoint({
-                points: points,
-                spatial: this.flagwindRouteLayer.flagwindMap.spatial
-            }, this);
+            this.flagwindRouteLayer.onSetSegmentByPoint(
+                {
+                    points: points,
+                    spatial: this.flagwindRouteLayer.flagwindMap.spatial
+                },
+                this
+            );
             if (!this.speed) this.changeSpeed();
             console.debug("路段" + this.index + "长度：" + this.length + "km");
-            console.debug("路段" + this.index + "取点：" + this.line.length + "个");
+            console.debug(
+                "路段" + this.index + "取点：" + this.line.length + "个"
+            );
             console.debug("路段" + this.index + "速度：" + this.speed + "km/h");
             console.debug("路段" + this.index + "定时：" + this.time + "ms");
             this.options.onShowSegmentLineEvent(this);
@@ -181,15 +228,17 @@ namespace flagwind {
 
         /**
          * 变换速度
-         * @param speed 速度值 
+         * @param speed 速度值
          */
         public changeSpeed(speed: number | null = null) {
             if (this.options.numsOfKilometer === 0 || this.line.length === 0) {
                 this.speed = 10000000;
                 this.time = 1;
             } else {
-                this.speed = (speed || this.options.speed);
-                this.time = (this.length || 0) * 3600 / ((this.speed || 100) * 15 * this.line.length);
+                this.speed = speed || this.options.speed;
+                this.time =
+                    ((this.length || 0) * 3600) /
+                    ((this.speed || 100) * 15 * this.line.length);
             }
 
             // 若正在跑，则暂停，改变速度后再执行
@@ -207,25 +256,42 @@ namespace flagwind {
             let angle = 0;
             if (this.position === 0) {
                 if (this.line.length > 1) {
-                    angle = MapUtils.getAngle(this.startGraphic.geometry, {
-                        x: this.line[0][0], y: this.line[0][1]
-                    }) || 0;
+                    angle =
+                        MapUtils.getAngle(this.startGraphic.geometry, {
+                            x: this.line[0][0],
+                            y: this.line[0][1]
+                        }) || 0;
                 }
                 this.options.onMoveStartEvent(this, this.startGraphic, angle);
-                this.options.onMoveEvent(this, [this.startGraphic.geometry.x, this.startGraphic.geometry.y], angle);
+                this.options.onMoveEvent(
+                    this,
+                    [
+                        this.startGraphic.geometry.x,
+                        this.startGraphic.geometry.y
+                    ],
+                    angle
+                );
                 return;
             }
 
             if (this.position >= this.line.length) {
                 if (this.line.length > 1) {
-                    angle = MapUtils.getAngle({
-                        x: this.line[this.line.length - 1][0],
-                        y: this.line[this.line.length - 1][1]
-                    }, this.endGraphic.geometry) || 0;
+                    angle =
+                        MapUtils.getAngle(
+                            {
+                                x: this.line[this.line.length - 1][0],
+                                y: this.line[this.line.length - 1][1]
+                            },
+                            this.endGraphic.geometry
+                        ) || 0;
                 }
                 this.isCompleted = true;
                 this.stop();
-                this.options.onMoveEvent(this, [this.endGraphic.geometry.x, this.endGraphic.geometry.y], angle);
+                this.options.onMoveEvent(
+                    this,
+                    [this.endGraphic.geometry.x, this.endGraphic.geometry.y],
+                    angle
+                );
                 this.options.onMoveEndEvent(this, this.endGraphic, angle);
                 return;
             }
@@ -238,11 +304,11 @@ namespace flagwind {
                 {
                     x: this.line[this.position][0],
                     y: this.line[this.position][1]
-                });
+                }
+            );
             const xx = parseFloat(this.line[this.position - 1][0]).toFixed(5);
             const yy = parseFloat(this.line[this.position - 1][1]).toFixed(5);
             this.options.onMoveEvent(this, [xx, yy], angle);
-
         }
 
         /**
@@ -252,7 +318,13 @@ namespace flagwind {
             this.isRunning = true;
             this.timer = window.setInterval(() => {
                 if (!this.line) {
-                    console.log("线路" + this.name + "的第" + (this.index + 1) + "路段等待设置");
+                    console.log(
+                        "线路" +
+                            this.name +
+                            "的第" +
+                            (this.index + 1) +
+                            "路段等待设置"
+                    );
                 } else {
                     this.move();
                 }
@@ -263,7 +335,7 @@ namespace flagwind {
          * 当定时器为空，且运行状态为true时表示是暂停
          */
         public get isPaused(): boolean {
-            return (!this.timer) && this.isRunning;
+            return !this.timer && this.isRunning;
         }
 
         /**
@@ -299,12 +371,11 @@ namespace flagwind {
 
     /**
      * 对轨迹播放中线路的定义（它由多个路段组成）
-     * 
+     *
      * @export
      * @class TrackLine
      */
     export class TrackLine {
-
         /**
          * 设置线路上移动要素(如：车辆图标)
          */
@@ -330,7 +401,8 @@ namespace flagwind {
         public constructor(
             public flagwindMap: FlagwindMap,
             public name: string,
-            public options: any) {
+            public options: any
+        ) {
             this.options = { ...TRACKSEGMENT_OPTIONS, ...options };
         }
 
@@ -378,7 +450,7 @@ namespace flagwind {
             let segment = null;
             for (let i = 0; i < this.segments.length; i++) {
                 let rl = this.segments[i];
-                if ((!segment) || rl.index > segment.index) {
+                if (!segment || rl.index > segment.index) {
                     segment = rl;
                 }
             }
@@ -418,7 +490,7 @@ namespace flagwind {
 
         /**
          * 隐藏移动要素
-         * 
+         *
          * @memberof TrackLine
          */
         public hideMovingGraphic(): void {
@@ -428,7 +500,7 @@ namespace flagwind {
 
         /**
          * 显示移动要素
-         * 
+         *
          * @memberof TrackLine
          */
         public showMovingGraphic(): void {
@@ -487,18 +559,15 @@ namespace flagwind {
          * 停止线路
          */
         public stop(): void {
-
             for (let i = 0; i < this.segments.length; i++) {
                 let segemtn = this.segments[i];
                 segemtn.stop();
             }
-
         }
         /**
          * 重置
          */
         public reset(): void {
-
             for (let i = 0; i < this.segments.length; i++) {
                 let segemtn = this.segments[i];
                 segemtn.reset();
@@ -522,7 +591,6 @@ namespace flagwind {
          * 继续（与 暂停 是操作对，只能是在调用了暂停 才可以启用它）
          */
         public continue(): void {
-
             // 若没有路段进行运行，则启动线路
             if (!this.isRunning) {
                 this.start();
@@ -531,7 +599,7 @@ namespace flagwind {
             // 找到暂停路段，并启动路段
             for (let i = 0; i < this.segments.length; i++) {
                 let segemtn = this.segments[i];
-                if (segemtn.isRunning && (!segemtn.timer)) {
+                if (segemtn.isRunning && !segemtn.timer) {
                     segemtn.start();
                     return;
                 }
@@ -558,7 +626,7 @@ namespace flagwind {
                 playSegment.start();
             }
         }
-        
+
         /**
          * 增加路段
          */
@@ -579,7 +647,6 @@ namespace flagwind {
          * 获取线路的指定索引路段
          */
         public getSegment(index: number): TrackSegment | null {
-
             let line = null;
             if (this.segments.length === 0) return null;
 
@@ -593,6 +660,5 @@ namespace flagwind {
         }
 
         // #endregion
-
     }
 }

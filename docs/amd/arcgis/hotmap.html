@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>四维图新-热力图</title>
+    <link rel="stylesheet" href="http://27.17.34.22:8081/arcgis4js/library/3.21/dijit/themes/claro/claro.css">    
+    <link rel="stylesheet" href="http://27.17.34.22:8081/arcgis4js/library/3.21/esri/css/esri.css">
+    <!-- <script type="text/javascript" src="/scripts/lib/arcgis-heatmap/heatmap.js"></script>
+    <script type="text/javascript" src="/scripts/lib/arcgis-heatmap/arcgis-heatmap.js"></script> -->
+    <style>
+        html,
+        body,
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div style="position:absolute;top:0px;right:0px;">
+        <button id="btnShow">显示</button>
+        <button id="btnHide">隐藏</button>
+        <button id="btnClear">清除</button>
+    </div>
+</body>
+<script data-main="../arcgis/hotmap" src="../scripts/require.js"></script>
+
+</html>

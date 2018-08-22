@@ -6,6 +6,7 @@ namespace flagwind {
         public constructor(public flagwindMap: FlagwindMap, public options: any) {
             super(options.id, options.title);
             this.options = { ...LOCATION_LAYER_OPTIONS, ...this.options };
+            this.layer = this.onCreateGraphicsLayer({ id: this.id });
             this.flagwindMap.addFeatureLayer(this);
             this.registerEvent();
         }

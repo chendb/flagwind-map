@@ -1,7 +1,7 @@
 namespace flagwind {
 
     export class MinemapHeatmapLayer implements IFlagwindHeatmapLayer {
-
+        private dataMap: Map<String, HeatmapPoint>;
         private _echartslayer: any;
         public isShow: boolean = false;
         public options: any;
@@ -16,7 +16,8 @@ namespace flagwind {
         }
 
         public constructor(public flagwindMap: FlagwindMap, options: any) {
-            this.options = options;
+            this.options = { ...HEATMAP_LAYER_OPTIONS, ...options };
+            this.dataMap = new Map<String, HeatmapPoint>();
             this.chartOptions = {
                 GLMap: {
                     roam: true
@@ -67,31 +68,47 @@ namespace flagwind {
         }
 
         public clear(): void {
+            this.dataMap.clear();
             this.chartOptions.series[0].data = [];
             this.echartslayer.chart.setOption(this.chartOptions);
         }
+        
         public show(): void {
             this.isShow = true;
             this.echartslayer._container.style.display = "";
         }
+
         public hide(): void {
             this.isShow = false;
             this.echartslayer._container.style.display = "none";
         }
+
         public showDataList(data: Array<any>): void {
-            this.chartOptions.series[0].data = this.changeStandardData(data);
+            this.chartOptions.series[0].data = this.onChangeStandardModel(data);
             this.echartslayer.chart.setOption(this.chartOptions);
         }
-        public changeStandardData(data: Array<any>) {
-            let list: Array<Array<any>> = [];
+
+        public onChangeStandardModel(data: Array<any>): Array<any> {
             data.forEach(g => {
-                if (g instanceof Array && typeof g[0] === "number" && typeof g[1] === "number") {
-                    list.push(g);
-                } else if((g.x || g.lon) && (g.y || g.lat) && g.count) {
-                    list.push([g.x || g.lon, g.y || g.lat, g.count]);
+                let node = this.options.changeStandardModel(g);
+                if (node) {
+                    let key = node.longitude + ":" + node.latitude;
+                    let value = this.dataMap.get(key);
+                    if (value !== undefined) {
+                        value.members.push(g);
+                        value.count = value.count + (node.count || 1);
+                    } else {
+                        value = {
+                            longitude: node.longitude,
+                            latitude: node.latitude,
+                            members: [g],
+                            count: (node.count || 1)
+                        };
+                        this.dataMap.set(key, value);
+                    }
                 }
             });
-            return list;
+            return this.dataMap.values();
         }
 
     }

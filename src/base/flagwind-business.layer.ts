@@ -1,27 +1,21 @@
 /// <reference path="./flagwind-feature.layer.ts" />import { resolve } from "dns";
 
+/* tslint:disable:member-ordering */
 namespace flagwind {
 
-    export const BUSINESS_LAYER_OPTIONS: any = {
-        onLayerClick: (evt: any) => {
+    export const BUSINESS_LAYER_OPTIONS: BusinessLayerOptions = {
+        onLayerClick: (evt: any): void => {
             console.log("onLayerClick");
         },
-        onMapLoad: () => {
-            // console.log("onMapLoad");
+        onMapLoad: (): void => {
+            console.log("onMapLoad");
         },
         onEvent: (eventName: string, evt: any) => {
             console.log("onEvent");
         },
-        // 该方法可能去掉
-        onCheck: (evt: { target: Array<any>; check: boolean; selectedItems: Array<any> }) => {
-            console.log("onCheck");
-        },
         onCheckChanged: (evt: { target: Array<any>; check: boolean; selectedItems: Array<any> }) => {
             console.log("onCheckChanged");
         },
-        // onEditInfo: (evt: any, isSave: boolean) => {
-        //     console.log("onEditInfo");
-        // },
         onPositionChanged: (currentPoint: any, originPoint: any, item: any) => {
             console.log("onPositionChanged");
         },
@@ -37,11 +31,30 @@ namespace flagwind {
                 content: "没有定制详细信息"
             };
         },
+        /**
+         * 获取图层
+         */
+        getDataList: (): Promise<Array<any>> => {
+            return new Promise<Array<any>>((resolve,reject) => {
+                resolve([]);
+            });
+        },
+        /**
+         * 获取最新图层数据状态
+         */
+        getLastStatus: (): Promise<Array<any>> => {
+            return new Promise<Array<any>>((resolve,reject) => {
+                resolve([]);
+            });
+        },
+        showInfoWindowCompleted: null,
+        timeout: 3000,
+        autoInit: true,
         enableEdit: true,           // 启用要素编辑功能
-        enableSelectMode: false,    // 是否启用选择模块
-        selectMode: 1,              // 1为多选，2为单选
-        showTooltipOnHover: false,
+        selectMode: 0,              // 0不启用选择 1为多选，2为单选
+        showTooltip: false,
         showInfoWindow: false,
+        symbol: null,
         dataType: "point"
     };
 
@@ -50,13 +63,18 @@ namespace flagwind {
      */
     export abstract class FlagwindBusinessLayer extends FlagwindFeatureLayer {
         public layerType: string = LayerType.point; // point polyline polygon
+        public isLoading: boolean = false;
+        public options: BusinessLayerOptions;
 
-        public constructor(public flagwindMap: FlagwindMap, public id: string, public options: any) {
+        public constructor(public flagwindMap: FlagwindMap, public id: string,  options: any) {
             super(id, options.title || "设备图层");
-            options = { ...BUSINESS_LAYER_OPTIONS, ...options };
+            this.options = { ...BUSINESS_LAYER_OPTIONS, ...options };
+            this.layer = this.onCreateGraphicsLayer({ id: this.id });
             this.layerType = options.layerType;
             this.flagwindMap = flagwindMap;
-            this.options = options;
+            if (this.options.autoInit) {
+                this.onInit();
+            }
         }
 
         // #region 属性
@@ -100,10 +118,25 @@ namespace flagwind {
         }
 
         /**
+         * 根据对象集合新增要素集合
+         * @param dataList 对象集合
+         */
+        public addGraphicList(dataList: Array<any>): void {
+            for (let i = 0; i < dataList.length; i++) {
+                const graphic = this.getGraphicById(dataList[i].id);
+                if (graphic) {
+                    console.warn("已存在id：" + dataList[i].id + "要素点");
+                    continue;
+                }
+                this.addGraphicByModel(dataList[i]);
+            }
+        }
+
+        /**
          * 保存要素（有则修改，无则增加）
          * @param item 原始要素模型
          */
-        public saveGraphicByModel(item: any): void {
+        protected saveGraphicByModel(item: any): void {
             item = this.onChangeStandardModel(item);
             if (!item || !item.id) return;
             const graphic = this.getGraphicById(item.id);
@@ -117,17 +150,17 @@ namespace flagwind {
         /**
          * 创建并增加要素
          */
-        public addGraphicByModel(item: any): void {
+        protected addGraphicByModel(item: any): void {
             const graphic = this.creatGraphicByModel(item);
             if (graphic) {
-                this.layer.add(graphic);
+                this.add(graphic);
             }
         }
 
         /**
-         * 创建要素（未添加至图层中）
+         * 创建要素（未添加至图层中）,请方法在flagwind包下可见
          */
-        public creatGraphicByModel(item: any): any {
+        public creatGraphicByModel(item: any): FlagwindGraphic {
             item = this.onChangeStandardModel(item);
             if (!this.onValidModel(item)) {
                 console.warn("无效的要素：" + item);
@@ -144,7 +177,7 @@ namespace flagwind {
         /**
          * 修改要素
          */
-        public updateGraphicByModel(item: any, graphic: any | null = null): void {
+        protected updateGraphicByModel(item: any, graphic: any | null = null): void {
             item = this.onChangeStandardModel(item);
             if (!this.onValidModel(item)) {
                 return;
@@ -167,20 +200,13 @@ namespace flagwind {
          * 清除选择状态
          */
         public clearSelectStatus(): void {
-            let graphics: Array<any> = this.layer.graphics;
+            let graphics: Array<any> = this.graphics;
             for (let i = 0; i < graphics.length; i++) {
                 if (graphics[i].attributes.selected || typeof graphics[i].attributes.selected !== "boolean") {
                     this.setSelectStatus(graphics[i].attributes, false);
                 }
             }
-            // 该方法可能去掉
-            this.options.onCheck({
-                target: graphics ? graphics.map(v => v.attributes) : [],
-                check: false,
-                selectedItems: this.getSelectedGraphics().map(
-                    g => g.attributes
-                )
-            });
+
             this.options.onCheckChanged({
                 target: graphics ? graphics.map(v => v.attributes) : [],
                 check: false,
@@ -188,16 +214,6 @@ namespace flagwind {
                     g => g.attributes
                 )
             });
-        }
-
-        /**
-         * 设置选中状态
-         * @param item 要素原型
-         * @param selected 是否选中
-         */
-        public setSelectStatus(item: any, selected: boolean): void {
-            item.selected = selected;
-            this.onUpdateGraphicByModel(item);
         }
 
         /**
@@ -216,14 +232,6 @@ namespace flagwind {
                     this.setSelectStatus(graphic.attributes, true);
                 }
             }
-            // 该方法可能去掉
-            this.options.onCheck({
-                target: dataList,
-                check: true,
-                selectedItems: this.getSelectedGraphics().map(
-                    g => g.attributes
-                )
-            });
 
             this.options.onCheckChanged({
                 target: dataList,
@@ -238,9 +246,17 @@ namespace flagwind {
          * 获取所有选中的要素
          */
         public getSelectedGraphics(): Array<FlagwindGraphic> {
-            return (<Array<FlagwindGraphic>>(
-                this.layer.graphics
-            )).filter(g => g.attributes && g.attributes.selected);
+            return this.graphics.filter(g => g.attributes && g.attributes.selected);
+        }
+
+        /**
+         * 设置选中状态
+         * @param item 要素原型
+         * @param selected 是否选中
+         */
+        protected setSelectStatus(item: any, selected: boolean): void {
+            item.selected = selected;
+            this.onUpdateGraphicByModel(item);
         }
 
         // #endregion
@@ -284,7 +300,7 @@ namespace flagwind {
                     options: options || {}
                 });
             } else {
-                this.onShowInfoWindow({ graphic: graphic });
+                this.showInfoWindow({ graphic: graphic });
             }
         }
 
@@ -329,11 +345,95 @@ namespace flagwind {
          * 显示InfoWindow（在flagwind包下可用，对外不要调用此方法）
          * @param args
          */
-        public abstract onShowInfoWindow(args: { graphic: FlagwindGraphic }): void;
+        public showInfoWindow(evt: { graphic: FlagwindGraphic }): void {
+            let context = this.onGetInfoWindowContext(evt.graphic.attributes);
+            this.flagwindMap.onShowInfoWindow({
+                graphic: evt.graphic,
+                context: {
+                    type: "html",
+                    title: context.title,
+                    content: context.content
+                },
+                options: {}
+            });
+            if (this.options.showInfoWindowCompleted) {
+                this.options.showInfoWindowCompleted(evt.graphic.attributes);
+            }
+        }
+
+        // #endregion
+
+        // #region 数据加载
+        
+        /**
+         * 加载并显示设备点位
+         *
+         */
+        public showDataList() {
+
+            this.isLoading = true;
+            this.fireEvent("showDataList", { action: "start" });
+            return this.options.getDataList()
+                .then(dataList => {
+                    this.isLoading = false;
+                    this.saveGraphicList(dataList);
+                    this.fireEvent("showDataList", {
+                        action: "end",
+                        attributes: dataList
+                    });
+                })
+                .catch(error => {
+                    this.isLoading = false;
+                    console.log("加载图层数据时发生了错误：", error);
+                    this.fireEvent("showDataList", {
+                        action: "error",
+                        attributes: error
+                    });
+                });
+        }
+
+        /**
+         * 开启定时器
+         */
+        public start() {
+            (<any>this).timer = setInterval(() => {
+                this.updateStatus();
+            }, this.options.timeout || 20000);
+        }
+
+        /**
+         * 关闭定时器
+         */
+        public stop() {
+            if ((<any>this).timer) {
+                clearInterval((<any>this).timer);
+            }
+        }
+
+        /**
+         * 更新设备状态
+         */
+        public updateStatus(): void {
+            this.isLoading = true;
+            this.fireEvent("updateStatus", { action: "start" });
+            this.options.getLastStatus().then(dataList => {
+                this.isLoading = false;
+                this.saveGraphicList(dataList);
+                this.fireEvent("updateStatus", { action: "end", attributes: dataList });
+            }).catch(error => {
+                this.isLoading = false;
+                console.log("加载卡口状态时发生了错误：", error);
+                this.fireEvent("updateStatus", { action: "error", attributes: error });
+            });
+        }
 
         // #endregion
 
         // #region 内部方法
+
+        protected onGetInfoWindowContext(item: any): any {
+            return this.options.getInfoWindowContext(item);
+        }
 
         protected onInit(): void {
             this.addToMap();
@@ -373,18 +473,20 @@ namespace flagwind {
             this.on("onClick", (evt: EventArgs) => {
                 this.onLayerClick(this, evt.data);
             });
-
-            if (this.options.showTooltipOnHover) {
-                // 如果开启鼠标hover开关
-                this.on("onMouseOver", (evt: EventArgs) => {
+            // 如果开启鼠标hover开关
+            this.on("onMouseOver", (evt: EventArgs) => {
+                if (this.options.showTooltip) {
                     this.flagwindMap.onShowTooltip(evt.data.graphic);
-                    this.fireEvent("onMouseOver", evt.data);
-                });
-                this.on("onMouseOut", (evt: EventArgs) => {
+                }
+                this.fireEvent("onMouseOver", evt.data);
+            });
+            this.on("onMouseOut", (evt: EventArgs) => {
+                if (this.options.showTooltip) {
                     this.flagwindMap.onHideTooltip();
-                    this.fireEvent("onMouseOut", evt.data);
-                });
-            }
+                }
+                this.fireEvent("onMouseOut", evt.data);
+            });
+
         }
 
         protected onLayerClick(deviceLayer: this, evt: any) {
@@ -393,10 +495,10 @@ namespace flagwind {
             }
             if (deviceLayer.options.showInfoWindow) {
                 evt.graphic.attributes.eventName = "";
-                deviceLayer.onShowInfoWindow(evt);
+                deviceLayer.showInfoWindow(evt);
             }
 
-            if (deviceLayer.options.enableSelectMode) {
+            if (deviceLayer.options.selectMode) {
                 if (deviceLayer.options.selectMode === SelectMode.single) {
                     let item = evt.graphic.attributes;
                     if (evt.graphic.attributes.selected) {
@@ -409,13 +511,6 @@ namespace flagwind {
                     let item = evt.graphic.attributes;
                     deviceLayer.setSelectStatus(item, true);
                 }
-
-                // 该方法可能去掉
-                deviceLayer.options.onCheck({
-                    target: [evt.graphic.attributes],
-                    check: evt.graphic.attributes.selected,
-                    selectedItems: deviceLayer.getSelectedGraphics()
-                });
 
                 deviceLayer.options.onCheckChanged({
                     target: [evt.graphic.attributes],
@@ -441,9 +536,6 @@ namespace flagwind {
                     return item.id && item.longitude && item.latitude;
             }
         }
-        // #endregion
-
-        // #region 抽象方法
 
         /**
          * 变换成标准实体
@@ -453,13 +545,18 @@ namespace flagwind {
          * @returns {{ id: String, name: String, longitude: number, latitude: number }}
          * @memberof FlagwindBusinessLayer
          */
-        protected abstract onChangeStandardModel(item: any): any;
+        protected onChangeStandardModel(item: any): any {
+            return this.options.changeStandardModel(item);
+        }
+        // #endregion
+
+        // #region 抽象方法
 
         /**
          * 创建要素
          * @param item
          */
-        protected abstract onCreatGraphicByModel(item: any): any;
+        protected abstract onCreatGraphicByModel(item: any): FlagwindGraphic;
 
         /**
          * 修改要素

@@ -1,28 +1,63 @@
 /// <reference path="../events/EventProvider" />
 namespace flagwind {
 
+    /**
+     * 支持的地图类型
+     */
+    export enum MapType {
+        arcgis = "arcgis", minemap = "minemap"
+    }
+
+    /**
+     * 地图参数
+     */
     export const MAP_OPTIONS = {
         // 地图加载完回调
         onMapLoad() {
             console.log("onMapLoad");
         },
+        onZoomStart(level: number) {
+            console.log("onZoomStart");
+        },
+        onZoom(level: number) {
+            console.log("onMapZoom");
+        },
         // zoom 结束回调
-        onMapZoomEnd(level: number) {
-            console.log("onMapZoomEnd");
+        onZoomEnd(level: number) {
+            console.log("onZoomEnd");
         },
         // 地图单击回调
         onMapClick(evt: any) {
             console.log("onMapClick");
+        },
+        /**
+         * 
+         * @param lat 
+         * @param lon 
+         */
+        formPoint(lat: number, lon: number): { lat: number; lon: number } {
+            return {
+                lat: lat,
+                lon: lon
+            };
+        },
+        toPoint(lat: number, lon: number): { lat: number; lon: number } {
+            return {
+                lat: lat,
+                lon: lon
+            };
         }
     };
 
     export abstract class FlagwindMap extends EventProvider {
-        private featureLayers: Array<FlagwindFeatureLayer> = [];
-        protected baseLayers: Array<FlagwindTiledLayer> = [];
+        public featureLayers: Array<FlagwindFeatureLayer> = [];
+        public baseLayers: Array<FlagwindTiledLayer> = [];
         public options: any;
         public spatial: any;
         public innerMap: any;
         public loaded: boolean = false;
+
+        public contextMenu: FlagwindContextMenu = this.onCreateContextMenu();
 
         public constructor(public mapSetting: IMapSetting, public mapElement: any, options: any) {
             super();
@@ -41,27 +76,18 @@ namespace flagwind {
                 lnglat.lon = point.longitude;
                 lnglat.lat = point.latitude;
             }
-            // console.log("-->坐标转换之前:" + lnglat.lon + "," + lnglat.lat);
-            if (this.mapSetting.wkid === 3589) {
-                console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
-                lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
-            }
 
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
                 if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
-                    if (this.mapSetting.is25D) {
-                        console.log("2.5D坐标：" + lnglat.lon + "," + lnglat.lat);
-                        lnglat = MapUtils.point25To2(lnglat.lon, lnglat.lat);
-                        console.log("高德坐标：" + lnglat.lon + "," + lnglat.lat);
-                        lnglat = MapUtils.gcj_decrypt(lnglat.lat, lnglat.lon);
-                        console.log("原始坐标：" + lnglat.lon + "," + lnglat.lat);
-                    } else {
-                        lnglat = MapUtils.mercator2lonlat(lnglat.lat, lnglat.lon);
-                    }
+                    lnglat = MapUtils.mercator2lonlat(lnglat.lat, lnglat.lon);
                 } else if (this.spatial.wkid === 102100 && this.mapSetting.wkidFromApp === 4326) {
                     lnglat = MapUtils.mercator_decrypt(lnglat.lat, lnglat.lon);
                 } else if (this.spatial.wkid === 4326 && this.mapSetting.wkidFromApp === 3857) {
                     lnglat = MapUtils.mercator_decrypt(lnglat.lat, lnglat.lon);
+                } else if (this.spatial.wkid === 4326 && this.mapSetting.wkidFromApp === 3889) {
+                    lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
+                } else {
+                    lnglat = this.options.formPoint(lnglat.lat, lnglat.lon);
                 }
             }
 
@@ -80,26 +106,15 @@ namespace flagwind {
                 lnglat.lat = item.y || lnglat.lat;
             }
 
-            if (this.mapSetting.wkid === 3589) {
-                console.log("GCJ-02坐标：" + lnglat.lon + "," + lnglat.lat);
-                lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
-            }
-
             if (this.spatial.wkid !== this.mapSetting.wkidFromApp) {
-                if (this.spatial.wkid === 3857 && this.mapSetting.wkidFromApp === 4326) {
-                    if (this.mapSetting.is25D) {
-                        console.log("原始坐标：" + lnglat.lon + "," + lnglat.lat);
-                        lnglat = MapUtils.gcj_encrypt(lnglat.lat, lnglat.lon);
-                        console.log("高德坐标：" + lnglat.lon + "," + lnglat.lat);
-                        lnglat = MapUtils.point2To25(lnglat.lon, lnglat.lat);
-                        console.log("2.5D坐标：" + lnglat.lon + "," + lnglat.lat);
-                    } else {
-                        lnglat = MapUtils.lonlat2mercator(lnglat.lat, lnglat.lon);
-                    }
-                } else if (this.spatial.wkid === 102100 && this.mapSetting.wkidFromApp === 4326) {
+                if (this.spatial.wkid === 102100 && this.mapSetting.wkidFromApp === 4326) {
                     lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
                 } else if (this.spatial.wkid === 4326 && this.mapSetting.wkidFromApp === 3857) {
                     lnglat = MapUtils.mercator_encrypt(lnglat.lat, lnglat.lon);
+                } else if (this.spatial.wkid === 4326 && this.mapSetting.wkidFromApp === 3589) {
+                    lnglat = MapUtils.gcj_decrypt_exact(lnglat.lat, lnglat.lon);
+                } else {
+                    lnglat = this.options.toPoint(lnglat.lat, lnglat.lon);
                 }
             }
             // 以x,y属性创建点
@@ -159,35 +174,45 @@ namespace flagwind {
         }
 
         /**
-         * @即将废弃
-         */
-        public gotoCenter() {
-            this.centerAtDefault();
-        }
-
-        /**
-         * 定位到配置的地图中心点
-         */
-        public centerAtDefault() {
-            if (this.mapSetting.center && this.mapSetting.center.length === 2) {
-                let pt = this.getPoint({
-                    x: this.mapSetting.center[0],
-                    y: this.mapSetting.center[1]
-                });
-                this.onCenterAt(pt);
-            }
-        }
-
-        /**
          * 中心定位
          */
-        public centerAt(x: number, y: number): Promise<void> {
-            let pt = this.onCreatePoint({
-                x: x,
-                y: y,
-                spatial: this.spatial
-            });
-            return this.onCenterAt(pt);
+        public centerAt(): Promise<void> ;
+        public centerAt(xy: Array<number>): Promise<void> ;
+        public centerAt(x: number, y: number): Promise<void> ;
+        public centerAt(): Promise<void> {
+            let args = arguments, pt: FlagwindPoint;
+            switch (args.length) {
+                case 0:
+                    if (this.mapSetting.center && this.mapSetting.center.length === 2) {
+                        pt = this.getPoint({
+                            x: this.mapSetting.center[0],
+                            y: this.mapSetting.center[1]
+                        });
+
+                    }
+                    break;
+                case 1:
+                    pt = this.onCreatePoint({
+                        x: args[0],
+                        y: args[1],
+                        spatial: this.spatial
+                    });
+                    break;
+                case 2:
+                    pt = this.onCreatePoint({
+                        x: args[0],
+                        y: args[1],
+                        spatial: this.spatial
+                    });
+                    break;
+            }
+            if (pt) {
+                return this.onCenterAt(pt);
+            } else {
+                return new Promise((resolve, reject) => {
+                    resolve();
+                });
+            }
         }
 
         /**
@@ -260,6 +285,13 @@ namespace flagwind {
                 return true;
             }
             return false;
+        }
+
+        /**
+         * 销毁对象
+         */
+        public destroy(): void {
+            this.onDestroy();
         }
 
         // #endregion
@@ -382,10 +414,12 @@ namespace flagwind {
         public abstract onHideTooltip(): void;
 
         /**
-         * 创建地图右键快捷菜单
+         * 创建地图右键快捷菜单对象
          * @param eventArgs 创建菜单的参数
          */
-        public abstract onCreateContextMenu(eventArgs: ContextMenuCreateEventArgs): void;
+        public abstract onCreateContextMenu(): FlagwindContextMenu;
+
+        public abstract onDestroy(): void;
 
         // #endregion
 
@@ -397,27 +431,33 @@ namespace flagwind {
             this.on("onLoad", () => {
                 try {
                     this.loaded = true;
-                    this.centerAtDefault();
+                    this.centerAt();
                     this.onMapLoad();
                 } catch (ex) {
                     console.error(ex);
                 }
             });
-            this.on("onZoomStart", (evt: EventArgs) => {
-                if (this.options.onZoomStart) {
-                    this.options.onZoomStart(evt.data);
+
+            const eventNames = Object.keys(this.options).filter(
+                (e: string) => e.indexOf("on") >= 0
+            );
+            
+            for (const eventName of eventNames) {
+
+                if (eventName === "onMapClick") continue;
+                if (eventName === "onMapLoad") continue;
+
+                if (this.options[eventName]) {
+                    this.on(eventName, (evt: EventArgs) => {
+                        this.options[eventName](evt.data);
+                    });
                 }
+            }
+
+            this.on("onClick", (evt: EventArgs) => {
+                this.options.onMapClick(evt);
             });
-            this.on("onZoom", (evt: EventArgs) => {
-                if (this.options.onZoom) {
-                    this.options.onZoom(evt);
-                }
-            });
-            this.on("onZoomEnd", (evt: EventArgs) => {
-                if (this.options.onZoomEnd) {
-                    this.options.onZoomEnd(evt.data);
-                }
-            });
+
         }
 
         /**
@@ -427,10 +467,6 @@ namespace flagwind {
             if (this.options.onMapLoad) {
                 this.options.onMapLoad();
             }
-
-            this.on("onClick", (evt: EventArgs) => {
-                this.options.onMapClick(evt); // evt.data
-            });
         }
 
         // #endregion 

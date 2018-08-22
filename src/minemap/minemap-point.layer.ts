@@ -5,77 +5,47 @@ namespace flagwind {
      * 点图层
      */
     export class MinemapPointLayer extends FlagwindBusinessLayer {
-        public isLoading: boolean = false; // 设备是否正在加载
 
         public constructor(
             flagwindMap: FlagwindMap,
             id: string,
-            options: any,
-            public businessService: IFlagwindBusinessService
+            options: any
         ) {
             super(flagwindMap, id, {
                 ...{ autoInit: true },
                 ...options,
-                ...{ layerType: "point" }
+                ...{ layerType: LayerType.point }
             });
-            if (this.options.autoInit) {
-                this.onInit();
-            }
         }
 
         public onCreateGraphicsLayer(options: any) {
             return new MinemapGraphicsLayer(options);
         }
 
-        public onShowInfoWindow(evt: any): void {
-            let context = this.onGetInfoWindowContext(evt.graphic.attributes);
-            this.flagwindMap.onShowInfoWindow({
-                graphic: evt.graphic,
-                context: {
-                    type: "html",
-                    title: context.title,
-                    content: context.content
-                }
-            });
-        }
-
-        /**
-         * 把实体转换成标准的要素属性信息
-         * @param item 实体信息
-         */
-        public onChangeStandardModel(item: any): any {
-            return this.options.changeStandardModel(item);
-        }
-
-        public onGetInfoWindowContext(item: any): any {
-            return this.options.getInfoWindowContext(item);
-        }
-
         public getImageUrl(item: any): string {
-            let imageUrl =
-                this.options.imageUrl || this.options.symbol.imageUrl;
-            if (typeof imageUrl === "string") {
-                const key =
-                    "imageUrl" +
-                    (item.status || "") +
-                    (item.selected ? "checked" : "");
-                let statusImageUrl =
-                    this.options[key] || this.options.symbol[key] || imageUrl;
-                let imageParts = statusImageUrl.split(".");
+            let imageUrl = this.options.symbol.imageUrl;
+            if (typeof imageUrl === "string" && imageUrl) {
+                const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;
+                let statusImageUrl: string = this.options[key] || this.options.symbol[key] || imageUrl;
+                let suffixIndex = statusImageUrl.lastIndexOf(".");
+                const path = statusImageUrl.substring(0, suffixIndex);
+                const suffix = statusImageUrl.substring(suffixIndex + 1);
                 if (item.selected) {
-                    return imageParts[0] + "_checked." + imageParts[1];
+                    return `${path}_checked.${suffix}`;
                 } else {
-                    return imageParts[0] + "_unchecked." + imageParts[1];
+                    return `${path}.${suffix}`;
                 }
             } else {
+                let status = item.status;
+                if (status === undefined || status === null) {
+                    status = "";
+                }
                 const key =
-                    "image" +
-                    (item.status || "") +
-                    (item.selected ? "checked" : "");
+                    "image" + status + (item.selected ? "checked" : "");
                 return (
                     this.options[key] ||
                     this.options.symbol[key] ||
-                    this.options.image
+                    (<any>this.options).image
                 );
             }
         }
@@ -99,7 +69,7 @@ namespace flagwind {
         public onCreatGraphicByModel(item: any): any {
             let className = this.options.symbol.className || "graphic-point";
             let imageUrl =
-                this.options.symbol.imageUrl || this.options.imageUrl;
+                this.options.symbol.imageUrl || (<any>this.options).imageUrl;
             let attr = { ...item, ...{ __type: this.layerType } };
             return new MinemapPointGraphic({
                 id: item.id,
@@ -146,61 +116,6 @@ namespace flagwind {
             }
         }
 
-        /**
-         * 加载并显示设备点位
-         *
-         * @memberof TollgateLayer
-         */
-        public showDataList() {
-            if (!this.businessService) {
-                throw new Error("没有指定该图层数据获取服务");
-            }
-            this.isLoading = true;
-            this.fireEvent("showDataList", { action: "start" });
-
-            return this.businessService
-                .getDataList()
-                .then(dataList => {
-                    this.isLoading = false;
-                    this.saveGraphicList(dataList);
-                    this.fireEvent("showDataList", {
-                        action: "end",
-                        attributes: dataList
-                    });
-                })
-                .catch(error => {
-                    this.isLoading = false;
-                    console.log("加载卡口数据时发生了错误：", error);
-                    this.fireEvent("showDataList", {
-                        action: "error",
-                        attributes: error
-                    });
-                });
-        }
-
-        /**
-         * 开启定时器
-         */
-        public start() {
-            (<any>this).timer = setInterval(() => {
-                this.updateStatus();
-            }, this.options.timeout || 20000);
-        }
-
-        /**
-         * 关闭定时器
-         */
-        public stop() {
-            if ((<any>this).timer) {
-                clearInterval((<any>this).timer);
-            }
-        }
-
-        public setSelectStatus(item: any, selected: boolean): void {
-            item.selected = selected;
-            this.setGraphicStatus(item);
-        }
-
         protected setGraphicStatus(item: any): void {
             let graphic: MinemapPointGraphic = this.getGraphicById(item.id);
             graphic.setSymbol({
@@ -209,33 +124,5 @@ namespace flagwind {
             });
         }
 
-        /**
-         * 更新设备状态
-         */
-        private updateStatus(): void {
-            if (!this.businessService) {
-                throw new Error("没有指定该图层数据获取服务");
-            }
-            this.isLoading = true;
-            this.fireEvent("updateStatus", { action: "start" });
-            this.businessService
-                .getLastStatus()
-                .then(dataList => {
-                    this.isLoading = false;
-                    this.saveGraphicList(dataList);
-                    this.fireEvent("updateStatus", {
-                        action: "end",
-                        attributes: dataList
-                    });
-                })
-                .catch(error => {
-                    this.isLoading = false;
-                    console.log("加载卡口状态时发生了错误：", error);
-                    this.fireEvent("updateStatus", {
-                        action: "error",
-                        attributes: error
-                    });
-                });
-        }
     }
 }

@@ -56,7 +56,7 @@ namespace flagwind {
                }
 
                public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
-                   let markerUrl = trackline.options.symbol.image || trackline.options.symbol.imageUrl || this.options.imageUrl || this.options.symbol.image || this.options.symbol.imageUrl;
+                   let markerUrl = this.getImageUrl(trackline, angle);
                    let markerHeight = trackline.options.symbol.height || this.options.symbol.height;
                    let markerWidth = trackline.options.symbol.width || this.options.symbol.width;
                    if (!markerUrl) {
@@ -78,13 +78,24 @@ namespace flagwind {
                public onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number) {
                    if (trackline === undefined) return;
                    let symbol = trackline.markerGraphic.symbol;
-                   trackline.options.markerType === "car" ? symbol.setAngle(360 - angle) : symbol.setUrl(this.getImageUrl(trackline, angle));
+                   let imageUrl = this.getImageUrl(trackline,angle);
+                   symbol.setUrl(imageUrl);
+                   let imageAngle = this.getImageAngle(trackline, angle);
+                   if (imageAngle !== null) {
+                       symbol.setAngle(imageAngle);
+                   }
                    trackline.markerGraphic.setSymbol(symbol);
                    trackline.markerGraphic.setGeometry(point);
                    (<any>trackline.markerGraphic).draw(); // 重绘
                }
 
                public getImageUrl(trackline: TrackLine, angle: number) {
+                   if (this.options.getImageUrl) {
+                       return this.options.getImageUrl(trackline, angle);
+                   }
+                   if (trackline.options.getImageUrl) {
+                        return trackline.options.getImageUrl(trackline, angle);
+                   }
                    let sx = 1;
                    if (angle < 45 || angle >= 315) sx = 3; // 向东走
                    if (angle >= 45 && angle < 135) sx = 4; // 向北走
@@ -100,10 +111,19 @@ namespace flagwind {
                        trackline.step = (trackline.step + 1) % 4;
                    }
                    trackline.direction = sx;
-                   // let name = trackline.direction + "" + (trackline.step + 1);
                    let name = `${trackline.direction}${trackline.step + 1}`;
 
                    return trackline.options.symbol[`imageUrl${name}`];
+               }
+
+               public getImageAngle(trackline: TrackLine, angle: number) {
+                    if (this.options.getImageAngle) {
+                        return this.options.getImageAngle(trackline, angle);
+                    }
+                    if (trackline.options.getImageAngle) {
+                        return trackline.options.getImageAngle(trackline, angle);
+                    }
+                    return 360 - angle;
                }
 
                public onCreateLineLayer(id: string): FlagwindGroupLayer {

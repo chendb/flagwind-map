@@ -49,11 +49,11 @@ namespace flagwind {
              */
             routeLayer.options.onStationEvent = (name: string, index: number, graphic: any, isStartPoint: boolean, trackline: TrackLine) => {
                 if (index === 0 && isStartPoint) {
-                    this.businessLayer.saveGraphicByModel(graphic.attributes.__model);
+                    this.businessLayer.saveGraphicList([graphic.attributes.__model]);
                     this.options.onPointChanged(index, graphic.attributes.__model);
                 }
                 if (!isStartPoint) { // 出站
-                    this.businessLayer.saveGraphicByModel(graphic.attributes.__model);
+                    this.businessLayer.saveGraphicList([graphic.attributes.__model]);
                     this.options.onPointChanged(index + 1, graphic.attributes.__model);
                 }
             };
@@ -153,12 +153,12 @@ namespace flagwind {
                 <div class="tool-text"><span></span></div>`;
             this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
 
-            this._playButton  = document.querySelector("#route-ctrl-group .icon-continue");
-            this._pauseButton = document.querySelector("#route-ctrl-group .icon-pause");
-            this._speedUpButton = document.querySelector("#route-ctrl-group .icon-speedUp");
-            this._speedDownButton = document.querySelector("#route-ctrl-group .icon-speedDown");
-            this._clearButton = document.querySelector("#route-ctrl-group .icon-clear");
-            this._toolBoxText = document.querySelector("#route-ctrl-group .tool-text span");
+            this._playButton = document.querySelector("#" + this.toolBoxId + " .icon-continue");
+            this._pauseButton = document.querySelector("#" + this.toolBoxId + " .icon-pause");
+            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-speedUp");
+            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-speedDown");
+            this._clearButton = document.querySelector("#" + this.toolBoxId + " .icon-clear");
+            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .tool-text span");
             this._playButton.onclick = () => {
                 this.continue();
             };

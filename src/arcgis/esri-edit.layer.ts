@@ -19,7 +19,20 @@ namespace flagwind {
         public constructor(businessLayer: FlagwindBusinessLayer, options: any) {
             super("edit_" + businessLayer.id, "编辑图层");
             this.options = { ...EDIT_LAYER_OPTIONS, ...options };
+            this.layer = this.onCreateGraphicsLayer({ id: this.id });
             this.businessLayer = businessLayer;
+            const funGetInfoWindowContext = this.businessLayer.options.getInfoWindowContext;
+            this.businessLayer.options.getInfoWindowContext = (model: any) => {
+                let context = funGetInfoWindowContext(model);
+                context.content += "<a key='" + model.id + "' id='edit_point_" + model.id + "' class='button-edit-point'>更新坐标</a>";
+                return context;
+            };
+            this.businessLayer.options.showInfoWindowCompleted = (model: any) => {
+                dojo.connect(dojo.byId("edit_point_" + model.id), "onclick", (evt: any) => {
+                    const key = evt.target.attributes["key"].value;
+                    this.activateEdit(key);
+                });
+            };
             this.flagwindMap = businessLayer.flagwindMap;
 
             this.editObj = new esri.toolbars.Edit(this.flagwindMap.innerMap); // 编辑对象,在编辑图层进行操作
@@ -67,7 +80,7 @@ namespace flagwind {
 
             let graphic = this.businessLayer.getGraphicById(key);
             graphic.attributes.eventName = "delete";
-            this.businessLayer.onShowInfoWindow({
+            this.businessLayer.showInfoWindow({
                 graphic: graphic
             });
         }
@@ -128,7 +141,7 @@ namespace flagwind {
         }
 
         public confirm(key: string) {
-            (<any>window).$Modal.confirm({
+            (<any>this.options).confirm({
                 title: "确定要进行更改吗？",
                 content: "初始坐标值（经度）:" + this.originInfo.longitude +
                     ",（纬度）:" + this.originInfo.latitude +
@@ -146,7 +159,7 @@ namespace flagwind {
                         longitude: changeInfo.longitude
                     }, true).then((res: any) => {
                         this.businessLayer.removeGraphicById(changeInfo.id);
-                        this.businessLayer.addGraphicByModel(changeInfo);
+                        this.businessLayer.addGraphicList([changeInfo]);
                     });
                 },
                 onCancel: () => {
@@ -192,7 +205,7 @@ namespace flagwind {
             }
 
             if (editLayer.businessLayer.options.showInfoWindow) {
-                editLayer.businessLayer.onShowInfoWindow(evt);
+                editLayer.businessLayer.showInfoWindow(evt);
             }
         }
 

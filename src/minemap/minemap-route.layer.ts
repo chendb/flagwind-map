@@ -130,7 +130,7 @@ namespace flagwind {
         }
 
         public onCreateMoveMark(trackline: TrackLine, graphic: any, angle: number) {
-            let markerUrl = trackline.options.symbol.imageUrl || trackline.options.markerUrl || this.options.markerUrl || this.options.movingImageUrl;
+            let markerUrl = this.getImageUrl(trackline,angle);
             let marker = new MinemapPointGraphic({
                 id: trackline.name,
                 symbol: {
@@ -149,8 +149,53 @@ namespace flagwind {
          */
         public onUpdateMoveGraphic(trackline: TrackLine, point: any, angle: number) {
             if (trackline === undefined) return;
-            trackline.markerGraphic.setAngle(360 - angle);
+            let imageUrl = this.getImageUrl(trackline,angle);
+            let imageAngle = this.getImageAngle(trackline,angle);
+            trackline.markerGraphic.setSymbol({
+                imageUrl: imageUrl,
+                className: "graphic-moving"
+            });
+            if (imageAngle !== null) {
+                trackline.markerGraphic.setAngle(imageAngle);
+            }
             trackline.markerGraphic.setGeometry(point);
+        }
+
+        public getImageUrl(trackline: TrackLine, angle: number) {
+            if (this.options.getImageUrl) {
+                return this.options.getImageUrl(trackline, angle);
+            }
+            if (trackline.options.getImageUrl) {
+                 return trackline.options.getImageUrl(trackline, angle);
+            }
+            let sx = 1;
+            if (angle < 45 || angle >= 315) sx = 3; // 向东走
+            if (angle >= 45 && angle < 135) sx = 4; // 向北走
+            if (angle >= 135 && angle < 225) sx = 2; // 向西走
+            if (angle >= 225 && angle < 315) sx = 1; // 向南走
+
+            if (trackline.step === null) {
+                trackline.step = -1;
+            }
+            if (trackline.direction !== sx) {
+                trackline.step = 0;
+            } else {
+                trackline.step = (trackline.step + 1) % 4;
+            }
+            trackline.direction = sx;
+            let name = `${trackline.direction}${trackline.step + 1}`;
+
+            return trackline.options.symbol[`imageUrl${name}`];
+        }
+
+        public getImageAngle(trackline: TrackLine, angle: number) {
+             if (this.options.getImageAngle) {
+                 return this.options.getImageAngle(trackline, angle);
+             }
+             if (trackline.options.getImageAngle) {
+                 return trackline.options.getImageAngle(trackline, angle);
+             }
+             return 360 - angle;
         }
     }
 }

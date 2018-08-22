@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ArcGIS-卡口图层</title>
+    <link rel="stylesheet" href="http://27.17.34.22:8081/arcgis4js/library/3.21/dijit/themes/claro/claro.css">    
+    <link rel="stylesheet" href="http://27.17.34.22:8081/arcgis4js/library/3.21/esri/css/esri.css">
+    <!-- <script src="/scripts/lib/moment/moment.js"></script>
+    <script src="/scripts/lib/moment/moment-with-locales.js"></script> -->
+
+    
+    <style>
+        html,
+        body,
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .flagwind-map-title.hide{
+            display: none
+        }
+
+        .flagwind-map-title {
+            display: block;
+
+        }
+
+        .minemap-marker.tollgate {
+            background-image: url('http://113.106.54.47:1180/minemapapi/demo/images/police.png');
+            background-size: cover;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .minemap-popup {
+            max-width: 200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div style="position:absolute;top:0px;right:0px;">
+        <button id="btnShow">显示</button>
+        <button id="btnHide">隐藏</button>
+        <button id="btnClear">清除</button>
+        <button id="btnGetGraphic">获取要素</button>
+        <button id="btnShowGraphic">显示要素</button>
+        <button id="btnHideGraphic">隐藏要素</button>
+    </div>
+</body>
+<script data-main="../arcgis/tollgate" src="../scripts/require.js"></script>
+
+</html>

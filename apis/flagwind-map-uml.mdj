@@ -226,6 +226,18 @@
 									"type": {
 										"$ref": "AAAAAAFkoq/qQ3L5jcg="
 									}
+								},
+								{
+									"_type": "UMLAttribute",
+									"_id": "AAAAAAFlX5aXuzlQTbI=",
+									"_parent": {
+										"$ref": "AAAAAAFkon6bJFTWb5s="
+									},
+									"name": "contextMenu",
+									"documentation": "右键菜单实例",
+									"type": {
+										"$ref": "AAAAAAFlX5MnDjeDmOc="
+									}
 								}
 							],
 							"operations": [
@@ -758,69 +770,10 @@
 									"name": "onCreateContextMenu",
 									"documentation": "创建地图右键快捷菜单",
 									"stereotype": "",
-									"parameters": [
-										{
-											"_type": "UMLParameter",
-											"_id": "AAAAAAFkoqqomXLpCAE=",
-											"_parent": {
-												"$ref": "AAAAAAFkopVk+FX/XKk="
-											},
-											"name": "eventArgs",
-											"documentation": "创建菜单的参数",
-											"stereotype": "",
-											"type": {
-												"$ref": "AAAAAAFksibXJlQ+eK8="
-											}
-										}
-									],
 									"isAbstract": true
 								}
 							],
 							"isAbstract": true
-						},
-						{
-							"_type": "UMLClass",
-							"_id": "AAAAAAFkorX8mXMnEes=",
-							"_parent": {
-								"$ref": "AAAAAAFksC27ER0wZbk="
-							},
-							"name": "ContextMenuOptions",
-							"documentation": "快捷菜单创建参数",
-							"attributes": [
-								{
-									"_type": "UMLAttribute",
-									"_id": "AAAAAAFkorX8mXMo2S4=",
-									"_parent": {
-										"$ref": "AAAAAAFkorX8mXMnEes="
-									},
-									"name": "contextMenu",
-									"type": "Array<String>"
-								}
-							],
-							"operations": [
-								{
-									"_type": "UMLOperation",
-									"_id": "AAAAAAFkorX8mXMpz8Y=",
-									"_parent": {
-										"$ref": "AAAAAAFkorX8mXMnEes="
-									},
-									"name": "contextMenuClickEvent",
-									"stereotype": "",
-									"parameters": [
-										{
-											"_type": "UMLParameter",
-											"_id": "AAAAAAFkorX8mXMqh6U=",
-											"_parent": {
-												"$ref": "AAAAAAFkorX8mXMpz8Y="
-											},
-											"name": "label",
-											"type": ""
-										}
-									],
-									"isAbstract": true,
-									"specification": "void"
-								}
-							]
 						},
 						{
 							"_type": "UMLClass",
@@ -5753,7 +5706,8 @@
 									"_parent": {
 										"$ref": "AAAAAAFksibXJlQ+eK8="
 									},
-									"name": "contextMenu",
+									"name": "menus",
+									"documentation": "菜单项集合",
 									"type": {
 										"$ref": "AAAAAAFkoq/qQ3L5jcg="
 									}
@@ -5764,7 +5718,8 @@
 									"_parent": {
 										"$ref": "AAAAAAFksibXJlQ+eK8="
 									},
-									"name": "contextMenuClickEvent",
+									"name": "onClick",
+									"documentation": "单击事件",
 									"type": {
 										"$ref": "AAAAAAFkoq/qQ3L5jcg="
 									}
@@ -6003,13 +5958,30 @@
 													"height": 13,
 													"text": "+map: any",
 													"horizontalAlignment": 0
+												},
+												{
+													"_type": "UMLAttributeView",
+													"_id": "AAAAAAFlX5aX4jlTbU8=",
+													"_parent": {
+														"$ref": "AAAAAAFkwGxjZeFaOiI="
+													},
+													"model": {
+														"$ref": "AAAAAAFlX5aXuzlQTbI="
+													},
+													"font": "Arial;13;0",
+													"left": 216,
+													"top": 789,
+													"width": 389.11767578125,
+													"height": 13,
+													"text": "+contextMenu: FlagwindContextMenu",
+													"horizontalAlignment": 0
 												}
 											],
 											"font": "Arial;13;0",
 											"left": 211,
 											"top": 709,
 											"width": 399.11767578125,
-											"height": 83
+											"height": 98
 										},
 										{
 											"_type": "UMLOperationCompartmentView",
@@ -6032,7 +6004,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 797,
+													"top": 812,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onFormPoint(point: any)",
@@ -6049,7 +6021,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 812,
+													"top": 827,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onToPoint(item: any)",
@@ -6066,7 +6038,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 827,
+													"top": 842,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+closeInfoWindow()",
@@ -6083,7 +6055,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 842,
+													"top": 857,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+centerAtDefault()",
@@ -6100,7 +6072,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 857,
+													"top": 872,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+centerAt(x: number, y: number)",
@@ -6117,7 +6089,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 872,
+													"top": 887,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+setZoom(zoom: number)",
@@ -6134,7 +6106,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 887,
+													"top": 902,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+getPoint(item: any): FlagwindPoint",
@@ -6151,7 +6123,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 902,
+													"top": 917,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+getBaseLayerById(id: string)",
@@ -6168,7 +6140,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 917,
+													"top": 932,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+showBaseLayers()",
@@ -6185,7 +6157,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 932,
+													"top": 947,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+hideBaseLayers()",
@@ -6202,7 +6174,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 947,
+													"top": 962,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+showBaseLayer(id: string)",
@@ -6219,7 +6191,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 962,
+													"top": 977,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+hideBaseLayer(id: string)",
@@ -6236,7 +6208,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 977,
+													"top": 992,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+getFeatureLayerById(id: string)",
@@ -6253,7 +6225,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 992,
+													"top": 1007,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+addFeatureLayer(featureLayer: FlagwindFeatureLayer)",
@@ -6270,7 +6242,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 1007,
+													"top": 1022,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+removeFeatureLayer(id: string)",
@@ -6287,7 +6259,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 1022,
+													"top": 1037,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+showFeatureLayer(id: string)",
@@ -6304,7 +6276,7 @@
 													},
 													"font": "Arial;13;0",
 													"left": 216,
-													"top": 1037,
+													"top": 1052,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+hideFeatureLayer(id: string)",
@@ -6321,7 +6293,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1052,
+													"top": 1067,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onCenterAt(point: FlagwindPoint)",
@@ -6338,7 +6310,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1067,
+													"top": 1082,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onZoom(zoom: number)",
@@ -6355,7 +6327,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1082,
+													"top": 1097,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onCreatePoint(item: any)",
@@ -6372,7 +6344,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1097,
+													"top": 1112,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onCreateMap()",
@@ -6389,7 +6361,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1112,
+													"top": 1127,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onShowInfoWindow(event: InfoWindowShowEventArgs)",
@@ -6406,7 +6378,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1127,
+													"top": 1142,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onCloseInfoWindow()",
@@ -6423,7 +6395,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1142,
+													"top": 1157,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onCreateBaseLayers()",
@@ -6440,7 +6412,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1157,
+													"top": 1172,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onShowTooltip(graphic: FlagwindGraphic)",
@@ -6457,7 +6429,7 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1172,
+													"top": 1187,
 													"width": 389.11767578125,
 													"height": 13,
 													"text": "+onHideTooltip()",
@@ -6474,16 +6446,16 @@
 													},
 													"font": "Arial;13;2",
 													"left": 216,
-													"top": 1187,
+													"top": 1202,
 													"width": 389.11767578125,
 													"height": 13,
-													"text": "+onCreateContextMenu(eventArgs: ContextMenuCreateEventArgs)",
+													"text": "+onCreateContextMenu()",
 													"horizontalAlignment": 0
 												}
 											],
 											"font": "Arial;13;0",
 											"left": 211,
-											"top": 792,
+											"top": 807,
 											"width": 399.11767578125,
 											"height": 413
 										},
@@ -15052,6 +15024,57 @@
 									"headQualifiersCompartment": {
 										"$ref": "AAAAAAFkwGxja+PqKyM="
 									}
+								}
+							]
+						},
+						{
+							"_type": "UMLInterface",
+							"_id": "AAAAAAFlX5MnDjeDmOc=",
+							"_parent": {
+								"$ref": "AAAAAAFksC27ER0wZbk="
+							},
+							"name": "FlagwindContextMenu",
+							"attributes": [
+								{
+									"_type": "UMLAttribute",
+									"_id": "AAAAAAFlX5NGeze0I6I=",
+									"_parent": {
+										"$ref": "AAAAAAFlX5MnDjeDmOc="
+									},
+									"name": "enabled",
+									"documentation": "是否启用",
+									"type": {
+										"$ref": "AAAAAAFkouXCAXPnMqU="
+									}
+								}
+							],
+							"operations": [
+								{
+									"_type": "UMLOperation",
+									"_id": "AAAAAAFlX5Oc4zgUvtQ=",
+									"_parent": {
+										"$ref": "AAAAAAFlX5MnDjeDmOc="
+									},
+									"name": "create",
+									"documentation": "创建菜单"
+								},
+								{
+									"_type": "UMLOperation",
+									"_id": "AAAAAAFlX5Uq3zhV8r4=",
+									"_parent": {
+										"$ref": "AAAAAAFlX5MnDjeDmOc="
+									},
+									"name": "enable",
+									"documentation": "启用"
+								},
+								{
+									"_type": "UMLOperation",
+									"_id": "AAAAAAFlX5V6VjiWhWE=",
+									"_parent": {
+										"$ref": "AAAAAAFlX5MnDjeDmOc="
+									},
+									"name": "disable",
+									"documentation": "禁用\n"
 								}
 							]
 						}

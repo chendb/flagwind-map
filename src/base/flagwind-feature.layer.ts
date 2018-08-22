@@ -15,10 +15,9 @@ namespace flagwind {
         public constructor(public id: string, public title: string | null) {
             super();
             this.id = id;
-            this.layer = this.onCreateGraphicsLayer({ id: id });
         }
 
-        public get graphics(): Array<any> {
+        public get graphics(): Array<FlagwindGraphic> {
             return this.layer.graphics;
         }
 
@@ -109,6 +108,14 @@ namespace flagwind {
          * @param args 创建要素图层的参数
          */
         public abstract onCreateGraphicsLayer(args: any): any;
+
+        protected add(graphic: FlagwindGraphic) {
+            this.layer.add(graphic);
+        }
+
+        protected remove(graphic: FlagwindGraphic) {
+            this.layer.remove(graphic);
+        }
 
     }
 }

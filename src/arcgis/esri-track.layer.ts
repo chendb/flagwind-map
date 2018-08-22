@@ -7,7 +7,7 @@ namespace flagwind {
     export class EsriTrackLayer extends FlagwindTrackLayer {
 
         public constructor(public businessLayer: FlagwindBusinessLayer, options: any) {
-            super(businessLayer, new EsriRouteLayer(businessLayer.flagwindMap, businessLayer.id + "_track", options), options);
+            super(businessLayer, new EsriRouteLayer(businessLayer.flagwindMap, businessLayer.id + "_track", options.route || options), options);
         }
 
     }

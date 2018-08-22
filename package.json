@@ -1,6 +1,6 @@
 {
     "name": "flagwind-map",
-    "version": "1.0.15",
+    "version": "1.0.19",
     "description": "flagwind map library",
     "author": "chendb <hbchendb1985@gmail.com>",
     "scripts": {
@@ -30,15 +30,6 @@
     },
     "bugs": {
         "url": "https://github.com/chendb/flagwind-map/issues"
-    },
-    "dependencies": {
-        "esri-loader": "^2.3.0"
-    },
-    "peerDependencies": {
-        "iview": "^2.7.3",
-        "vue-property-decorator": "^6.0.0",
-        "flagwind-core": "^1.0.3",
-        "vue": "^2.5.7"
     },
     "devDependencies": {
         "@types/chai": "^4.0.4",

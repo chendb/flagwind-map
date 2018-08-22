@@ -14,7 +14,9 @@ namespace flagwind {
         // 轨迹播放图层显示层级
         trackLevel: 2,
         autoCenterAt: true,
-        onMessageEvent(name: string, message: string) {
+        getImageUrl: null,  // getImageUrl: (trackline: TrackLine, angle: number) => String,
+        getImageAngle: null,// getImageAngle: (trackline: TrackLine, angle: number) => String,
+        onMessageEvent: (name: string, message: string) => {
             console.log(name + " " + message);
         },
         onCreateSegmentCompleteEvent: (segment: TrackSegment) => {
@@ -42,15 +44,6 @@ namespace flagwind {
             height: null,
             width: null
         }
-        // ,
-        // // 移动要素图片地址
-        // markerUrl: "",
-        // // 移动要素文本
-        // markerLabel: "",
-        // // 移动要不高度
-        // markerHeight: null,
-        // // 移动要不宽度
-        // markerWidth: null
     };
 
     export abstract class FlagwindRouteLayer implements IFlagwindCombineLayer{
@@ -460,70 +453,6 @@ namespace flagwind {
 
         // #endregion
 
-        // #region 播放控件(即将移除)
-
-        /**
-         * 此方法移至FlagwindTrackLayer(即将废弃)
-         */
-        public deleteTrackToolBox(): void {
-            let ele = document.getElementById("route-ctrl-group");
-            if (ele) ele.remove();
-        }
-
-        /**
-         * 此方法移至FlagwindTrackLayer(即将废弃)
-         */
-        public showTrackToolBox(): void {
-            if (document.getElementById("route-ctrl-group")) {
-                console.log("TrackToolBox已经创建，不可重复创建！");
-                document.getElementById("route-ctrl-group").style.display = "block";
-                return;
-            }
-            const me = this;
-            let trackToolBox = document.createElement("div");
-            trackToolBox.setAttribute("id", "route-ctrl-group");
-            trackToolBox.innerHTML = `<div class="tool-btns">
-                <span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
-                <span class="route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
-                <span class="route-btn icon-speedDown" title="减速" data-operate="speedDown"></span>
-                <span class="route-btn icon-speedUp" title="加速" data-operate="speedUp"></span>
-                <span class="route-btn icon-clear" title="清除轨迹" data-operate="clear"></span></div>
-                <div class="tool-text"><span></span></div>`;
-            this.flagwindMap.innerMap.container.appendChild(trackToolBox);
-
-            let playBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-continue");
-            let pauseBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-pause");
-            let speedUpBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-speedUp");
-            let speedDownBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-speedDown");
-            let clearBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-clear");
-            let toolBoxTextEle: HTMLElement = document.querySelector("#route-ctrl-group .tool-text span");
-            playBtn.onclick = function () {
-                me.continue(me.activedTrackLineName);
-                playBtn.style.display = "none";
-                pauseBtn.style.display = "block";
-                toolBoxTextEle.innerHTML = "当前状态：正在播放";
-            };
-            pauseBtn.onclick = function () {
-                me.pause(me.activedTrackLineName);
-                playBtn.style.display = "block";
-                pauseBtn.style.display = "none";
-                toolBoxTextEle.innerHTML = "当前状态：已暂停";
-            };
-            speedUpBtn.onclick = function () {
-                toolBoxTextEle.innerHTML = me.speedUp(me.activedTrackLineName);
-            };
-            speedDownBtn.onclick = function () {
-                toolBoxTextEle.innerHTML = me.speedDown(me.activedTrackLineName);
-            };
-            clearBtn.onclick = function () {
-                me.clearAll();
-                toolBoxTextEle.innerHTML = "";
-            };
-
-        }
-
-        // #endregion
-
         // #region 路径求解
         /**
          * 求解最短路径（与solveLine不同，它求解的是一个路段，该路段起点为stops[0],终点为stops[stops.length-1]
@@ -771,13 +700,6 @@ namespace flagwind {
                 segment.stop();
                 // 如果没有下一条线路，说明线路播放结束，此时调用线路播放结束回调
                 flagwindRoute.options.onLineEndEvent(segment.name, segment.index, currentLine);
-
-                let toolBoxTextEle: HTMLElement = document.querySelector("#route-ctrl-group .tool-text span");
-                let playBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-continue");
-                let pauseBtn: HTMLElement = document.querySelector("#route-ctrl-group .icon-pause");
-                toolBoxTextEle.innerHTML = "当前状态：已结束";
-                playBtn.style.display = "block";
-                pauseBtn.style.display = "none";
             }
         }
 

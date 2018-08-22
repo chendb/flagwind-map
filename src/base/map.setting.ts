@@ -6,7 +6,6 @@ namespace flagwind {
         units: number;// 用于地图距离求解单位控件参数
         center: Array<number>; // 中心坐标
         wkidFromApp: number; // app中使用的空间投影（允许业务中使用的投影与地图的不一样，程序会自动转换）
-        is25D: boolean; // 是否为2.5D地图
         minZoom: number;
         maxZoom: number;
         zoom: number;

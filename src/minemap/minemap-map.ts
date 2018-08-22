@@ -2,6 +2,8 @@ namespace flagwind {
 
     export class MinemapMap extends FlagwindMap {
 
+        protected tooltipElement: HTMLDivElement;
+
         public constructor(
             public mapSetting: MinemapSetting,
             mapElement: any,
@@ -24,6 +26,7 @@ namespace flagwind {
                 resolve();
             });
         }
+
         /**
          * 创建点
          * @param options 点属性
@@ -57,10 +60,10 @@ namespace flagwind {
             map.infoWindow = popup;
             popup.addTo(map);
 
-            let div = (<any>this).tooltipElement = document.createElement("div");
-            div.id = "flagwind-map-tooltip";
-            div.classList.add("flagwind-map-tooltip");
-            map._container.appendChild(div);
+            this.tooltipElement = document.createElement("div");
+            this.tooltipElement.id = "flagwind-map-tooltip";
+            this.tooltipElement.classList.add("flagwind-map-tooltip");
+            map._container.appendChild(this.tooltipElement);
             this.innerMap = map;
 
             map.on("load", (args: any) => {
@@ -105,6 +108,7 @@ namespace flagwind {
 
             return map;
         }
+        
         public onShowInfoWindow(evt: InfoWindowShowEventArgs): void {
             if (this.innerMap.infoWindow) {
                 this.innerMap.infoWindow.remove();
@@ -171,23 +175,48 @@ namespace flagwind {
             this.baseLayers = baseLayers;
             return baseLayers;
         }
+
         public onShowTooltip(graphic: any): void {
             let info = graphic.attributes;
             let pt = graphic.geometry;
             let screenpt = this.innerMap.project([pt.x, pt.y]);
             let title = info.name;
-            (<any>this).tooltipElement.innerHTML = "<div>" + title + "</div>";
-            (<any>this).tooltipElement.style.left = (screenpt.x + 8) + "px";
-            (<any>this).tooltipElement.style.top = (screenpt.y + 8) + "px";
-            (<any>this).tooltipElement.style.display = "block";
+            this.tooltipElement.innerHTML = "<div>" + title + "</div>";
+            this.tooltipElement.style.left = (screenpt.x + 8) + "px";
+            this.tooltipElement.style.top = (screenpt.y + 8) + "px";
+            this.tooltipElement.style.display = "block";
 
         }
+
         public onHideTooltip(): void {
-            (<any>this).tooltipElement.style.display = "none";
+            this.tooltipElement.style.display = "none";
         }
-        public onCreateContextMenu(args: { contextMenu: Array<any>; contextMenuClickEvent: any }): void {
-            if (this.options.onCreateContextMenu) {
-                this.options.onCreateContextMenu(args);
+
+        public onCreateContextMenu(): FlagwindContextMenu {
+            return new MinemapContextMenu(this.innerMap);
+        }
+
+        public onDestroy(): void {
+            try {
+                if (this.tooltipElement) {
+                    this.tooltipElement.remove();
+                    this.tooltipElement = null;
+                }
+                if (this.featureLayers) {
+                    this.featureLayers.forEach(l => {
+                        l.clear();
+                    });
+                    this.featureLayers = [];
+                }
+                if (this.baseLayers) {
+                    this.baseLayers = [];
+                }
+                if (this.innerMap && this.innerMap.destroy) {
+                    this.innerMap.destroy();
+                    this.innerMap = null;
+                }
+            } catch (error) {
+                console.error(error);
             }
         }
 

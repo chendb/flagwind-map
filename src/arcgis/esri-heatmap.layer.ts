@@ -1,6 +1,7 @@
 namespace flagwind {
-
     export class EsriHeatmapLayer implements IFlagwindHeatmapLayer {
+        private dataMap: Map<String, HeatmapPoint>;
+
         private map: any;
         public heatLayer: any;
 
@@ -9,40 +10,45 @@ namespace flagwind {
         public options: any;
         public heatmapRenderer: any;
 
-        public constructor(public flagwindMap: FlagwindMap, id: string, options: any) {
+        public constructor(
+            public flagwindMap: FlagwindMap,
+            id: string,
+            options: any
+        ) {
             this.id = id || "heatmapLayer";
-            this.options = options;
-            this.map = flagwindMap;
-
+            this.options = { ...HEATMAP_LAYER_OPTIONS, ...options };
+            this.map = flagwindMap.map;
+            this.dataMap = new Map<String, HeatmapPoint>();
             this.heatLayer = this.createHeatLayer();
             this.appendTo(this.map);
         }
 
         public createHeatLayer() {
             let featureCollection: any = {
-                "featureSet": null,
-                "layerDefinition": {
-                    "geometryType": "esriGeometryPoint",
-                    "fields": [{
-                        "name": "count",
-                        "type": "esriFieldTypeDouble",
-                        "alias": "count"
-                    }]
+                featureSet: null,
+                layerDefinition: {
+                    geometryType: "esriGeometryPoint",
+                    fields: [
+                        {
+                            name: "count",
+                            type: "esriFieldTypeDouble",
+                            alias: "count"
+                        }
+                    ]
                 }
             };
-            let options = {
-                id: this.id,
-                opacity: 0.7
-            };
-            let layer = new esri.layers.FeatureLayer(featureCollection, options);
+            let options = { id: this.id, opacity: 0.7 };
+            
+            let layer = new esri.layers.FeatureLayer(
+                featureCollection,
+                options
+            );
 
             this.heatmapRenderer = new esri.renderer.HeatmapRenderer({
                 ...{
                     field: "count",
-                    blurRadius: 12,
-                    // maxPixelIntensity: 100,
-                    // minPixelIntensity: 0,
-                    colorStops: [
+                    blurRadius: this.options.blurRadius || 12,
+                    colorStops: this.options.colorStops || [
                         { ratio: 0, color: "rgb(255, 219, 0, 0)" },
                         { ratio: 0.6, color: "rgb(250, 146, 0)" },
                         { ratio: 0.85, color: "rgb(250, 73, 0)" },
@@ -68,6 +74,7 @@ namespace flagwind {
             this.map.innerMap.resize();
         }
         public clear(): void {
+            this.dataMap.clear();
             this.heatLayer.clear();
         }
         public show(): void {
@@ -82,36 +89,46 @@ namespace flagwind {
             this.heatmapRenderer.setMaxPixelIntensity(value);
         }
         public showDataList(data: Array<any>): void {
-            let dataList = this.onChangeStandardModel(data);
+            let dataList = <Array<any>>this.onChangeStandardModel(data);
+
             if (dataList.length === 0) {
                 console.log("未传入热点数据");
                 return;
             }
 
-            this.setMaxPixelIntensity(dataList.reduce((max, item) => max = Math.max(item.count, max), 1));
+            this.setMaxPixelIntensity(
+                dataList.reduce((max, item) => (max = Math.max(item.count, max)),1)
+            );
 
             dataList.forEach(g => {
-                let pt = this.map.getPoint(g); // new esri.geometry.Point(g.x, g.y, this.map.spatial);
+                let pt = this.flagwindMap.getPoint(g); // new esri.geometry.Point(g.x, g.y, this.map.spatial);
                 let symbol = new esri.symbol.SimpleMarkerSymbol();
                 let graphic = new esri.Graphic(pt, symbol, g);
                 this.heatLayer.add(graphic);
             });
         }
-        public onChangeStandardModel(data: Array<any>) {
-            let list: Array<any> = [];
+
+        public onChangeStandardModel(data: Array<any>): Array<any> {
             data.forEach(g => {
-                if (Type.isArray(g)) {
-                    list.push({ "x": g[0], "y": g[1], "count": g[2] });
-                } else {
-                    if ((g.x || g.longitude) && (g.y || g.latitude) < 90 && (g.y || g.latitude) > -90 && g.count) {
-                        list.push({ "x": g.x || g.longitude, "y": g.y || g.latitude, "count": g.count });
+                let node = this.options.changeStandardModel(g);
+                if (node) {
+                    let key = node.longitude + ":" + node.latitude;
+                    let value = this.dataMap.get(key);
+                    if (value !== undefined) {
+                        value.members.push(g);
+                        value.count = value.count + (node.count || 1);
                     } else {
-                        console.warn("无法解析热力图点位对象：", g);
+                        value = {
+                            longitude: node.longitude,
+                            latitude: node.latitude,
+                            members: [g],
+                            count: (node.count || 1)
+                        };
+                        this.dataMap.set(key, value);
                     }
                 }
             });
-            return list;
+            return this.dataMap.values();
         }
-
     }
 }
