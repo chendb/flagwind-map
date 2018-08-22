@@ -2437,6 +2437,27 @@ var flagwind;
             });
             return baseLayers;
         };
+        EsriMap.prototype.toScreen = function () {
+            var args = arguments, pt;
+            switch (args.length) {
+                case 1:
+                    pt = this.onToPoint(args[0]);
+                    break;
+                case 2:
+                    pt = this.onCreatePoint({
+                        x: args[0],
+                        y: args[1],
+                        spatial: this.spatial
+                    });
+                    break;
+            }
+            if (pt) {
+                return this.innerMap.toScreen(pt);
+            }
+            else {
+                return null;
+            }
+        };
         EsriMap.prototype.onZoom = function (zoom) {
             var _this = this;
             return new Promise(function (resolve) {
@@ -6830,6 +6851,27 @@ var flagwind;
             _this.onInit();
             return _this;
         }
+        MinemapMap.prototype.toScreen = function () {
+            throw new Error("Method not implemented.");
+            // let args = arguments, pt: FlagwindPoint;
+            // switch (args.length) {
+            //     case 1:
+            //         pt = this.onToPoint(args[0]);
+            //         break;
+            //     case 2:
+            //         pt = this.onCreatePoint({
+            //             x: args[0],
+            //             y: args[1],
+            //             spatial: this.spatial
+            //         });
+            //         break;
+            // }
+            // if (pt) {
+            //     return this.innerMap.toScreen(pt);
+            // } else {
+            //     return null;
+            // }
+        };
         MinemapMap.prototype.onZoom = function (zoom) {
             throw new Error("Method not implemented.");
         };

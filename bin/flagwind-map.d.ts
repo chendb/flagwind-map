@@ -477,6 +477,14 @@ declare namespace flagwind {
          * @param zoom 级别
          */
         abstract onZoom(zoom: number): Promise<void>;
+        abstract toScreen(item: any): {
+            x: number;
+            y: number;
+        };
+        abstract toScreen(x: number, y: number): {
+            x: number;
+            y: number;
+        };
         /**
          * 创建要素点
          * @param point 点
@@ -679,6 +687,14 @@ declare namespace flagwind {
         onShowInfoWindow(evt: InfoWindowShowEventArgs): void;
         onCloseInfoWindow(): void;
         onCreateBaseLayers(): Array<FlagwindTiledLayer>;
+        toScreen(item: any): {
+            x: number;
+            y: number;
+        };
+        toScreen(x: number, y: number): {
+            x: number;
+            y: number;
+        };
         onZoom(zoom: number): Promise<void>;
         onShowTooltip(graphic: any): void;
         onHideTooltip(): void;
@@ -2842,6 +2858,14 @@ declare namespace flagwind {
         mapSetting: MinemapSetting;
         protected tooltipElement: HTMLDivElement;
         constructor(mapSetting: MinemapSetting, mapElement: any, options: any);
+        toScreen(item: any): {
+            x: number;
+            y: number;
+        };
+        toScreen(x: number, y: number): {
+            x: number;
+            y: number;
+        };
         onZoom(zoom: number): Promise<void>;
         /**
          * 中心定位

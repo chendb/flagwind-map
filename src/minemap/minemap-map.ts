@@ -12,6 +12,30 @@ namespace flagwind {
             this.onInit();
         }
 
+        public toScreen(item: any): { x: number; y: number };
+        public toScreen(x: number, y: number): { x: number; y: number };
+        public toScreen(): { x: number; y: number } {
+            throw new Error("Method not implemented.");
+            // let args = arguments, pt: FlagwindPoint;
+            // switch (args.length) {
+            //     case 1:
+            //         pt = this.onToPoint(args[0]);
+            //         break;
+            //     case 2:
+            //         pt = this.onCreatePoint({
+            //             x: args[0],
+            //             y: args[1],
+            //             spatial: this.spatial
+            //         });
+            //         break;
+            // }
+            // if (pt) {
+            //     return this.innerMap.toScreen(pt);
+            // } else {
+            //     return null;
+            // }
+        }
+
         public onZoom(zoom: number): Promise<void> {
             throw new Error("Method not implemented.");
         }

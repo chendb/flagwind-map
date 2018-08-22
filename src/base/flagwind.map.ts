@@ -373,6 +373,9 @@ namespace flagwind {
          */
         public abstract onZoom(zoom: number): Promise<void>;
 
+        public abstract toScreen(item: any): { x: number; y: number };
+        public abstract toScreen(x: number, y: number): { x: number; y: number };
+
         /**
          * 创建要素点
          * @param point 点
