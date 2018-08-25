@@ -122,9 +122,9 @@ namespace flagwind {
             this.element.classList.add("fm-select-box");
             this.element.setAttribute("id", this.id);
             this.element.innerHTML =
-               `<div class="fm-btn circle" title="画圆" data-operate="circle"><span class="iconfont icon-draw-circle"></span></div>
-                <div class="fm-btn rectangle" title="画矩形" data-operate="rectangle"><span class="iconfont icon-draw-square"></span></div>
-                <div class="fm-btn polygon" title="画多边形" data-operate="polygon"><span class="iconfont icon-draw-polygon"></span></div>`;
+               `<div class="fm-btn circle" title="画圆" data-operate="circle"><i class="icon iconfont icon-circle"></i></div>
+                <div class="fm-btn rectangle" title="画矩形" data-operate="rectangle"><i class="icon iconfont icon-rectangle"></i></div>
+                <div class="fm-btn polygon" title="画多边形" data-operate="polygon"><i class="icon iconfont icon-polygon"></i></div>`;
             mapEle.appendChild(this.element);
             let operateBtns = document.querySelectorAll(
                 "#" + this.element.id + " .fm-btn"

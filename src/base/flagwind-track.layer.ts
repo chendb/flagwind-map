@@ -148,21 +148,21 @@ namespace flagwind {
             this._trackToolBox.classList.add("fm-track-box");
             this._trackToolBox.innerHTML =
                 `<div class="fm-btn-group">
-                    <span class="fm-btn route-btn icon-continue" title="播放" data-operate="continue"></span>
-                    <span class="fm-btn route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
-                    <span class="fm-btn route-btn icon-down" title="减速" data-operate="down"></span>
-                    <span class="fm-btn route-btn icon-up" title="加速" data-operate="up"></span>
-                    <span class="fm-btn route-btn icon-clear" title="清除轨迹" data-operate="clear"></span>
+                    <div class="fm-btn route-btn continue" title="播放" data-operate="continue"><i class="icon iconfont icon-play"></i></div>
+                    <div class="fm-btn route-btn pause" title="暂停" data-operate="pause" style="display:none;"><i class="icon iconfont icon-pause"></i></div>
+                    <div class="fm-btn route-btn down" title="减速" data-operate="down"><i class="icon iconfont icon-speed-down"></i></div>
+                    <div class="fm-btn route-btn up" title="加速" data-operate="up"><i class="icon iconfont icon-speed-up"></i></div>
+                    <div class="fm-btn route-btn clear" title="清除轨迹" data-operate="clear"><i class="icon iconfont icon-clear"></i></div>
                 </div>
-                <div class="route-text"><span></span></div>`;
+                <div class="route-text"></div>`;
             this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
 
-            this._playButton = document.querySelector("#" + this.toolBoxId + " .icon-continue");
-            this._pauseButton = document.querySelector("#" + this.toolBoxId + " .icon-pause");
-            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-up");
-            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-down");
-            this._clearButton = document.querySelector("#" + this.toolBoxId + " .icon-clear");
-            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .route-text span");
+            this._playButton = document.querySelector("#" + this.toolBoxId + " .continue");
+            this._pauseButton = document.querySelector("#" + this.toolBoxId + " .pause");
+            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .up");
+            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .down");
+            this._clearButton = document.querySelector("#" + this.toolBoxId + " .clear");
+            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .route-text");
             this._playButton.onclick = () => {
                 this.continue();
             };
