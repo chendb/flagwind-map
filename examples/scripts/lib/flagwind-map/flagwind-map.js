@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.25 
+* flagwind-map v1.0.26 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -905,7 +905,7 @@ var flagwind;
                 deviceLayer.showInfoWindow(evt);
             }
             if (deviceLayer.options.selectMode) {
-                if (deviceLayer.options.selectMode === flagwind.SelectMode.single) {
+                if (deviceLayer.options.selectMode === flagwind.SelectMode.multiple) {
                     var item = evt.graphic.attributes;
                     if (evt.graphic.attributes.selected) {
                         deviceLayer.setSelectStatus(item, false);

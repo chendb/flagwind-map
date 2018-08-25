@@ -499,7 +499,7 @@ namespace flagwind {
             }
 
             if (deviceLayer.options.selectMode) {
-                if (deviceLayer.options.selectMode === SelectMode.single) {
+                if (deviceLayer.options.selectMode === SelectMode.multiple) {
                     let item = evt.graphic.attributes;
                     if (evt.graphic.attributes.selected) {
                         deviceLayer.setSelectStatus(item, false);
