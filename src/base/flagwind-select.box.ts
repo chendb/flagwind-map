@@ -4,6 +4,8 @@ namespace flagwind {
     // tslint:disable-next-line:interface-name
     export interface SelectBoxOptions {
         selectMode: number;
+        onDrawStart: () => void;
+        onDrawEnd: () => void;
         onCheckChanged: (
             checkItems: Array<any>,
             layer: FlagwindBusinessLayer
@@ -14,6 +16,8 @@ namespace flagwind {
      * 地图选择工具
      */
     export interface IFlagwindSelectBox {
+        
+        isActive: boolean ;
 
         layers: Array<FlagwindBusinessLayer>;
 

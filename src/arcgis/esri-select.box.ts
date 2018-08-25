@@ -3,6 +3,12 @@ namespace flagwind {
     export const SELECT_BOX_OPTIONS_ESRI: any = {
         id: "select-box",
         selectMode: 2,
+        onDrawStart: function () {
+            // console.log("onDrawStart");
+        },
+        onDrawEnd: function () {
+            // console.log("onDrawEnd");
+        },
         onCheckChanged: function(
             checkItems: Array<any>,
             layer: FlagwindBusinessLayer
@@ -22,6 +28,8 @@ namespace flagwind {
         public options: SelectBoxOptions;
 
         public mode: string;
+
+        public isActive: boolean = false;
 
         public id: string;
 
@@ -50,12 +58,6 @@ namespace flagwind {
             this.draw.on("draw-complete", (evt: any) => {
                 this.onCreateRecord(this, evt);
             });
-
-            if (options.element) {
-                this.element = options.element;
-            } else {
-                this.showSelectBar();
-            }
         }
 
         public onCreateRecord(me: this, e: any): void {
@@ -117,6 +119,7 @@ namespace flagwind {
             let me = this;
             let mapEle = this.flagwindMap.innerMap.root;
             this.element = document.createElement("div");
+            this.element.classList.add("select-box");
             this.element.setAttribute("id", this.id);
             this.element.innerHTML = `<div class="edit-btn" title="画圆" data-operate="circle"><span class="iconfont icon-draw-circle"></span></div>
                 <div class="edit-btn" title="画矩形" data-operate="rectangle"><span class="iconfont icon-draw-square"></span></div>
@@ -134,18 +137,22 @@ namespace flagwind {
 
         public clear() {
             if (this.draw) {
+                this.isActive = false;
                 this.draw.deactivate();
                 this.flagwindMap.map.enableMapNavigation();
                 this.mode = "trash";
+                this.options.onDrawEnd();
             }
         }
 
         public active(mode: string) {
             if (this.draw && mode) {
+                this.isActive = true;
                 let tool = mode.toUpperCase().replace(/ /g, "_");
                 this.flagwindMap.map.disableMapNavigation();
                 this.draw.activate(esri.toolbars.Draw[tool]);
                 this.mode = mode;
+                this.options.onDrawStart();
             }
         }
 

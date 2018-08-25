@@ -1070,6 +1070,7 @@ declare namespace flagwind {
         element: HTMLDivElement;
         options: SelectBoxOptions;
         mode: string;
+        isActive: boolean;
         id: string;
         layers: Array<FlagwindBusinessLayer>;
         constructor(flagwindMap: FlagwindMap, options: any);
@@ -1205,6 +1206,8 @@ declare namespace flagwind {
          * 继续
          */
         continue(): void;
+        up(): string;
+        down(): string;
         /**
          * 加速
          */
@@ -1352,12 +1355,15 @@ declare namespace flagwind {
 declare namespace flagwind {
     interface SelectBoxOptions {
         selectMode: number;
+        onDrawStart: () => void;
+        onDrawEnd: () => void;
         onCheckChanged: (checkItems: Array<any>, layer: FlagwindBusinessLayer) => void;
     }
     /**
      * 地图选择工具
      */
     interface IFlagwindSelectBox {
+        isActive: boolean;
         layers: Array<FlagwindBusinessLayer>;
         active(mode: string): void;
         showSelectBar(): void;
@@ -3101,6 +3107,7 @@ declare namespace flagwind {
         id: string;
         element: HTMLDivElement;
         options: SelectBoxOptions;
+        isActive: boolean;
         mode: string;
         layers: Array<FlagwindBusinessLayer>;
         constructor(flagwindMap: FlagwindMap, options: any);

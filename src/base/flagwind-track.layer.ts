@@ -145,18 +145,22 @@ namespace flagwind {
             }
             this._trackToolBox = document.createElement("div");
             this._trackToolBox.setAttribute("id", this.toolBoxId);
-            this._trackToolBox.innerHTML = `<div class="tool-btns"><span class="route-btn icon-continue" title="播放" data-operate="continue"></span>
-                <span class="route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
-                <span class="route-btn icon-speedDown" title="减速" data-operate="speedDown"></span>
-                <span class="route-btn icon-speedUp" title="加速" data-operate="speedUp"></span>
-                <span class="route-btn icon-clear" title="清除轨迹" data-operate="clear"></span></div>
-                <div class="tool-text"><span></span></div>`;
+            this._trackToolBox.classList.add("fm-track-box");
+            this._trackToolBox.innerHTML =
+                `<div class="fm-btn-group">
+                    <span class="fm-btn route-btn icon-continue" title="播放" data-operate="continue"></span>
+                    <span class="fm-btn route-btn icon-pause" title="暂停" data-operate="pause" style="display:none;"></span>
+                    <span class="fm-btn route-btn icon-down" title="减速" data-operate="down"></span>
+                    <span class="fm-btn route-btn icon-up" title="加速" data-operate="up"></span>
+                    <span class="fm-btn route-btn icon-clear" title="清除轨迹" data-operate="clear"></span>
+                </div>
+                <div class="fm-track-text"><span></span></div>`;
             this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
 
             this._playButton = document.querySelector("#" + this.toolBoxId + " .icon-continue");
             this._pauseButton = document.querySelector("#" + this.toolBoxId + " .icon-pause");
-            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-speedUp");
-            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-speedDown");
+            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-up");
+            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-down");
             this._clearButton = document.querySelector("#" + this.toolBoxId + " .icon-clear");
             this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .tool-text span");
             this._playButton.onclick = () => {
@@ -332,6 +336,14 @@ namespace flagwind {
                 this._pauseButton.style.display = "block";
                 this._toolBoxText.innerHTML = "当前状态：正在播放";
             }
+        }
+
+        public up(): string {
+            return this.speedUp();
+        }
+
+        public down(): string {
+            return this.speedDown();
         }
 
         /**

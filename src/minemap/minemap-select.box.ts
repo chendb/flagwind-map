@@ -4,8 +4,14 @@ namespace flagwind {
     export const SELECT_BOX_OPTIONS: any = {
         id: "select-box",
         selectMode: 2,
+        onDrawStart: function () {
+            // console.log("onCheckChanged");
+        },
+        onDrawEnd: function () {
+            // console.log("onCheckChanged");
+        },
         onCheckChanged: function (checkItems: Array<any>, layer: FlagwindBusinessLayer) {
-            console.log("onCheckChanged");
+            // console.log("onCheckChanged");
         }
     };
     /**
@@ -20,6 +26,8 @@ namespace flagwind {
         public element: HTMLDivElement;
 
         public options: SelectBoxOptions;
+
+        public isActive: boolean = false;
 
         public mode: string;
 
@@ -40,12 +48,6 @@ namespace flagwind {
             this.flagwindMap.map.on("edit.record.create", (evt: any) => {
                 this.onCreateRecord(this, evt);
             });
-
-            if (options.element) {
-                this.element = options.element;
-            } else {
-                this.showSelectBar();
-            }
 
         }
 
@@ -111,6 +113,7 @@ namespace flagwind {
             let mapEle = this.flagwindMap.map._container;
             this.element = document.createElement("div");
             this.element.setAttribute("id", this.id);
+            this.element.classList.add("select-box");
             this.element.innerHTML = `<div class="edit-btn" title="画圆" data-operate="circle"><span class="iconfont icon-draw-circle"></span></div>
                 <div class="edit-btn" title="画矩形" data-operate="rectangle"><span class="iconfont icon-draw-square"></span></div>
                 <div class="edit-btn" title="画多边形" data-operate="polygon"><span class="iconfont icon-draw-polygon1"></span></div>`;
@@ -128,6 +131,8 @@ namespace flagwind {
             if (this.edit) {
                 this.edit.onBtnCtrlActive("trash");
                 this.mode = "trash";
+                this.isActive = true;
+                this.options.onDrawEnd();
             }
         }
 
@@ -135,6 +140,8 @@ namespace flagwind {
             if (this.edit && mode) {
                 this.edit.onBtnCtrlActive(mode);
                 this.mode = mode;
+                this.isActive = true;
+                this.options.onDrawStart();
             }
         }
 

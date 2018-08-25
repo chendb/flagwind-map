@@ -2391,24 +2391,27 @@ var flagwind;
             if (this.innerMap.infoWindow) {
                 this.innerMap.infoWindow.hide();
             }
-            if (evt.context) {
-                var pt = this.getPoint(evt.graphic.attributes);
-                this.innerMap.infoWindow.setTitle(evt.context.title);
-                this.innerMap.infoWindow.setContent(evt.context.content);
-                if (evt.options) {
-                    if (evt.options.width && evt.options.height) {
-                        this.innerMap.infoWindow.resize(evt.options.width, evt.options.height);
-                    }
-                    if (evt.options.offset) {
-                        var location_1 = this.innerMap.toScreen(pt);
-                        location_1.x += evt.options.offset.x;
-                        location_1.y += evt.options.offset.y;
-                        this.innerMap.infoWindow.show(location_1);
-                    }
-                    else {
-                        this.innerMap.infoWindow.show(pt);
-                    }
-                }
+            if (!evt.context) {
+                throw new Error("未设置context,无法显示窗口");
+            }
+            var pt = this.getPoint(evt.graphic.attributes);
+            this.innerMap.infoWindow.setTitle(evt.context.title);
+            this.innerMap.infoWindow.setContent(evt.context.content);
+            if (!evt.options) {
+                this.innerMap.infoWindow.show(pt);
+                return;
+            }
+            if (evt.options.width && evt.options.height) {
+                this.innerMap.infoWindow.resize(evt.options.width, evt.options.height);
+            }
+            if (evt.options.offset) {
+                var location_1 = this.innerMap.toScreen(pt);
+                location_1.x += evt.options.offset.x;
+                location_1.y += evt.options.offset.y;
+                this.innerMap.infoWindow.show(location_1);
+            }
+            else {
+                this.innerMap.infoWindow.show(pt);
             }
         };
         EsriMap.prototype.onCloseInfoWindow = function () {
@@ -3688,6 +3691,12 @@ var flagwind;
     flagwind.SELECT_BOX_OPTIONS_ESRI = {
         id: "select-box",
         selectMode: 2,
+        onDrawStart: function () {
+            // console.log("onDrawStart");
+        },
+        onDrawEnd: function () {
+            // console.log("onDrawEnd");
+        },
         onCheckChanged: function (checkItems, layer) {
             // console.log("onCheckChanged");
         }
@@ -3700,6 +3709,7 @@ var flagwind;
         function EsriSelectBox(flagwindMap, options) {
             var _this = _super.call(this, null) || this;
             _this.flagwindMap = flagwindMap;
+            _this.isActive = false;
             _this.layers = [];
             options = __assign({}, flagwind.SELECT_BOX_OPTIONS_ESRI, options);
             _this.options = options;
@@ -3718,12 +3728,6 @@ var flagwind;
             _this.draw.on("draw-complete", function (evt) {
                 _this.onCreateRecord(_this, evt);
             });
-            if (options.element) {
-                _this.element = options.element;
-            }
-            else {
-                _this.showSelectBar();
-            }
             return _this;
         }
         EsriSelectBox.prototype.onCreateRecord = function (me, e) {
@@ -3778,6 +3782,7 @@ var flagwind;
             var me = this;
             var mapEle = this.flagwindMap.innerMap.root;
             this.element = document.createElement("div");
+            this.element.classList.add("select-box");
             this.element.setAttribute("id", this.id);
             this.element.innerHTML = "<div class=\"edit-btn\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon1\"></span></div>";
             mapEle.appendChild(this.element);
@@ -3790,17 +3795,21 @@ var flagwind;
         };
         EsriSelectBox.prototype.clear = function () {
             if (this.draw) {
+                this.isActive = false;
                 this.draw.deactivate();
                 this.flagwindMap.map.enableMapNavigation();
                 this.mode = "trash";
+                this.options.onDrawEnd();
             }
         };
         EsriSelectBox.prototype.active = function (mode) {
             if (this.draw && mode) {
+                this.isActive = true;
                 var tool = mode.toUpperCase().replace(/ /g, "_");
                 this.flagwindMap.map.disableMapNavigation();
                 this.draw.activate(esri.toolbars.Draw[tool]);
                 this.mode = mode;
+                this.options.onDrawStart();
             }
         };
         EsriSelectBox.prototype.destroy = function () {
@@ -4039,12 +4048,14 @@ var flagwind;
             }
             this._trackToolBox = document.createElement("div");
             this._trackToolBox.setAttribute("id", this.toolBoxId);
-            this._trackToolBox.innerHTML = "<div class=\"tool-btns\"><span class=\"route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                <span class=\"route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                <span class=\"route-btn icon-speedDown\" title=\"\u51CF\u901F\" data-operate=\"speedDown\"></span>\n                <span class=\"route-btn icon-speedUp\" title=\"\u52A0\u901F\" data-operate=\"speedUp\"></span>\n                <span class=\"route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span></div>\n                <div class=\"tool-text\"><span></span></div>";
+            this._trackToolBox.classList.add("fm-track-box");
+            this._trackToolBox.innerHTML =
+                "<div class=\"fm-btn-group\">\n                    <span class=\"fm-btn route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                    <span class=\"fm-btn route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                    <span class=\"fm-btn route-btn icon-down\" title=\"\u51CF\u901F\" data-operate=\"down\"></span>\n                    <span class=\"fm-btn route-btn icon-up\" title=\"\u52A0\u901F\" data-operate=\"up\"></span>\n                    <span class=\"fm-btn route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span>\n                </div>\n                <div class=\"fm-track-text\"><span></span></div>";
             this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
             this._playButton = document.querySelector("#" + this.toolBoxId + " .icon-continue");
             this._pauseButton = document.querySelector("#" + this.toolBoxId + " .icon-pause");
-            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-speedUp");
-            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-speedDown");
+            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-up");
+            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-down");
             this._clearButton = document.querySelector("#" + this.toolBoxId + " .icon-clear");
             this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .tool-text span");
             this._playButton.onclick = function () {
@@ -4210,6 +4221,12 @@ var flagwind;
                 this._pauseButton.style.display = "block";
                 this._toolBoxText.innerHTML = "当前状态：正在播放";
             }
+        };
+        FlagwindTrackLayer.prototype.up = function () {
+            return this.speedUp();
+        };
+        FlagwindTrackLayer.prototype.down = function () {
+            return this.speedDown();
         };
         /**
          * 加速
@@ -7941,8 +7958,14 @@ var flagwind;
     flagwind.SELECT_BOX_OPTIONS = {
         id: "select-box",
         selectMode: 2,
+        onDrawStart: function () {
+            // console.log("onCheckChanged");
+        },
+        onDrawEnd: function () {
+            // console.log("onCheckChanged");
+        },
         onCheckChanged: function (checkItems, layer) {
-            console.log("onCheckChanged");
+            // console.log("onCheckChanged");
         }
     };
     /**
@@ -7953,6 +7976,7 @@ var flagwind;
         function MinemapSelectBox(flagwindMap, options) {
             var _this = _super.call(this, null) || this;
             _this.flagwindMap = flagwindMap;
+            _this.isActive = false;
             _this.layers = [];
             options = __assign({}, flagwind.SELECT_BOX_OPTIONS, options);
             _this.options = options;
@@ -7966,12 +7990,6 @@ var flagwind;
             _this.flagwindMap.map.on("edit.record.create", function (evt) {
                 _this.onCreateRecord(_this, evt);
             });
-            if (options.element) {
-                _this.element = options.element;
-            }
-            else {
-                _this.showSelectBar();
-            }
             return _this;
         }
         MinemapSelectBox.prototype.onCreateRecord = function (me, e) {
@@ -8027,6 +8045,7 @@ var flagwind;
             var mapEle = this.flagwindMap.map._container;
             this.element = document.createElement("div");
             this.element.setAttribute("id", this.id);
+            this.element.classList.add("select-box");
             this.element.innerHTML = "<div class=\"edit-btn\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon1\"></span></div>";
             mapEle.appendChild(this.element);
             var operateBtns = document.querySelectorAll("#" + this.id + " .edit-btn");
@@ -8041,12 +8060,16 @@ var flagwind;
             if (this.edit) {
                 this.edit.onBtnCtrlActive("trash");
                 this.mode = "trash";
+                this.isActive = true;
+                this.options.onDrawEnd();
             }
         };
         MinemapSelectBox.prototype.active = function (mode) {
             if (this.edit && mode) {
                 this.edit.onBtnCtrlActive(mode);
                 this.mode = mode;
+                this.isActive = true;
+                this.options.onDrawStart();
             }
         };
         MinemapSelectBox.prototype.destroy = function () {

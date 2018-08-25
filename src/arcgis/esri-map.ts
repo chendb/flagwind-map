@@ -166,29 +166,35 @@ namespace flagwind {
         }
 
         public onShowInfoWindow(evt: InfoWindowShowEventArgs): void {
-            
+
             if (this.innerMap.infoWindow) {
                 this.innerMap.infoWindow.hide();
             }
 
-            if (evt.context) {
-                const pt = this.getPoint(evt.graphic.attributes);
-                this.innerMap.infoWindow.setTitle(evt.context.title);
-                this.innerMap.infoWindow.setContent(evt.context.content);
-                if (evt.options) {
-                    if (evt.options.width && evt.options.height) {
-                        this.innerMap.infoWindow.resize(evt.options.width, evt.options.height);
-                    }
-                    if (evt.options.offset) {
-                        let location = this.innerMap.toScreen(pt);
-                        location.x += evt.options.offset.x;
-                        location.y += evt.options.offset.y;
-                        this.innerMap.infoWindow.show(location);
-                    } else {
-                        this.innerMap.infoWindow.show(pt);
-                    }
-                }
+            if (!evt.context) {
+                throw new Error("未设置context,无法显示窗口");
             }
+
+            const pt = this.getPoint(evt.graphic.attributes);
+            this.innerMap.infoWindow.setTitle(evt.context.title);
+            this.innerMap.infoWindow.setContent(evt.context.content);
+            if (!evt.options) {
+                this.innerMap.infoWindow.show(pt);
+                return;
+            }
+           
+            if (evt.options.width && evt.options.height) {
+                this.innerMap.infoWindow.resize(evt.options.width, evt.options.height);
+            }
+            if (evt.options.offset) {
+                let location = this.innerMap.toScreen(pt);
+                location.x += evt.options.offset.x;
+                location.y += evt.options.offset.y;
+                this.innerMap.infoWindow.show(location);
+            } else {
+                this.innerMap.infoWindow.show(pt);
+            }
+
         }
 
         public onCloseInfoWindow(): void {
