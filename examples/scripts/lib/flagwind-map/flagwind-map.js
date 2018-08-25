@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.24 
+* flagwind-map v1.0.25 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -3800,7 +3800,7 @@ var flagwind;
             this.element.classList.add("fm-select-box");
             this.element.setAttribute("id", this.id);
             this.element.innerHTML =
-                "<div class=\"fm-btn circle\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"fm-btn rectangle\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"fm-btn polygon\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon\"></span></div>";
+                "<div class=\"fm-btn circle\" title=\"\u753B\u5706\" data-operate=\"circle\"><i class=\"icon iconfont icon-circle\"></i></div>\n                <div class=\"fm-btn rectangle\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><i class=\"icon iconfont icon-rectangle\"></i></div>\n                <div class=\"fm-btn polygon\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><i class=\"icon iconfont icon-polygon\"></i></div>";
             mapEle.appendChild(this.element);
             var operateBtns = document.querySelectorAll("#" + this.element.id + " .fm-btn");
             for (var i = 0; i < operateBtns.length; i++) {
@@ -4066,14 +4066,14 @@ var flagwind;
             this._trackToolBox.setAttribute("id", this.toolBoxId);
             this._trackToolBox.classList.add("fm-track-box");
             this._trackToolBox.innerHTML =
-                "<div class=\"fm-btn-group\">\n                    <span class=\"fm-btn route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                    <span class=\"fm-btn route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                    <span class=\"fm-btn route-btn icon-down\" title=\"\u51CF\u901F\" data-operate=\"down\"></span>\n                    <span class=\"fm-btn route-btn icon-up\" title=\"\u52A0\u901F\" data-operate=\"up\"></span>\n                    <span class=\"fm-btn route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span>\n                </div>\n                <div class=\"route-text\"><span></span></div>";
+                "<div class=\"fm-btn-group\">\n                    <div class=\"fm-btn route-btn continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"><i class=\"icon iconfont icon-play\"></i></div>\n                    <div class=\"fm-btn route-btn pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"><i class=\"icon iconfont icon-pause\"></i></div>\n                    <div class=\"fm-btn route-btn down\" title=\"\u51CF\u901F\" data-operate=\"down\"><i class=\"icon iconfont icon-speed-down\"></i></div>\n                    <div class=\"fm-btn route-btn up\" title=\"\u52A0\u901F\" data-operate=\"up\"><i class=\"icon iconfont icon-speed-up\"></i></div>\n                    <div class=\"fm-btn route-btn clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"><i class=\"icon iconfont icon-clear\"></i></div>\n                </div>\n                <div class=\"route-text\"></div>";
             this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
-            this._playButton = document.querySelector("#" + this.toolBoxId + " .icon-continue");
-            this._pauseButton = document.querySelector("#" + this.toolBoxId + " .icon-pause");
-            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-up");
-            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-down");
-            this._clearButton = document.querySelector("#" + this.toolBoxId + " .icon-clear");
-            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .route-text span");
+            this._playButton = document.querySelector("#" + this.toolBoxId + " .continue");
+            this._pauseButton = document.querySelector("#" + this.toolBoxId + " .pause");
+            this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .up");
+            this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .down");
+            this._clearButton = document.querySelector("#" + this.toolBoxId + " .clear");
+            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .route-text");
             this._playButton.onclick = function () {
                 _this.continue();
             };
@@ -8063,7 +8063,7 @@ var flagwind;
             this.element.setAttribute("id", this.id);
             this.element.classList.add("fm-select-box");
             this.element.innerHTML =
-                "<div class=\"fm-btn circle\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"fm-btn rectangle\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"fm-btn polygon\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon\"></span></div>";
+                "<div class=\"fm-btn circle\" title=\"\u753B\u5706\" data-operate=\"circle\"><i class=\"icon iconfont icon-circle\"></i></div>\n                <div class=\"fm-btn rectangle\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><i class=\"icon iconfont icon-rectangle\"></i></div>\n                <div class=\"fm-btn polygon\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><i class=\"icon iconfont icon-polygon\"></i></div>";
             mapEle.appendChild(this.element);
             var operateBtns = document.querySelectorAll("#" + this.id + " .fm-btn");
             var me = this;
