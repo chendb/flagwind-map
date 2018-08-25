@@ -119,14 +119,15 @@ namespace flagwind {
             let me = this;
             let mapEle = this.flagwindMap.innerMap.root;
             this.element = document.createElement("div");
-            this.element.classList.add("select-box");
+            this.element.classList.add("fm-select-box");
             this.element.setAttribute("id", this.id);
-            this.element.innerHTML = `<div class="edit-btn" title="画圆" data-operate="circle"><span class="iconfont icon-draw-circle"></span></div>
-                <div class="edit-btn" title="画矩形" data-operate="rectangle"><span class="iconfont icon-draw-square"></span></div>
-                <div class="edit-btn" title="画多边形" data-operate="polygon"><span class="iconfont icon-draw-polygon1"></span></div>`;
+            this.element.innerHTML =
+               `<div class="fm-btn circle" title="画圆" data-operate="circle"><span class="iconfont icon-draw-circle"></span></div>
+                <div class="fm-btn rectangle" title="画矩形" data-operate="rectangle"><span class="iconfont icon-draw-square"></span></div>
+                <div class="fm-btn polygon" title="画多边形" data-operate="polygon"><span class="iconfont icon-draw-polygon"></span></div>`;
             mapEle.appendChild(this.element);
             let operateBtns = document.querySelectorAll(
-                "#" + this.element.id + " .edit-btn"
+                "#" + this.element.id + " .fm-btn"
             ) as NodeListOf<HTMLElement>;
             for (let i = 0; i < operateBtns.length; i++) {
                 operateBtns[i].onclick = function() {

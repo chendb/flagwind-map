@@ -154,7 +154,7 @@ namespace flagwind {
                     <span class="fm-btn route-btn icon-up" title="加速" data-operate="up"></span>
                     <span class="fm-btn route-btn icon-clear" title="清除轨迹" data-operate="clear"></span>
                 </div>
-                <div class="fm-track-text"><span></span></div>`;
+                <div class="route-text"><span></span></div>`;
             this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
 
             this._playButton = document.querySelector("#" + this.toolBoxId + " .icon-continue");
@@ -162,7 +162,7 @@ namespace flagwind {
             this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-up");
             this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-down");
             this._clearButton = document.querySelector("#" + this.toolBoxId + " .icon-clear");
-            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .tool-text span");
+            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .route-text span");
             this._playButton.onclick = () => {
                 this.continue();
             };
@@ -261,7 +261,7 @@ namespace flagwind {
         public clear(): void {
             this.routeLayer.clearAll();
             this.businessLayer.clear();
-            if (this._trackToolBox) {
+            if (this._toolBoxText) {
                 this._toolBoxText.innerHTML = "";
             }
         }

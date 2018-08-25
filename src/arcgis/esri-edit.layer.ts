@@ -24,7 +24,7 @@ namespace flagwind {
             const funGetInfoWindowContext = this.businessLayer.options.getInfoWindowContext;
             this.businessLayer.options.getInfoWindowContext = (model: any) => {
                 let context = funGetInfoWindowContext(model);
-                context.content += "<a key='" + model.id + "' id='edit_point_" + model.id + "' class='button-edit-point'>更新坐标</a>";
+                context.content += "<a key='" + model.id + "' id='edit_point_" + model.id + "' class='fm-btn edit-point'>更新坐标</a>";
                 return context;
             };
             this.businessLayer.options.showInfoWindowCompleted = (model: any) => {
