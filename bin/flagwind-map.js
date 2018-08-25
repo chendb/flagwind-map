@@ -1725,7 +1725,7 @@ var flagwind;
             var funGetInfoWindowContext = _this.businessLayer.options.getInfoWindowContext;
             _this.businessLayer.options.getInfoWindowContext = function (model) {
                 var context = funGetInfoWindowContext(model);
-                context.content += "<a key='" + model.id + "' id='edit_point_" + model.id + "' class='button-edit-point'>更新坐标</a>";
+                context.content += "<a key='" + model.id + "' id='edit_point_" + model.id + "' class='fm-btn edit-point'>更新坐标</a>";
                 return context;
             };
             _this.businessLayer.options.showInfoWindowCompleted = function (model) {
@@ -3782,11 +3782,12 @@ var flagwind;
             var me = this;
             var mapEle = this.flagwindMap.innerMap.root;
             this.element = document.createElement("div");
-            this.element.classList.add("select-box");
+            this.element.classList.add("fm-select-box");
             this.element.setAttribute("id", this.id);
-            this.element.innerHTML = "<div class=\"edit-btn\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon1\"></span></div>";
+            this.element.innerHTML =
+                "<div class=\"fm-btn circle\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"fm-btn rectangle\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"fm-btn polygon\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon\"></span></div>";
             mapEle.appendChild(this.element);
-            var operateBtns = document.querySelectorAll("#" + this.element.id + " .edit-btn");
+            var operateBtns = document.querySelectorAll("#" + this.element.id + " .fm-btn");
             for (var i = 0; i < operateBtns.length; i++) {
                 operateBtns[i].onclick = function () {
                     me.active(this.dataset.operate);
@@ -4050,14 +4051,14 @@ var flagwind;
             this._trackToolBox.setAttribute("id", this.toolBoxId);
             this._trackToolBox.classList.add("fm-track-box");
             this._trackToolBox.innerHTML =
-                "<div class=\"fm-btn-group\">\n                    <span class=\"fm-btn route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                    <span class=\"fm-btn route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                    <span class=\"fm-btn route-btn icon-down\" title=\"\u51CF\u901F\" data-operate=\"down\"></span>\n                    <span class=\"fm-btn route-btn icon-up\" title=\"\u52A0\u901F\" data-operate=\"up\"></span>\n                    <span class=\"fm-btn route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span>\n                </div>\n                <div class=\"fm-track-text\"><span></span></div>";
+                "<div class=\"fm-btn-group\">\n                    <span class=\"fm-btn route-btn icon-continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"></span>\n                    <span class=\"fm-btn route-btn icon-pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"></span>\n                    <span class=\"fm-btn route-btn icon-down\" title=\"\u51CF\u901F\" data-operate=\"down\"></span>\n                    <span class=\"fm-btn route-btn icon-up\" title=\"\u52A0\u901F\" data-operate=\"up\"></span>\n                    <span class=\"fm-btn route-btn icon-clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"></span>\n                </div>\n                <div class=\"route-text\"><span></span></div>";
             this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
             this._playButton = document.querySelector("#" + this.toolBoxId + " .icon-continue");
             this._pauseButton = document.querySelector("#" + this.toolBoxId + " .icon-pause");
             this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .icon-up");
             this._speedDownButton = document.querySelector("#" + this.toolBoxId + " .icon-down");
             this._clearButton = document.querySelector("#" + this.toolBoxId + " .icon-clear");
-            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .tool-text span");
+            this._toolBoxText = document.querySelector("#" + this.toolBoxId + " .route-text span");
             this._playButton.onclick = function () {
                 _this.continue();
             };
@@ -4151,7 +4152,7 @@ var flagwind;
         FlagwindTrackLayer.prototype.clear = function () {
             this.routeLayer.clearAll();
             this.businessLayer.clear();
-            if (this._trackToolBox) {
+            if (this._toolBoxText) {
                 this._toolBoxText.innerHTML = "";
             }
         };
@@ -8045,10 +8046,11 @@ var flagwind;
             var mapEle = this.flagwindMap.map._container;
             this.element = document.createElement("div");
             this.element.setAttribute("id", this.id);
-            this.element.classList.add("select-box");
-            this.element.innerHTML = "<div class=\"edit-btn\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"edit-btn\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon1\"></span></div>";
+            this.element.classList.add("fm-select-box");
+            this.element.innerHTML =
+                "<div class=\"fm-btn circle\" title=\"\u753B\u5706\" data-operate=\"circle\"><span class=\"iconfont icon-draw-circle\"></span></div>\n                <div class=\"fm-btn rectangle\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><span class=\"iconfont icon-draw-square\"></span></div>\n                <div class=\"fm-btn polygon\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><span class=\"iconfont icon-draw-polygon\"></span></div>";
             mapEle.appendChild(this.element);
-            var operateBtns = document.querySelectorAll("#" + this.id + " .edit-btn");
+            var operateBtns = document.querySelectorAll("#" + this.id + " .fm-btn");
             var me = this;
             for (var i = 0; i < operateBtns.length; i++) {
                 operateBtns[i].onclick = function () {
