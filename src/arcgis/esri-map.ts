@@ -60,7 +60,7 @@ namespace flagwind {
             if (setting.maxZoom !== undefined) {
                 mapArguments.maxZoom = setting.maxZoom;
             }
-            if (setting.basemap) {
+            if (setting.basemap && setting.basemap !== "none") {
                 mapArguments.basemap = setting.basemap;
             }
 
