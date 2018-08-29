@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.26 
+* flagwind-map v1.0.27 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -2317,7 +2317,7 @@ var flagwind;
             if (setting.maxZoom !== undefined) {
                 mapArguments.maxZoom = setting.maxZoom;
             }
-            if (setting.basemap) {
+            if (setting.basemap && setting.basemap !== "none") {
                 mapArguments.basemap = setting.basemap;
             }
             if (setting.extent && setting.extent.length === 4) {
