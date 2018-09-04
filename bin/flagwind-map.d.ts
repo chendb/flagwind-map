@@ -1173,7 +1173,7 @@ declare namespace flagwind {
          * @param stopList 停靠点原型数据集合
          * @param trackLineName 线路名称
          */
-        move(stopList: Array<any>, trackLineName?: string): void;
+        moveTrack(stopList: Array<any>, trackLineName?: string): void;
         /**
          * 显示所有
          */
@@ -1190,6 +1190,10 @@ declare namespace flagwind {
          * 隐藏图层
          */
         hide(): void;
+        /**
+         * 继续上次播放
+         */
+        move(): void;
         /**
          * 重新播放
          */

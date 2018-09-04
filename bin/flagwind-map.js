@@ -3578,7 +3578,7 @@ var flagwind;
             if (trackline.options.getImageAngle) {
                 return trackline.options.getImageAngle(trackline, angle);
             }
-            return 360 - angle;
+            return angle;
         };
         EsriRouteLayer.prototype.onCreateLineLayer = function (id) {
             return new flagwind.EsriGroupLayer({ id: id });
@@ -4123,14 +4123,15 @@ var flagwind;
             }
             this.showTrack(stopList, trackLineName, options);
             // 启动线路播放（起点为线路的始点）
-            this.routeLayer.start(this.activedTrackLineName);
+            this.start();
+            // this.routeLayer.start(this.activedTrackLineName);
         };
         /**
          * 启动线路播放（起点为上次播放的终点）
          * @param stopList 停靠点原型数据集合
          * @param trackLineName 线路名称
          */
-        FlagwindTrackLayer.prototype.move = function (stopList, trackLineName) {
+        FlagwindTrackLayer.prototype.moveTrack = function (stopList, trackLineName) {
             if (name) {
                 this.activedTrackLineName = trackLineName;
             }
@@ -4138,7 +4139,7 @@ var flagwind;
                 trackLineName = this.activedTrackLineName;
             }
             this.showTrack(stopList, trackLineName);
-            this.routeLayer.move(this.activedTrackLineName);
+            this.move();
         };
         /**
          * 显示所有
@@ -4171,6 +4172,19 @@ var flagwind;
             this.isShow = false;
             this.routeLayer.hide();
             this.businessLayer.hide();
+        };
+        /**
+         * 继续上次播放
+         */
+        FlagwindTrackLayer.prototype.move = function () {
+            this.options.onMessageEvent("info", "播放");
+            this.options.onMessageEvent("start", "播放");
+            this.routeLayer.move(this.activedTrackLineName);
+            if (this._trackToolBox) {
+                this._playButton.style.display = "none";
+                this._pauseButton.style.display = "block";
+                this._toolBoxText.innerHTML = "当前状态：正在播放";
+            }
         };
         /**
          * 重新播放
