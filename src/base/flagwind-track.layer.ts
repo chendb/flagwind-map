@@ -6,8 +6,8 @@ namespace flagwind {
         solveMode: "Line",
         // 行驶速度
         speed: 100,
-        onPointChanged: (index: number, model: any) => {
-            console.log(`onPointChanged index:${index}`);
+        onStationChanged: (index: number, model: any) => {
+            console.log(`onStationChanged index:${index}`);
         },
         onMessageEvent: function (name: string, message: string) {
             console.log("onMessageEvent");
@@ -50,11 +50,11 @@ namespace flagwind {
             routeLayer.options.onStationEvent = (name: string, index: number, graphic: any, isStartPoint: boolean, trackline: TrackLine) => {
                 if (index === 0 && isStartPoint) {
                     this.businessLayer.saveGraphicList([graphic.attributes.__model]);
-                    this.options.onPointChanged(index, graphic.attributes.__model);
+                    this.options.onStationChanged(index, graphic.attributes.__model);
                 }
                 if (!isStartPoint) { // 出站
                     this.businessLayer.saveGraphicList([graphic.attributes.__model]);
-                    this.options.onPointChanged(index + 1, graphic.attributes.__model);
+                    this.options.onStationChanged(index + 1, graphic.attributes.__model);
                 }
             };
             routeLayer.options.onMoveEvent = (lineName: string, segmentIndex: number, xy: Array<any>, angle: number) => {
