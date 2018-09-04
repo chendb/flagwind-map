@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.28 
+* flagwind-map v1.0.29 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -3916,8 +3916,8 @@ var flagwind;
         solveMode: "Line",
         // 行驶速度
         speed: 100,
-        onPointChanged: function (index, model) {
-            console.log("onPointChanged index:" + index);
+        onStationChanged: function (index, model) {
+            console.log("onStationChanged index:" + index);
         },
         onMessageEvent: function (name, message) {
             console.log("onMessageEvent");
@@ -3949,11 +3949,11 @@ var flagwind;
             routeLayer.options.onStationEvent = function (name, index, graphic, isStartPoint, trackline) {
                 if (index === 0 && isStartPoint) {
                     _this.businessLayer.saveGraphicList([graphic.attributes.__model]);
-                    _this.options.onPointChanged(index, graphic.attributes.__model);
+                    _this.options.onStationChanged(index, graphic.attributes.__model);
                 }
                 if (!isStartPoint) { // 出站
                     _this.businessLayer.saveGraphicList([graphic.attributes.__model]);
-                    _this.options.onPointChanged(index + 1, graphic.attributes.__model);
+                    _this.options.onStationChanged(index + 1, graphic.attributes.__model);
                 }
             };
             routeLayer.options.onMoveEvent = function (lineName, segmentIndex, xy, angle) {
