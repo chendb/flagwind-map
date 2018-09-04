@@ -230,7 +230,8 @@ namespace flagwind {
             }
             this.showTrack(stopList, trackLineName, options);
             // 启动线路播放（起点为线路的始点）
-            this.routeLayer.start(this.activedTrackLineName);
+            this.start();
+            // this.routeLayer.start(this.activedTrackLineName);
         }
 
         /**
@@ -238,14 +239,14 @@ namespace flagwind {
          * @param stopList 停靠点原型数据集合
          * @param trackLineName 线路名称
          */
-        public move(stopList: Array<any>, trackLineName?: string): void {
+        public moveTrack(stopList: Array<any>, trackLineName?: string): void {
             if (name) {
                 this.activedTrackLineName = trackLineName;
             } else {
                 trackLineName = this.activedTrackLineName;
             }
             this.showTrack(stopList, trackLineName);
-            this.routeLayer.move(this.activedTrackLineName);
+            this.move();
         }
 
         /**
@@ -281,6 +282,20 @@ namespace flagwind {
             this.isShow = false;
             this.routeLayer.hide();
             this.businessLayer.hide();
+        }
+
+        /**
+         * 继续上次播放
+         */
+        public move(): void {
+            this.options.onMessageEvent("info", "播放");
+            this.options.onMessageEvent("start", "播放");
+            this.routeLayer.move(this.activedTrackLineName);
+            if (this._trackToolBox) {
+                this._playButton.style.display = "none";
+                this._pauseButton.style.display = "block";
+                this._toolBoxText.innerHTML = "当前状态：正在播放";
+            }
         }
 
         /**

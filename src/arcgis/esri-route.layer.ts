@@ -123,7 +123,7 @@ namespace flagwind {
                     if (trackline.options.getImageAngle) {
                         return trackline.options.getImageAngle(trackline, angle);
                     }
-                    return 360 - angle;
+                    return angle;
                }
 
                public onCreateLineLayer(id: string): FlagwindGroupLayer {
