@@ -4399,6 +4399,7 @@ var flagwind;
 (function (flagwind) {
     var EsriSetting = /** @class */ (function () {
         function EsriSetting() {
+            this.mapType = "arcgis";
             this.units = 0.03;
             this.center = [116.46, 39.92];
             this.wkidFromApp = 4326;
@@ -8187,6 +8188,7 @@ var flagwind;
 (function (flagwind) {
     var MinemapSetting = /** @class */ (function () {
         function MinemapSetting() {
+            this.mapType = "minemap";
             this.mapDomain = "minedata.cn";
             this.mapVersion = "v1.3";
             this.accessToken = "25cc55a69ea7422182d00d6b7c0ffa93";
