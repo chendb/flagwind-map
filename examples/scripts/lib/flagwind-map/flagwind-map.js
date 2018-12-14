@@ -3700,7 +3700,7 @@ var flagwind;
     }(flagwind.FlagwindRouteLayer));
     flagwind.EsriRouteLayer = EsriRouteLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     flagwind.SELECT_BOX_OPTIONS_ESRI = {
@@ -6539,7 +6539,6 @@ var flagwind;
     }());
     flagwind.MinemapHeatmapLayer = MinemapHeatmapLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -6642,7 +6641,6 @@ var flagwind;
     }(flagwind.EventProvider));
     flagwind.MinemapLabelGraphic = MinemapLabelGraphic;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -6899,28 +6897,32 @@ var flagwind;
             return _this;
         }
         MinemapMap.prototype.toScreen = function () {
-            throw new Error("Method not implemented.");
-            // let args = arguments, pt: FlagwindPoint;
-            // switch (args.length) {
-            //     case 1:
-            //         pt = this.onToPoint(args[0]);
-            //         break;
-            //     case 2:
-            //         pt = this.onCreatePoint({
-            //             x: args[0],
-            //             y: args[1],
-            //             spatial: this.spatial
-            //         });
-            //         break;
-            // }
-            // if (pt) {
-            //     return this.innerMap.toScreen(pt);
-            // } else {
-            //     return null;
-            // }
+            var args = arguments, pt;
+            switch (args.length) {
+                case 1:
+                    pt = this.onToPoint(args[0]);
+                    break;
+                case 2:
+                    pt = this.onCreatePoint({
+                        x: args[0],
+                        y: args[1],
+                        spatial: this.spatial
+                    });
+                    break;
+            }
+            if (pt) {
+                return this.innerMap.project([pt.x, pt.y]);
+            }
+            else {
+                return null;
+            }
         };
         MinemapMap.prototype.onZoom = function (zoom) {
-            throw new Error("Method not implemented.");
+            var _this = this;
+            return new Promise(function (resolve) {
+                _this.innerMap.flyTo({ zoom: zoom });
+                resolve();
+            });
         };
         /**
          * 中心定位
@@ -6979,6 +6981,14 @@ var flagwind;
                 _this.dispatchEvent("onDbClick", args);
             });
             // #endregion
+            // #region
+            map.on("zoomstart", function (args) {
+                _this.dispatchEvent("onZoomStart", args);
+            });
+            map.on("zoomend", function (args) {
+                _this.dispatchEvent("onZoomEnd", args);
+            });
+            // #endregion
             // #region mouse event
             map.on("mouseout", function (args) {
                 _this.dispatchEvent("onMouseOut", args);
@@ -6995,13 +7005,16 @@ var flagwind;
             // #endregion
             // #region move event
             map.on("movestart", function (args) {
-                _this.dispatchEvent("onMoveStart", args);
+                args = _this.toMouseMoveEventArgs(args);
+                _this.dispatchEvent("onPanStart", args);
             });
             map.on("move", function (args) {
-                _this.dispatchEvent("onMove", args);
+                args = _this.toMouseMoveEventArgs(args);
+                _this.dispatchEvent("onPan", args);
             });
             map.on("moveend", function (args) {
-                _this.dispatchEvent("onMoveEnd", args);
+                args = _this.toMouseMoveEventArgs(args);
+                _this.dispatchEvent("onPanEnd", args);
             });
             // #endregionn
             return map;
@@ -7101,6 +7114,12 @@ var flagwind;
             catch (error) {
                 console.error(error);
             }
+        };
+        MinemapMap.prototype.toMouseMoveEventArgs = function (args) {
+            if (args && args.data && args.data.originalEvent) {
+                args.data.delta = args.data.originalEvent;
+            }
+            return args;
         };
         return MinemapMap;
     }(flagwind.FlagwindMap));
@@ -7381,7 +7400,16 @@ var flagwind;
             return _super.call(this, flagwindMap, id, __assign({ autoInit: true }, options, { layerType: flagwind.LayerType.point })) || this;
         }
         MinemapPointLayer.prototype.onCreateGraphicsLayer = function (options) {
-            return new flagwind.MinemapGraphicsLayer(options);
+            var _this = this;
+            var layer = new flagwind.MinemapGraphicsLayer(options);
+            // 当点击地图要素对象时，会触发要素图层对应的事件
+            layer.on("onClick", function (evt) { return _this.dispatchEvent("onClick", evt); });
+            layer.on("onDblClick", function (evt) { return _this.dispatchEvent("onDblClick", evt); });
+            layer.on("onMouseDown", function (evt) { return _this.dispatchEvent("onMouseDown", evt); });
+            layer.on("onMouseUp", function (evt) { return _this.dispatchEvent("onMouseUp", evt); });
+            layer.on("onMouseOut", function (evt) { return _this.dispatchEvent("onMouseOut", evt); });
+            layer.on("onMouseOver", function (evt) { return _this.dispatchEvent("onMouseOver", evt); });
+            return layer;
         };
         MinemapPointLayer.prototype.getImageUrl = function (item) {
             var imageUrl = this.options.symbol.imageUrl;
@@ -7475,7 +7503,6 @@ var flagwind;
     }(flagwind.FlagwindBusinessLayer));
     flagwind.MinemapPointLayer = MinemapPointLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -7573,7 +7600,6 @@ var flagwind;
     }(flagwind.EventProvider));
     flagwind.MinemapPolygonGraphic = MinemapPolygonGraphic;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -7982,7 +8008,6 @@ var flagwind;
     }());
     flagwind.RouteRow = RouteRow;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
 var flagwind;
 (function (flagwind) {
     flagwind.SELECT_BOX_OPTIONS = {

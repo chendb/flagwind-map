@@ -2900,6 +2900,7 @@ declare namespace flagwind {
         onShowTooltip(graphic: any): void;
         onHideTooltip(): void;
         onDestroy(): void;
+        toMouseMoveEventArgs(args: any): any;
     }
 }
 declare namespace flagwind {

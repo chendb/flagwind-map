@@ -1,4 +1,4 @@
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 namespace flagwind {
     export const SELECT_BOX_OPTIONS_ESRI: any = {
         id: "select-box",

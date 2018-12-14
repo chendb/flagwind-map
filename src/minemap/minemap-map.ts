@@ -15,29 +15,31 @@ namespace flagwind {
         public toScreen(item: any): { x: number; y: number };
         public toScreen(x: number, y: number): { x: number; y: number };
         public toScreen(): { x: number; y: number } {
-            throw new Error("Method not implemented.");
-            // let args = arguments, pt: FlagwindPoint;
-            // switch (args.length) {
-            //     case 1:
-            //         pt = this.onToPoint(args[0]);
-            //         break;
-            //     case 2:
-            //         pt = this.onCreatePoint({
-            //             x: args[0],
-            //             y: args[1],
-            //             spatial: this.spatial
-            //         });
-            //         break;
-            // }
-            // if (pt) {
-            //     return this.innerMap.toScreen(pt);
-            // } else {
-            //     return null;
-            // }
+            let args = arguments, pt: FlagwindPoint;
+            switch (args.length) {
+                case 1:
+                    pt = this.onToPoint(args[0]);
+                    break;
+                case 2:
+                    pt = this.onCreatePoint({
+                        x: args[0],
+                        y: args[1],
+                        spatial: this.spatial
+                    });
+                    break;
+            }
+            if (pt) {
+                return this.innerMap.project([pt.x, pt.y]);
+            } else {
+                return null;
+            }
         }
 
         public onZoom(zoom: number): Promise<void> {
-            throw new Error("Method not implemented.");
+            return new Promise<void>(resolve => {
+                this.innerMap.flyTo({zoom: zoom});
+                resolve();
+            });
         }
 
         /**
@@ -103,6 +105,16 @@ namespace flagwind {
             });
             // #endregion
 
+            // #region
+            map.on("zoomstart", (args: any) => {
+                this.dispatchEvent("onZoomStart", args);
+            });
+            map.on("zoomend", (args: any) => {
+                this.dispatchEvent("onZoomEnd", args);
+            });
+
+            // #endregion
+
             // #region mouse event
             map.on("mouseout", (args: any) => {
                 this.dispatchEvent("onMouseOut", args);
@@ -120,13 +132,16 @@ namespace flagwind {
 
             // #region move event
             map.on("movestart", (args: any) => {
-                this.dispatchEvent("onMoveStart", args);
+                args = this.toMouseMoveEventArgs(args);
+                this.dispatchEvent("onPanStart", args);
             });
             map.on("move", (args: any) => {
-                this.dispatchEvent("onMove", args);
+                args = this.toMouseMoveEventArgs(args);
+                this.dispatchEvent("onPan", args);
             });
             map.on("moveend", (args: any) => {
-                this.dispatchEvent("onMoveEnd", args);
+                args = this.toMouseMoveEventArgs(args);
+                this.dispatchEvent("onPanEnd", args);
             });
             // #endregionn
 
@@ -238,6 +253,13 @@ namespace flagwind {
             } catch (error) {
                 console.error(error);
             }
+        }
+
+        public toMouseMoveEventArgs(args: any) {
+            if (args && args.data && args.data.originalEvent) {
+                args.data.delta = args.data.originalEvent;
+            }
+            return args;
         }
 
     }

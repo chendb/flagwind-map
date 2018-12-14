@@ -1,4 +1,4 @@
-/// <reference path="../events/EventProvider" />
+
 namespace flagwind {
 
     export const SELECT_BOX_OPTIONS: any = {
@@ -123,7 +123,7 @@ namespace flagwind {
             let me = this;
             for (let i = 0; i < operateBtns.length; i++) {
                 operateBtns[i].onclick = function () {
-                    me.active(this.dataset.operate);
+                    me.active((<any>this).dataset.operate);
                 };
             }
         }

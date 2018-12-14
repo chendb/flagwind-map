@@ -1,4 +1,4 @@
-/// <reference path="../events/EventProvider" />
+
 namespace flagwind {
 
     /**
