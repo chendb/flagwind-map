@@ -1,6 +1,7 @@
 namespace flagwind {
 
     export class EsriSetting implements IMapSetting {
+        public mapType: String = "arcgis";
         public arcgisApi: string;
         public baseUrl: string;
         public tiledUrls: Array<{ id: string; url: string; title: string }>;

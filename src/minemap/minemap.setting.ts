@@ -4,6 +4,7 @@ declare var turf: any;
 namespace flagwind {
 
     export class MinemapSetting implements IMapSetting {
+        public mapType: String = "minemap";
         public mapDomain: string = "minedata.cn";
         public mapVersion: string = "v1.3";
         public accessToken: string = "25cc55a69ea7422182d00d6b7c0ffa93";
@@ -18,6 +19,5 @@ namespace flagwind {
         public logo: boolean = false;
         public slider: boolean = true;
         public sliderPosition: string = "bottom-left";
-
     }
 }
