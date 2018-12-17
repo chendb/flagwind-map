@@ -1273,7 +1273,6 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     class EsriSetting implements IMapSetting {
-        mapType: String;
         arcgisApi: string;
         baseUrl: string;
         tiledUrls: Array<{
@@ -1717,7 +1716,6 @@ declare namespace flagwind {
 }
 declare namespace flagwind {
     interface IMapSetting {
-        mapType: String;
         wkid: number;
         extent: Array<number>;
         units: number;
@@ -3151,7 +3149,6 @@ declare var minemap: any;
 declare var turf: any;
 declare namespace flagwind {
     class MinemapSetting implements IMapSetting {
-        mapType: String;
         mapDomain: string;
         mapVersion: string;
         accessToken: string;
