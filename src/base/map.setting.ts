@@ -1,6 +1,5 @@
 namespace flagwind {
     export interface IMapSetting {
-        mapType: String;
         wkid: number; // 生产环境使用
         extent: Array<number>;
         units: number;// 用于地图距离求解单位控件参数
