@@ -21,12 +21,12 @@ namespace flagwind {
         public onCreateGraphicsLayer(options: any) {
             const layer = new MinemapGraphicsLayer(options);
             // 当点击地图要素对象时，会触发要素图层对应的事件
-            layer.on("onClick", (evt: any) => this.dispatchEvent("onClick", evt));
-            layer.on("onDblClick", (evt: any) => this.dispatchEvent("onDblClick", evt));
-            layer.on("onMouseDown", (evt: any) => this.dispatchEvent("onMouseDown", evt));
-            layer.on("onMouseUp", (evt: any) => this.dispatchEvent("onMouseUp", evt));
-            layer.on("onMouseOut", (evt: any) => this.dispatchEvent("onMouseOut", evt));
-            layer.on("onMouseOver", (evt: any) => this.dispatchEvent("onMouseOver", evt));
+            layer.on("onClick", (evt: any) => this.dispatchEvent("onClick", evt.data));
+            layer.on("onDblClick", (evt: any) => this.dispatchEvent("onDblClick", evt.data));
+            layer.on("onMouseDown", (evt: any) => this.dispatchEvent("onMouseDown", evt.data));
+            layer.on("onMouseUp", (evt: any) => this.dispatchEvent("onMouseUp", evt.data));
+            layer.on("onMouseOut", (evt: any) => this.dispatchEvent("onMouseOut", evt.data));
+            layer.on("onMouseOver", (evt: any) => this.dispatchEvent("onMouseOver", evt.data));
             return layer;
         }
 
