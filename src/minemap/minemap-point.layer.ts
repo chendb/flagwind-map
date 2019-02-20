@@ -17,9 +17,8 @@ namespace flagwind {
             options: any
         ) {
             super(flagwindMap, id, {
-                ...{ autoInit: true },
-                ...options,
-                ...MINEMAP_POINT_LAYER_OPTIONS
+                ...MINEMAP_POINT_LAYER_OPTIONS,
+                ...options
             });
         }
 
