@@ -7755,6 +7755,7 @@ var flagwind;
             this.moveLineLayer.addGraphic(segment.name, lineGraphic);
         };
         MinemapRouteLayer.prototype.onGetStandardStops = function (name, stops) {
+            var _this = this;
             var list = [];
             if (stops == null || stops.length === 0)
                 return list;
@@ -7765,7 +7766,13 @@ var flagwind;
                     list.push(g);
                 }
                 else {
-                    throw new Error("未知的停靠点定义.");
+                    var mg = new flagwind.MinemapPointGraphic({
+                        id: g.id,
+                        point: _this.flagwindMap.getPoint(g),
+                        className: "graphic-stop",
+                        attributes: { __type: "stop", __line: name, __model: g }
+                    });
+                    list.push(mg);
                 }
             });
             return list;
@@ -7783,8 +7790,8 @@ var flagwind;
             var endXY = segment.endGraphic.geometry.x + "," + segment.endGraphic.geometry.y;
             var wayXY = null;
             if (waypoints) {
-                // wayXY = waypoints.map(g => `${ g.geometry.x },${ g.geometry.y }`).join(",");
-                wayXY = waypoints.join(",");
+                wayXY = waypoints.map(function (g) { return g.geometry.x + "," + g.geometry.y; }).join(",");
+                // wayXY = waypoints.join(",");
             }
             minemap.service.queryRouteDrivingResult3(startXY, endXY, wayXY, 2, "", function (error, results) {
                 if (error) {

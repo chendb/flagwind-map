@@ -70,7 +70,13 @@ namespace flagwind {
                     g.attributes.__line = name;
                     list.push(g);
                 } else {
-                    throw new Error("未知的停靠点定义.");
+                    let mg = new MinemapPointGraphic({
+                        id: g.id,
+                        point: this.flagwindMap.getPoint(g),
+                        className: "graphic-stop",
+                        attributes: { __type: "stop", __line: name,__model: g }
+                    });
+                    list.push(mg);
                 }
             });
             return list;
@@ -88,8 +94,8 @@ namespace flagwind {
             let endXY = segment.endGraphic.geometry.x + "," + segment.endGraphic.geometry.y;
             let wayXY: string = null;
             if (waypoints) {
-                // wayXY = waypoints.map(g => `${ g.geometry.x },${ g.geometry.y }`).join(",");
-                wayXY = waypoints.join(",");
+                wayXY = waypoints.map(g => `${ g.geometry.x },${ g.geometry.y }`).join(",");
+                // wayXY = waypoints.join(",");
             }
 
             minemap.service.queryRouteDrivingResult3(startXY, endXY, wayXY, 2, "", (error: any, results: any) => {
