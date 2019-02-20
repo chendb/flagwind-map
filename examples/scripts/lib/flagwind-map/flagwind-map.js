@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.35 
+* flagwind-map v1.0.36 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -7405,7 +7405,7 @@ var flagwind;
     var MinemapPointLayer = /** @class */ (function (_super) {
         __extends(MinemapPointLayer, _super);
         function MinemapPointLayer(flagwindMap, id, options) {
-            return _super.call(this, flagwindMap, id, __assign({ autoInit: true }, options, flagwind.MINEMAP_POINT_LAYER_OPTIONS)) || this;
+            return _super.call(this, flagwindMap, id, __assign({}, flagwind.MINEMAP_POINT_LAYER_OPTIONS, options)) || this;
         }
         MinemapPointLayer.prototype.onCreateGraphicsLayer = function (options) {
             var _this = this;
