@@ -232,7 +232,7 @@ declare namespace flagwind {
         /**
          * 从地图移除
          */
-        removeFormMap(): void;
+        removeFromMap(): void;
         /**
          * 显示InfoWindow（在flagwind包下可用，对外不要调用此方法）
          * @param args
@@ -2962,6 +2962,7 @@ declare namespace flagwind {
     }
 }
 declare namespace flagwind {
+    const MINEMAP_POINT_LAYER_OPTIONS: any;
     /**
      * 点图层
      */

@@ -307,7 +307,7 @@ var flagwind;
     }());
     flagwind.EventProvider = EventProvider;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -354,7 +354,7 @@ var flagwind;
             this.layer.addToMap(map);
         };
         FlagwindFeatureLayer.prototype.removeLayer = function (map) {
-            this.layer.removeFormMap(map);
+            this.layer.removeFromMap(map);
         };
         FlagwindFeatureLayer.prototype.clear = function () {
             this.layer.clear();
@@ -742,7 +742,7 @@ var flagwind;
         /**
          * 从地图移除
          */
-        FlagwindBusinessLayer.prototype.removeFormMap = function () {
+        FlagwindBusinessLayer.prototype.removeFromMap = function () {
             this.flagwindMap.removeFeatureLayer(this.id);
         };
         /**
@@ -941,7 +941,7 @@ var flagwind;
     }(flagwind.FlagwindFeatureLayer));
     flagwind.FlagwindBusinessLayer = FlagwindBusinessLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 var flagwind;
 (function (flagwind) {
     flagwind.ESRI_CLUSTER_LAYER_OPTIONS = {
@@ -1048,7 +1048,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 try {
                     if (!this._map) {
                         this._map = map;
@@ -1262,7 +1262,7 @@ var flagwind;
     }(flagwind.FlagwindBusinessLayer));
     flagwind.EsriClusterLayer = EsriClusterLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -1812,7 +1812,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -1934,7 +1934,7 @@ var flagwind;
             this.layer.addToMap(map);
         };
         FlagwindGroupLayer.prototype.removeLayer = function (map) {
-            this.layer.removeFormMap(map);
+            this.layer.removeFromMap(map);
         };
         FlagwindGroupLayer.prototype.clear = function () {
             this.layer.clear();
@@ -2061,7 +2061,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -2212,7 +2212,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -2510,10 +2510,11 @@ var flagwind;
     }(flagwind.FlagwindMap));
     flagwind.EsriMap = EsriMap;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 var flagwind;
 (function (flagwind) {
     flagwind.ESRI_POINT_LAYER_OPTIONS = {
+        getImageUrl: null,
         onEvent: function (eventName, evt) {
             switch (eventName) {
                 case "onMouseOver":
@@ -2562,7 +2563,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 try {
                     if (!this._map) {
                         this._map = map;
@@ -2577,6 +2578,9 @@ var flagwind;
             // return new EsriGraphicsLayer(options);
         };
         EsriPointLayer.prototype.getImageUrl = function (item) {
+            if (this.options.getImageUrl) {
+                return this.options.getImageUrl(item);
+            }
             var imageUrl = this.options.symbol.imageUrl;
             if (typeof imageUrl === "string" && imageUrl) {
                 var key = "imageUrl" + (item.status || "") + (item.selected ? "checked" : "");
@@ -2640,7 +2644,7 @@ var flagwind;
     }(flagwind.FlagwindBusinessLayer));
     flagwind.EsriPointLayer = EsriPointLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 var flagwind;
 (function (flagwind) {
     flagwind.ESRI_POLYGON_LAYER_OPTIONS = {
@@ -2683,7 +2687,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -2738,7 +2742,7 @@ var flagwind;
     }(flagwind.FlagwindBusinessLayer));
     flagwind.EsriPolygonLayer = EsriPolygonLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 var flagwind;
 (function (flagwind) {
     flagwind.ESRI_POLYLINE_LAYER_OPTIONS = {
@@ -2772,7 +2776,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -3922,7 +3926,7 @@ var flagwind;
             this.options = options;
             this.isShow = true;
             this.options = __assign({}, flagwind.TRACK_LAYER_OPTIONS, options);
-            this.businessLayer.removeFormMap();
+            this.businessLayer.removeFromMap();
             this.businessLayer.addToMap();
             this.id = this.options.id || "flagwind_track_layer";
             if (this.id) {
@@ -6031,7 +6035,7 @@ var flagwind;
     }(flagwind.Exception));
     flagwind.InvalidOperationException = InvalidOperationException;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -6269,7 +6273,7 @@ var flagwind;
     }());
     flagwind.MinemapEditLayer = MinemapEditLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     var MinemapGraphicsLayer = /** @class */ (function (_super) {
@@ -7376,13 +7380,17 @@ var flagwind;
 /// <reference path="../base/flagwind-business.layer.ts" />
 var flagwind;
 (function (flagwind) {
+    flagwind.MINEMAP_POINT_LAYER_OPTIONS = {
+        getImageUrl: null,
+        layerType: "point"
+    };
     /**
      * 点图层
      */
     var MinemapPointLayer = /** @class */ (function (_super) {
         __extends(MinemapPointLayer, _super);
         function MinemapPointLayer(flagwindMap, id, options) {
-            return _super.call(this, flagwindMap, id, __assign({ autoInit: true }, options, { layerType: flagwind.LayerType.point })) || this;
+            return _super.call(this, flagwindMap, id, __assign({ autoInit: true }, options, flagwind.MINEMAP_POINT_LAYER_OPTIONS)) || this;
         }
         MinemapPointLayer.prototype.onCreateGraphicsLayer = function (options) {
             var _this = this;
@@ -7397,6 +7405,9 @@ var flagwind;
             return layer;
         };
         MinemapPointLayer.prototype.getImageUrl = function (item) {
+            if (this.options.getImageUrl) {
+                return this.options.getImageUrl(item);
+            }
             var imageUrl = this.options.symbol.imageUrl;
             if (typeof imageUrl === "string" && imageUrl) {
                 var key = "imageUrl" + (item.status || "") + (item.selected ? "checked" : "");
