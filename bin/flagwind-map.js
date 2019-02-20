@@ -7450,7 +7450,7 @@ var flagwind;
          */
         MinemapPointLayer.prototype.onCreatGraphicByModel = function (item) {
             var className = this.options.symbol.className || "graphic-point";
-            var imageUrl = this.options.symbol.imageUrl || this.options.imageUrl;
+            var imageUrl = this.getImageUrl(item);
             var attr = __assign({}, item, { __type: this.layerType });
             return new flagwind.MinemapPointGraphic({
                 id: item.id,

@@ -84,8 +84,7 @@ namespace flagwind {
          */
         public onCreatGraphicByModel(item: any): any {
             let className = this.options.symbol.className || "graphic-point";
-            let imageUrl =
-                this.options.symbol.imageUrl || (<any>this.options).imageUrl;
+            let imageUrl = this.getImageUrl(item);
             let attr = { ...item, ...{ __type: this.layerType } };
             return new MinemapPointGraphic({
                 id: item.id,
