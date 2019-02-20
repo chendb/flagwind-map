@@ -25,7 +25,7 @@ namespace flagwind {
         }
 
         public removeLayer(map: any) {
-            this.layer.removeFormMap(map);
+            this.layer.removeFromMap(map);
         }
 
         public clear() {

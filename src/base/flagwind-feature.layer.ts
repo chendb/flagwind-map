@@ -1,4 +1,4 @@
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 namespace flagwind {
 
     /**
@@ -37,7 +37,7 @@ namespace flagwind {
         }
 
         public removeLayer(map: any) {
-            this.layer.removeFormMap(map);
+            this.layer.removeFromMap(map);
         }
 
         public clear(): void {

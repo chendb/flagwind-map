@@ -192,7 +192,7 @@ var flagwind;
     }());
     flagwind.EventProvider = EventProvider;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -240,7 +240,7 @@ var flagwind;
             this.layer.addToMap(map);
         };
         FlagwindFeatureLayer.prototype.removeLayer = function (map) {
-            this.layer.removeFormMap(map);
+            this.layer.removeFromMap(map);
         };
         FlagwindFeatureLayer.prototype.clear = function () {
             this.layer.clear();
@@ -411,7 +411,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -512,7 +512,7 @@ var flagwind;
             this.layer.addToMap(map);
         };
         FlagwindGroupLayer.prototype.removeLayer = function (map) {
-            this.layer.removeFormMap(map);
+            this.layer.removeFromMap(map);
         };
         FlagwindGroupLayer.prototype.clear = function () {
             this.layer.clear();
@@ -639,7 +639,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -783,7 +783,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -819,7 +819,7 @@ var flagwind;
     }(flagwind.FlagwindFeatureLayer));
     flagwind.EsriLocationLayer = EsriLocationLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     flagwind.MAP_OPTIONS = {
@@ -1856,7 +1856,7 @@ var flagwind;
         /**
          * 从地图移除
          */
-        FlagwindBusinessLayer.prototype.removeFormMap = function () {
+        FlagwindBusinessLayer.prototype.removeFromMap = function () {
             this.flagwindMap.removeFeatureLayer(this.id);
         };
         // #endregion
@@ -1964,7 +1964,7 @@ var flagwind;
     }(flagwind.FlagwindFeatureLayer));
     flagwind.FlagwindBusinessLayer = FlagwindBusinessLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 var flagwind;
 (function (flagwind) {
     flagwind.ESRI_POINT_LAYER_OPTIONS = {
@@ -2024,7 +2024,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 try {
                     if (!this._map) {
                         this._map = map;
@@ -2234,7 +2234,7 @@ var flagwind;
     }(flagwind.FlagwindBusinessLayer));
     flagwind.EsriPointLayer = EsriPointLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 var flagwind;
 (function (flagwind) {
     flagwind.ESRI_POLYGON_LAYER_OPTIONS = {
@@ -2281,7 +2281,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -2422,7 +2422,7 @@ var flagwind;
     }(flagwind.FlagwindBusinessLayer));
     flagwind.EsriPolygonLayer = EsriPolygonLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 var flagwind;
 (function (flagwind) {
     flagwind.ESRI_POLYLINE_LAYER_OPTIONS = {
@@ -2458,7 +2458,7 @@ var flagwind;
             layer.addToMap = function (map) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map) {
+            layer.removeFromMap = function (map) {
                 map.removeLayer(this);
             };
             return layer;
@@ -3491,7 +3491,7 @@ var flagwind;
     }(flagwind.FlagwindRouteLayer));
     flagwind.EsriRouteLayer = EsriRouteLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     flagwind.SELECT_BOX_OPTIONS_ESRI = {
@@ -3690,7 +3690,7 @@ var flagwind;
             this.options = options;
             this.isShow = true;
             this.options = __assign({}, flagwind.TRACK_LAYER_OPTIONS, options);
-            this.businessLayer.removeFormMap();
+            this.businessLayer.removeFromMap();
             this.businessLayer.addToMap();
             this.id = this.options.id || "flagwind_track_layer";
             if (this.id) {
@@ -4103,7 +4103,7 @@ var flagwind;
         }
     };
 })(flagwind || (flagwind = {}));
-/// <reference path="../base/flagwind.draw.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind.draw.ts" />;
 var flagwind;
 (function (flagwind) {
     /**
@@ -5790,7 +5790,7 @@ var flagwind;
     }(flagwind.Exception));
     flagwind.InvalidOperationException = InvalidOperationException;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -6004,7 +6004,7 @@ var flagwind;
     }());
     flagwind.MinemapEditLayer = MinemapEditLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     var MinemapGraphicsLayer = /** @class */ (function (_super) {
@@ -6245,7 +6245,7 @@ var flagwind;
     }());
     flagwind.MinemapHeatmapLayer = MinemapHeatmapLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -6348,7 +6348,7 @@ var flagwind;
     }(flagwind.EventProvider));
     flagwind.MinemapLabelGraphic = MinemapLabelGraphic;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -7251,7 +7251,7 @@ var flagwind;
     }(flagwind.FlagwindBusinessLayer));
     flagwind.MinemapPointLayer = MinemapPointLayer;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -7349,7 +7349,7 @@ var flagwind;
     }(flagwind.EventProvider));
     flagwind.MinemapPolygonGraphic = MinemapPolygonGraphic;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     /**
@@ -7714,7 +7714,7 @@ var flagwind;
     }());
     flagwind.RouteRow = RouteRow;
 })(flagwind || (flagwind = {}));
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 var flagwind;
 (function (flagwind) {
     flagwind.SELECT_BOX_OPTIONS = {

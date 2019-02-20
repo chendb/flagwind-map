@@ -1,8 +1,9 @@
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 
 namespace flagwind {
 
     export const ESRI_POINT_LAYER_OPTIONS: any = {
+        getImageUrl: null,  // getImageUrl: (item: any) => String,
         onEvent: (eventName: string, evt: any) => {  // 事件回调
             switch (eventName) {
                 case "onMouseOver":
@@ -48,7 +49,7 @@ namespace flagwind {
             layer.addToMap = function(map: any) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function(map: any) {
+            layer.removeFromMap = function(map: any) {
                 try {
                     if (!this._map) {
                         this._map = map;
@@ -63,6 +64,9 @@ namespace flagwind {
         }
 
         public getImageUrl(item: any): string {
+            if((<any>this.options).getImageUrl) {
+                return (<any>this.options).getImageUrl(item);
+            }
             let imageUrl = this.options.symbol.imageUrl;
             if (typeof imageUrl === "string" && imageUrl) {
                 const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;

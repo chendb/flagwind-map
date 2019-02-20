@@ -37,7 +37,7 @@ namespace flagwind {
 
         public constructor(public businessLayer: FlagwindBusinessLayer, public routeLayer: FlagwindRouteLayer, public options: any) {
             this.options = { ...TRACK_LAYER_OPTIONS, ...options };
-            this.businessLayer.removeFormMap();
+            this.businessLayer.removeFromMap();
             this.businessLayer.addToMap();
             this.id = this.options.id || "flagwind_track_layer";
             if (this.id) {

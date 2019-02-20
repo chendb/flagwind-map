@@ -1,4 +1,4 @@
-/// <reference path="../base/flagwind-business.layer.ts" />import { resolve } from "url";
+/// <reference path="../base/flagwind-business.layer.ts" />;
 
 namespace flagwind {
 
@@ -42,7 +42,7 @@ namespace flagwind {
             layer.addToMap = function (map: any) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map: any) {
+            layer.removeFromMap = function (map: any) {
                 map.removeLayer(this);
             };
             return layer;

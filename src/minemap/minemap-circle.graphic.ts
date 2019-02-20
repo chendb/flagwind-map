@@ -1,4 +1,4 @@
-/// <reference path="../events/EventProvider" />
+/// <reference path="../events/EventProvider.ts" />
 namespace flagwind {
 
     /**

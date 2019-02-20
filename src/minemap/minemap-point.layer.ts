@@ -1,6 +1,11 @@
 /// <reference path="../base/flagwind-business.layer.ts" />
 
 namespace flagwind {
+    export const MINEMAP_POINT_LAYER_OPTIONS: any = {
+        getImageUrl: null,  // getImageUrl: (item: any) => String,
+        layerType: "point"
+    };
+
     /**
      * 点图层
      */
@@ -14,7 +19,7 @@ namespace flagwind {
             super(flagwindMap, id, {
                 ...{ autoInit: true },
                 ...options,
-                ...{ layerType: LayerType.point }
+                ...MINEMAP_POINT_LAYER_OPTIONS
             });
         }
 
@@ -31,6 +36,9 @@ namespace flagwind {
         }
 
         public getImageUrl(item: any): string {
+            if((<any>this.options).getImageUrl) {
+                return (<any>this.options).getImageUrl(item);
+            }
             let imageUrl = this.options.symbol.imageUrl;
             if (typeof imageUrl === "string" && imageUrl) {
                 const key = `imageUrl${item.status || ""}${item.selected ? "checked" : ""}`;

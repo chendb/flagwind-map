@@ -5,7 +5,7 @@
 *      chendebao <hbchendb1985@gmail.com>
 * 
 * Licensed under the MIT License.
-* Copyright (C) 2018-2018 Flagwind Inc. All rights reserved. 
+* Copyright (C) 2018-2019 Flagwind Inc. All rights reserved. 
 */
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :

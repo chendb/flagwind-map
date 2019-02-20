@@ -7,7 +7,7 @@ namespace flagwind {
             layer.addToMap = function (map: any) {
                 map.addLayer(this);
             };
-            layer.removeFormMap = function (map: any) {
+            layer.removeFromMap = function (map: any) {
                 map.removeLayer(this);
             };
             return layer;

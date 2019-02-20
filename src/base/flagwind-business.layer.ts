@@ -51,7 +51,7 @@ namespace flagwind {
         timeout: 3000,
         autoInit: true,
         enableEdit: true,           // 启用要素编辑功能
-        selectMode: 0,              // 0不启用选择 1为多选，2为单选
+        selectMode: 0,              // 0不启用选择 1为单选，2为多选
         showTooltip: false,
         showInfoWindow: false,
         symbol: null,
@@ -337,7 +337,7 @@ namespace flagwind {
         /**
          * 从地图移除
          */
-        public removeFormMap(): void {
+        public removeFromMap(): void {
             this.flagwindMap.removeFeatureLayer(this.id);
         }
 

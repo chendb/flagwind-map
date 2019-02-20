@@ -2201,7 +2201,7 @@
 									"_parent": {
 										"$ref": "AAAAAAFkowXdVnl3dZE="
 									},
-									"name": "removeFormMap",
+									"name": "removeFromMap",
 									"documentation": "从地图移除"
 								},
 								{
@@ -7806,7 +7806,7 @@
 													"top": 1071,
 													"width": 461.97607421875,
 													"height": 13,
-													"text": "+removeFormMap()",
+													"text": "+removeFromMap()",
 													"horizontalAlignment": 0
 												},
 												{
@@ -17483,7 +17483,7 @@
 													"top": 363,
 													"width": 461.97607421875,
 													"height": 13,
-													"text": "+removeFormMap()",
+													"text": "+removeFromMap()",
 													"horizontalAlignment": 0
 												},
 												{
@@ -30268,7 +30268,7 @@
 											"top": 644,
 											"width": 461.97607421875,
 											"height": 13,
-											"text": "+removeFormMap()",
+											"text": "+removeFromMap()",
 											"horizontalAlignment": 0
 										},
 										{

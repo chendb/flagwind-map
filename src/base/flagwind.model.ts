@@ -6,7 +6,7 @@ namespace flagwind {
         symbol: any;
         timeout: number;
         enableEdit: boolean;    // 启用要素编辑功能
-        selectMode: number;     // 0为不启用选择功能 1为多选，2为单选
+        selectMode: number;     // 0不启用选择 1为单选，2为多选
         showTooltip: boolean;
         showInfoWindow: boolean;
         dataType: String;
