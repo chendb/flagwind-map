@@ -1,4 +1,6 @@
+
 namespace flagwind {
+
     export class MinemapUtils {
 
         /**
@@ -6,10 +8,11 @@ namespace flagwind {
          * @param from 起点
          * @param to 终点
          */
-        public static getLength(from: MinemapPoint, to: MinemapPoint): number {
-            const units = "kilometers";
-            let distance = turf.distance(from.toJson(), to.toJson(), units);
-            return distance;
+        public static getLength(from: MinemapPoint, to: MinemapPoint,units: string = "kilometers"): number {
+            let distance1 = require("@turf/turf").distance(from.toJson(), to.toJson(), {
+                units: units
+            });
+            return distance1;
         }
 
         /**

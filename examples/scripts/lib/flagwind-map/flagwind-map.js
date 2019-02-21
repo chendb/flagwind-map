@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.37 
+* flagwind-map v1.0.38 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -6800,7 +6800,7 @@ var flagwind;
             var from = new MinemapPoint(this.center[0], this.center[1]);
             var to = new MinemapPoint(point[0], point[1]);
             var units = "meters";
-            var distance = turf.distance(from.toJson(), to.toJson(), units);
+            var distance = flagwind.MinemapUtils.getLength(from, to, units);
             return distance <= this.radius;
             // let offsetX = point[0] - this.center[0];
             // let offsetY = point[1] - this.center[1];
@@ -8216,6 +8216,7 @@ var flagwind;
     }(flagwind.MinemapRouteLayer));
     flagwind.MinemapVehicleRouteLayer = MinemapVehicleRouteLayer;
 })(flagwind || (flagwind = {}));
+// declare var turf: any;
 var flagwind;
 (function (flagwind) {
     var MinemapSetting = /** @class */ (function () {
@@ -8247,10 +8248,12 @@ var flagwind;
          * @param from 起点
          * @param to 终点
          */
-        MinemapUtils.getLength = function (from, to) {
-            var units = "kilometers";
-            var distance = turf.distance(from.toJson(), to.toJson(), units);
-            return distance;
+        MinemapUtils.getLength = function (from, to, units) {
+            if (units === void 0) { units = "kilometers"; }
+            var distance1 = require("@turf/turf").distance(from.toJson(), to.toJson(), {
+                units: units
+            });
+            return distance1;
         };
         /**
          * 求多点之间连线的距离

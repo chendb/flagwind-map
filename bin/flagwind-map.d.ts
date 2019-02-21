@@ -3147,7 +3147,6 @@ declare namespace flagwind {
     }
 }
 declare var minemap: any;
-declare var turf: any;
 declare namespace flagwind {
     class MinemapSetting implements IMapSetting {
         mapDomain: string;
@@ -3173,7 +3172,7 @@ declare namespace flagwind {
          * @param from 起点
          * @param to 终点
          */
-        static getLength(from: MinemapPoint, to: MinemapPoint): number;
+        static getLength(from: MinemapPoint, to: MinemapPoint, units?: string): number;
         /**
          * 求多点之间连线的距离
          * @param points 多点集

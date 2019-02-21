@@ -173,7 +173,7 @@ namespace flagwind {
             let from = new MinemapPoint(this.center[0], this.center[1]);
             let to = new MinemapPoint(point[0], point[1]);
             const units = "meters";
-            let distance = turf.distance(from.toJson(), to.toJson(), units);
+            let distance = MinemapUtils.getLength(from, to, units);
             return distance <= this.radius;
 
             // let offsetX = point[0] - this.center[0];

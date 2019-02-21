@@ -1,6 +1,6 @@
 {
     "name": "flagwind-map",
-    "version": "1.0.37",
+    "version": "1.0.38",
     "description": "flagwind map library",
     "author": "chendb <hbchendb1985@gmail.com>",
     "scripts": {
@@ -66,5 +66,8 @@
     "engines": {
         "node": ">= 6.0.0",
         "npm": ">= 3.0.0"
+    },
+    "dependencies": {
+        "@turf/turf": "^5.1.6"
     }
 }
