@@ -155,7 +155,12 @@ namespace flagwind {
                     <div class="fm-btn route-btn clear" title="清除轨迹" data-operate="clear"><i class="icon iconfont icon-clear"></i></div>
                 </div>
                 <div class="route-text"></div>`;
-            this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
+
+            if (this.flagwindMap.innerMap.container) {
+                this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
+            } else {
+                document.querySelector("#" + this.flagwindMap.mapElement).appendChild(this._trackToolBox);
+            }
 
             this._playButton = document.querySelector("#" + this.toolBoxId + " .continue");
             this._pauseButton = document.querySelector("#" + this.toolBoxId + " .pause");

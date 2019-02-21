@@ -29,7 +29,7 @@ namespace flagwind {
             this.attributes = options.attributes ? options.attributes : {};
             this.icon = options.icon;
             if ((!this.icon) && this.symbol.imageUrl) {
-                this.icon = new minemap.Icon({ imageUrl: this.symbol.imageUrl, imageSize: this.symbol.imageSize, imgOffset: this.symbol.imgOffset });
+                this.icon = new minemap.Icon({ imageUrl: this.symbol.imageUrl, imageSize: this.symbol.imageSize, imgOffset: this.symbol.imageOffset });
             }
             this.marker = new minemap.Marker(this.icon, { /* offset: [-10, -14] */ });
             this.element = this.marker.getElement();
@@ -278,6 +278,44 @@ namespace flagwind {
             if (this.layer) {
                 this.layer.dispatchEvent(type, data);
             }
+        }
+
+        public static getStandardSymbol(options: any): { imageUrl: string; imageSize: Array<number>; imageOffset: Array<number>; className: string } {
+            let imageSize = [20, 28];
+            let imageOffset = [-imageSize[0] / 2, -imageSize[1] / 2];
+            let markerUrl = null;
+            let markerClassName = null;
+            if (options.symbol) {
+                markerClassName = options.symbol.className || "graphic-point";
+                markerUrl = options.symbol.imageUrl || options.symbol.image;
+                if (options.symbol.size) {
+                    if (options.symbol.size instanceof Array) {
+                        imageSize = options.symbol.size;
+                    } else {
+                        imageSize[0] = options.symbol.size.width;
+                        imageSize[1] = options.symbol.size.heigth;
+                    }
+                } else if (options.symbol.width !== undefined && options.symbol.heigth !== undefined) {
+                    imageSize[0] = options.symbol.width;
+                    imageSize[1] = options.symbol.heigth;
+                }
+                if (options.symbol.offset) {
+                    if (
+                        options.symbol.offset instanceof Array
+                    ) {
+                        imageOffset = options.symbol.offset;
+                    } else if (options.offset.x !== undefined && options.offset.y !== undefined) {
+                        imageOffset[0] = options.symbol.offset.x;
+                        imageOffset[1] = options.symbol.offset.y;
+                    }
+                }
+            }
+            return {
+                imageUrl: markerUrl,
+                imageSize: imageSize,
+                imageOffset: imageOffset,
+                className: markerClassName
+            };
         }
     }
 }

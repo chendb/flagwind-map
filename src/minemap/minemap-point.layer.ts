@@ -85,13 +85,16 @@ namespace flagwind {
             let className = this.options.symbol.className || "graphic-point";
             let imageUrl = this.getImageUrl(item);
             let attr = { ...item, ...{ __type: this.layerType } };
+
+            let symbol = MinemapPointGraphic.getStandardSymbol(this.options);
+
             return new MinemapPointGraphic({
                 id: item.id,
                 className: className,
                 symbol: {
-                    imageUrl: imageUrl,
-                    imageSize: this.options.symbol.imageSize || [20, 28],
-                    imgOffset: this.options.symbol.imgOffset || [-10, -14]
+                    imageUrl: imageUrl || symbol.imageUrl,
+                    imageSize: symbol.imageSize,
+                    imageOffset: symbol.imageOffset
                 },
                 point: {
                     y: this.getPoint(item).y,
