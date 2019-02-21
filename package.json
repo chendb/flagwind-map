@@ -30,7 +30,7 @@
     },
     "bugs": {
         "url": "https://github.com/chendb/flagwind-map/issues"
-    },
+    },                         
     "devDependencies": {
         "@types/chai": "^4.0.4",
         "@types/mocha": "^2.2.44",

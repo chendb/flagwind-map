@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.38 
+* flagwind-map v1.0.39 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -4071,7 +4071,12 @@ var flagwind;
             this._trackToolBox.classList.add("fm-track-box");
             this._trackToolBox.innerHTML =
                 "<div class=\"fm-btn-group\">\n                    <div class=\"fm-btn route-btn continue\" title=\"\u64AD\u653E\" data-operate=\"continue\"><i class=\"icon iconfont icon-play\"></i></div>\n                    <div class=\"fm-btn route-btn pause\" title=\"\u6682\u505C\" data-operate=\"pause\" style=\"display:none;\"><i class=\"icon iconfont icon-pause\"></i></div>\n                    <div class=\"fm-btn route-btn down\" title=\"\u51CF\u901F\" data-operate=\"down\"><i class=\"icon iconfont icon-speed-down\"></i></div>\n                    <div class=\"fm-btn route-btn up\" title=\"\u52A0\u901F\" data-operate=\"up\"><i class=\"icon iconfont icon-speed-up\"></i></div>\n                    <div class=\"fm-btn route-btn clear\" title=\"\u6E05\u9664\u8F68\u8FF9\" data-operate=\"clear\"><i class=\"icon iconfont icon-clear\"></i></div>\n                </div>\n                <div class=\"route-text\"></div>";
-            this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
+            if (this.flagwindMap.innerMap.container) {
+                this.flagwindMap.innerMap.container.appendChild(this._trackToolBox);
+            }
+            else {
+                document.querySelector("#" + this.flagwindMap.mapElement).appendChild(this._trackToolBox);
+            }
             this._playButton = document.querySelector("#" + this.toolBoxId + " .continue");
             this._pauseButton = document.querySelector("#" + this.toolBoxId + " .pause");
             this._speedUpButton = document.querySelector("#" + this.toolBoxId + " .up");
@@ -7146,7 +7151,7 @@ var flagwind;
             _this.attributes = options.attributes ? options.attributes : {};
             _this.icon = options.icon;
             if ((!_this.icon) && _this.symbol.imageUrl) {
-                _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl, imageSize: _this.symbol.imageSize, imgOffset: _this.symbol.imgOffset });
+                _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl, imageSize: _this.symbol.imageSize, imgOffset: _this.symbol.imageOffset });
             }
             _this.marker = new minemap.Marker(_this.icon, { /* offset: [-10, -14] */});
             _this.element = _this.marker.getElement();
@@ -7388,6 +7393,44 @@ var flagwind;
                 this.layer.dispatchEvent(type, data);
             }
         };
+        MinemapPointGraphic.getStandardSymbol = function (options) {
+            var imageSize = [20, 28];
+            var imageOffset = [-imageSize[0] / 2, -imageSize[1] / 2];
+            var markerUrl = null;
+            var markerClassName = null;
+            if (options.symbol) {
+                markerClassName = options.symbol.className || "graphic-point";
+                markerUrl = options.symbol.imageUrl || options.symbol.image;
+                if (options.symbol.size) {
+                    if (options.symbol.size instanceof Array) {
+                        imageSize = options.symbol.size;
+                    }
+                    else {
+                        imageSize[0] = options.symbol.size.width;
+                        imageSize[1] = options.symbol.size.heigth;
+                    }
+                }
+                else if (options.symbol.width !== undefined && options.symbol.heigth !== undefined) {
+                    imageSize[0] = options.symbol.width;
+                    imageSize[1] = options.symbol.heigth;
+                }
+                if (options.symbol.offset) {
+                    if (options.symbol.offset instanceof Array) {
+                        imageOffset = options.symbol.offset;
+                    }
+                    else if (options.offset.x !== undefined && options.offset.y !== undefined) {
+                        imageOffset[0] = options.symbol.offset.x;
+                        imageOffset[1] = options.symbol.offset.y;
+                    }
+                }
+            }
+            return {
+                imageUrl: markerUrl,
+                imageSize: imageSize,
+                imageOffset: imageOffset,
+                className: markerClassName
+            };
+        };
         return MinemapPointGraphic;
     }(flagwind.EventProvider));
     flagwind.MinemapPointGraphic = MinemapPointGraphic;
@@ -7467,13 +7510,14 @@ var flagwind;
             var className = this.options.symbol.className || "graphic-point";
             var imageUrl = this.getImageUrl(item);
             var attr = __assign({}, item, { __type: this.layerType });
+            var symbol = flagwind.MinemapPointGraphic.getStandardSymbol(this.options);
             return new flagwind.MinemapPointGraphic({
                 id: item.id,
                 className: className,
                 symbol: {
-                    imageUrl: imageUrl,
-                    imageSize: this.options.symbol.imageSize || [20, 28],
-                    imgOffset: this.options.symbol.imgOffset || [-10, -14]
+                    imageUrl: imageUrl || symbol.imageUrl,
+                    imageSize: symbol.imageSize,
+                    imageOffset: symbol.imageOffset
                 },
                 point: {
                     y: this.getPoint(item).y,
@@ -7844,11 +7888,14 @@ var flagwind;
         };
         MinemapRouteLayer.prototype.onCreateMoveMark = function (trackline, graphic, angle) {
             var markerUrl = this.getImageUrl(trackline, angle);
+            var symbol = flagwind.MinemapPointGraphic.getStandardSymbol(this.options);
             var marker = new flagwind.MinemapPointGraphic({
                 id: trackline.name,
                 symbol: {
                     imageUrl: markerUrl,
-                    className: "graphic-moving"
+                    imageSize: symbol.imageSize,
+                    imageOffset: symbol.imageOffset,
+                    className: symbol.className || "graphic-moving"
                 },
                 point: graphic.geometry,
                 attributes: graphic.attributes

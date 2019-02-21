@@ -2959,6 +2959,12 @@ declare namespace flagwind {
         setGeometry(value: MinemapGeometry): void;
         addTo(map: any): void;
         protected fireEvent(type: string, data?: any): void;
+        static getStandardSymbol(options: any): {
+            imageUrl: string;
+            imageSize: Array<number>;
+            imageOffset: Array<number>;
+            className: string;
+        };
     }
 }
 declare namespace flagwind {
