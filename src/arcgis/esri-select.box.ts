@@ -131,7 +131,7 @@ namespace flagwind {
             ) as NodeListOf<HTMLElement>;
             for (let i = 0; i < operateBtns.length; i++) {
                 operateBtns[i].onclick = function() {
-                    me.active(this.dataset.operate);
+                    me.active(operateBtns[i].dataset.operate);
                 };
             }
         }

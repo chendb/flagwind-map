@@ -256,6 +256,9 @@ namespace flagwind {
         }
 
         public toMouseMoveEventArgs(args: any) {
+            if (args && args.originalEvent) {
+                args.delta = args.originalEvent;
+            }
             if (args && args.data && args.data.originalEvent) {
                 args.data.delta = args.data.originalEvent;
             }

@@ -3152,6 +3152,21 @@ declare namespace flagwind {
         private toStopPoint(item);
     }
 }
+declare namespace flagwind {
+    /**
+     * 绘制图层
+     */
+    class MinemapDraw implements IFlagwindDraw {
+        flagwindMap: FlagwindMap;
+        draw: any;
+        mode: any;
+        options: any;
+        constructor(flagwindMap: FlagwindMap, options?: any);
+        activate(mode: string, options?: any): void;
+        finish(): void;
+        private onDrawComplete(evt);
+    }
+}
 declare var minemap: any;
 declare namespace flagwind {
     class MinemapSetting implements IMapSetting {

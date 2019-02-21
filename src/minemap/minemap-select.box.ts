@@ -123,7 +123,7 @@ namespace flagwind {
             let me = this;
             for (let i = 0; i < operateBtns.length; i++) {
                 operateBtns[i].onclick = function () {
-                    me.active((<any>this).dataset.operate);
+                    me.active(operateBtns[i].dataset.operate);
                 };
             }
         }

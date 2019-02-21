@@ -293,6 +293,12 @@ namespace flagwind {
          * 继续上次播放
          */
         public move(): void {
+            if (!this.routeLayer.getTrackLine(this.activedTrackLineName)) {
+                if (this._trackToolBox) {
+                    this._toolBoxText.innerHTML = "当前状态：轨迹不存在";
+                }
+                this.options.onMessageEvent("info", "轨迹不存在");
+            }
             this.options.onMessageEvent("info", "播放");
             this.options.onMessageEvent("start", "播放");
             this.routeLayer.move(this.activedTrackLineName);
@@ -307,6 +313,12 @@ namespace flagwind {
          * 重新播放
          */
         public start(): void {
+            if (!this.routeLayer.getTrackLine(this.activedTrackLineName)) {
+                if (this._trackToolBox) {
+                    this._toolBoxText.innerHTML = "当前状态：轨迹不存在";
+                }
+                this.options.onMessageEvent("info", "轨迹不存在");
+            }
             this.options.onMessageEvent("info", "播放");
             this.options.onMessageEvent("start", "播放");
             this.routeLayer.start(this.activedTrackLineName);
@@ -335,6 +347,12 @@ namespace flagwind {
          * 暂停
          */
         public pause(): void {
+            if (!this.routeLayer.getTrackLine(this.activedTrackLineName)) {
+                if (this._trackToolBox) {
+                    this._toolBoxText.innerHTML = "当前状态：轨迹不存在";
+                }
+                this.options.onMessageEvent("info", "轨迹不存在");
+            }
             this.options.onMessageEvent("info", "已暂停");
             this.options.onMessageEvent("pause", "已暂停");
             this.routeLayer.pause(this.activedTrackLineName);
@@ -349,6 +367,13 @@ namespace flagwind {
          * 继续
          */
         public continue(): void {
+            if (!this.routeLayer.getTrackLine(this.activedTrackLineName)) {
+                if (this._trackToolBox) {
+                    this._toolBoxText.innerHTML = "当前状态：轨迹不存在";
+                }
+                this.options.onMessageEvent("info", "轨迹不存在");
+                return;
+            }
             this.options.onMessageEvent("continue", "继续");
             this.routeLayer.continue(this.activedTrackLineName);
             if (this._trackToolBox) {

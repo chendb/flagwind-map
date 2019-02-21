@@ -1,5 +1,49 @@
 
 namespace flagwind {
+
+    class MinemapIcon {
+
+        public element: any;
+        public constructor(public id: string, public options: any) {
+            if (!options.imageSize) {
+                options.imageSize = [0, 0];
+            }
+            if (!options.imageOffset) {
+                options.imageOffset = [0, 0];
+            }
+            this.element = this.createIconElement(id, options);
+        }
+
+        public createIconElement(id: string, iconOption: any) {
+            let el = document.createElement("div");
+            el.id = "marker" + id;
+            el.style["background-image"] = "url(\'" + iconOption.imageUrl + "\')";
+            el.style["background-size"] = "cover";
+            el.style.width = iconOption.imageSize ? iconOption.imageSize[0] : 0 + "px";
+            el.style.height = iconOption.imageSize ? iconOption.imageSize[1] : 0 + "px";
+            el.style["border-radius"] = "50%";
+            el.style.cursor = "pointer";
+            return el;
+        }
+
+        public setImageUrl(url: string): void {
+            this.element.style["background-image"] = "url(\'" + url + "\')";
+        }
+
+        public setOptions(options: any) {
+            if (options.imageUrl) {
+                this.element.style["background-image"] = "url(\'" + options.imageUrl + "\')";
+            }
+
+            if (options.imageSize) {
+                this.element.style.width = options.imageSize[0] + "px";
+                this.element.style.height = options.imageSize[1] + "px";
+            }
+            this.element.style["border-radius"] = "50%";
+            this.element.style.cursor = "pointer";
+        }
+    }
+
     export class MinemapPointGraphic extends EventProvider implements IMinemapGraphic {
 
         private _kind: string = "point";
@@ -25,13 +69,20 @@ namespace flagwind {
             super();
             this.id = options.id;
 
-            this.symbol = options.symbol ? options.symbol : {};
+            this.symbol = { ...{ imageSize: [0, 0], imageOffset: [0, 0] }, ...options.symbol };
             this.attributes = options.attributes ? options.attributes : {};
             this.icon = options.icon;
-            if ((!this.icon) && this.symbol.imageUrl) {
-                this.icon = new minemap.Icon({ imageUrl: this.symbol.imageUrl, imageSize: this.symbol.imageSize, imgOffset: this.symbol.imageOffset });
+
+            if (!this.icon) {
+                if (minemap.Icon) {
+                    this.icon = new minemap.Icon({ imageUrl: this.symbol.imageUrl, imageSize: this.symbol.imageSize });
+                    this.marker = new minemap.Marker(this.icon, { offset: this.symbol.imageOffset });
+                } else {
+                    this.icon = new MinemapIcon(this.id, { imageUrl: this.symbol.imageUrl, imageSize: this.symbol.imageSize });
+                    this.marker = new minemap.Marker(this.icon.element, { offset: this.symbol.imageOffset });
+                }
             }
-            this.marker = new minemap.Marker(this.icon, { /* offset: [-10, -14] */ });
+ 
             this.element = this.marker.getElement();
             if (options.point) {
                 this.geometry = new MinemapPoint(options.point.x, options.point.y, options.point.spatial);
@@ -170,9 +221,9 @@ namespace flagwind {
                 }
                 this.addClass(symbol.className);
             }
-            if (symbol.icon) {
-                this.marker.setIcon(symbol.icon);
-            }
+            // if (symbol.icon) {
+            //     this.marker.setIcon(symbol.icon);
+            // }
             if (symbol.imageUrl) {
                 this.icon.setImageUrl(symbol.imageUrl);
             }
@@ -293,11 +344,11 @@ namespace flagwind {
                         imageSize = options.symbol.size;
                     } else {
                         imageSize[0] = options.symbol.size.width;
-                        imageSize[1] = options.symbol.size.heigth;
+                        imageSize[1] = options.symbol.size.height;
                     }
-                } else if (options.symbol.width !== undefined && options.symbol.heigth !== undefined) {
+                } else if (options.symbol.width !== undefined && options.symbol.height !== undefined) {
                     imageSize[0] = options.symbol.width;
-                    imageSize[1] = options.symbol.heigth;
+                    imageSize[1] = options.symbol.height;
                 }
                 if (options.symbol.offset) {
                     if (

@@ -1,5 +1,5 @@
 /*!
-* flagwind-map v1.0.39 
+* flagwind-map v1.0.40 
 * 
 * Authors:
 *      chendebao <hbchendb1985@gmail.com>
@@ -3807,10 +3807,13 @@ var flagwind;
                 "<div class=\"fm-btn circle\" title=\"\u753B\u5706\" data-operate=\"circle\"><i class=\"icon iconfont icon-circle\"></i></div>\n                <div class=\"fm-btn rectangle\" title=\"\u753B\u77E9\u5F62\" data-operate=\"rectangle\"><i class=\"icon iconfont icon-rectangle\"></i></div>\n                <div class=\"fm-btn polygon\" title=\"\u753B\u591A\u8FB9\u5F62\" data-operate=\"polygon\"><i class=\"icon iconfont icon-polygon\"></i></div>";
             mapEle.appendChild(this.element);
             var operateBtns = document.querySelectorAll("#" + this.element.id + " .fm-btn");
-            for (var i = 0; i < operateBtns.length; i++) {
+            var _loop_2 = function (i) {
                 operateBtns[i].onclick = function () {
-                    me.active(this.dataset.operate);
+                    me.active(operateBtns[i].dataset.operate);
                 };
+            };
+            for (var i = 0; i < operateBtns.length; i++) {
+                _loop_2(i);
             }
         };
         EsriSelectBox.prototype.clear = function () {
@@ -4201,6 +4204,12 @@ var flagwind;
          * 继续上次播放
          */
         FlagwindTrackLayer.prototype.move = function () {
+            if (!this.routeLayer.getTrackLine(this.activedTrackLineName)) {
+                if (this._trackToolBox) {
+                    this._toolBoxText.innerHTML = "当前状态：轨迹不存在";
+                }
+                this.options.onMessageEvent("info", "轨迹不存在");
+            }
             this.options.onMessageEvent("info", "播放");
             this.options.onMessageEvent("start", "播放");
             this.routeLayer.move(this.activedTrackLineName);
@@ -4214,6 +4223,12 @@ var flagwind;
          * 重新播放
          */
         FlagwindTrackLayer.prototype.start = function () {
+            if (!this.routeLayer.getTrackLine(this.activedTrackLineName)) {
+                if (this._trackToolBox) {
+                    this._toolBoxText.innerHTML = "当前状态：轨迹不存在";
+                }
+                this.options.onMessageEvent("info", "轨迹不存在");
+            }
             this.options.onMessageEvent("info", "播放");
             this.options.onMessageEvent("start", "播放");
             this.routeLayer.start(this.activedTrackLineName);
@@ -4240,6 +4255,12 @@ var flagwind;
          * 暂停
          */
         FlagwindTrackLayer.prototype.pause = function () {
+            if (!this.routeLayer.getTrackLine(this.activedTrackLineName)) {
+                if (this._trackToolBox) {
+                    this._toolBoxText.innerHTML = "当前状态：轨迹不存在";
+                }
+                this.options.onMessageEvent("info", "轨迹不存在");
+            }
             this.options.onMessageEvent("info", "已暂停");
             this.options.onMessageEvent("pause", "已暂停");
             this.routeLayer.pause(this.activedTrackLineName);
@@ -4253,6 +4274,13 @@ var flagwind;
          * 继续
          */
         FlagwindTrackLayer.prototype.continue = function () {
+            if (!this.routeLayer.getTrackLine(this.activedTrackLineName)) {
+                if (this._trackToolBox) {
+                    this._toolBoxText.innerHTML = "当前状态：轨迹不存在";
+                }
+                this.options.onMessageEvent("info", "轨迹不存在");
+                return;
+            }
             this.options.onMessageEvent("continue", "继续");
             this.routeLayer.continue(this.activedTrackLineName);
             if (this._trackToolBox) {
@@ -7125,6 +7153,9 @@ var flagwind;
             }
         };
         MinemapMap.prototype.toMouseMoveEventArgs = function (args) {
+            if (args && args.originalEvent) {
+                args.delta = args.originalEvent;
+            }
             if (args && args.data && args.data.originalEvent) {
                 args.data.delta = args.data.originalEvent;
             }
@@ -7136,6 +7167,45 @@ var flagwind;
 })(flagwind || (flagwind = {}));
 var flagwind;
 (function (flagwind) {
+    var MinemapIcon = /** @class */ (function () {
+        function MinemapIcon(id, options) {
+            this.id = id;
+            this.options = options;
+            if (!options.imageSize) {
+                options.imageSize = [0, 0];
+            }
+            if (!options.imageOffset) {
+                options.imageOffset = [0, 0];
+            }
+            this.element = this.createIconElement(id, options);
+        }
+        MinemapIcon.prototype.createIconElement = function (id, iconOption) {
+            var el = document.createElement("div");
+            el.id = "marker" + id;
+            el.style["background-image"] = "url(\'" + iconOption.imageUrl + "\')";
+            el.style["background-size"] = "cover";
+            el.style.width = iconOption.imageSize ? iconOption.imageSize[0] : 0 + "px";
+            el.style.height = iconOption.imageSize ? iconOption.imageSize[1] : 0 + "px";
+            el.style["border-radius"] = "50%";
+            el.style.cursor = "pointer";
+            return el;
+        };
+        MinemapIcon.prototype.setImageUrl = function (url) {
+            this.element.style["background-image"] = "url(\'" + url + "\')";
+        };
+        MinemapIcon.prototype.setOptions = function (options) {
+            if (options.imageUrl) {
+                this.element.style["background-image"] = "url(\'" + options.imageUrl + "\')";
+            }
+            if (options.imageSize) {
+                this.element.style.width = options.imageSize[0] + "px";
+                this.element.style.height = options.imageSize[1] + "px";
+            }
+            this.element.style["border-radius"] = "50%";
+            this.element.style.cursor = "pointer";
+        };
+        return MinemapIcon;
+    }());
     var MinemapPointGraphic = /** @class */ (function (_super) {
         __extends(MinemapPointGraphic, _super);
         function MinemapPointGraphic(options) {
@@ -7147,13 +7217,19 @@ var flagwind;
             _this._isInsided = false;
             _this.isShow = true;
             _this.id = options.id;
-            _this.symbol = options.symbol ? options.symbol : {};
+            _this.symbol = __assign({ imageSize: [0, 0], imageOffset: [0, 0] }, options.symbol);
             _this.attributes = options.attributes ? options.attributes : {};
             _this.icon = options.icon;
-            if ((!_this.icon) && _this.symbol.imageUrl) {
-                _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl, imageSize: _this.symbol.imageSize, imgOffset: _this.symbol.imageOffset });
+            if (!_this.icon) {
+                if (minemap.Icon) {
+                    _this.icon = new minemap.Icon({ imageUrl: _this.symbol.imageUrl, imageSize: _this.symbol.imageSize });
+                    _this.marker = new minemap.Marker(_this.icon, { offset: _this.symbol.imageOffset });
+                }
+                else {
+                    _this.icon = new MinemapIcon(_this.id, { imageUrl: _this.symbol.imageUrl, imageSize: _this.symbol.imageSize });
+                    _this.marker = new minemap.Marker(_this.icon.element, { offset: _this.symbol.imageOffset });
+                }
             }
-            _this.marker = new minemap.Marker(_this.icon, { /* offset: [-10, -14] */});
             _this.element = _this.marker.getElement();
             if (options.point) {
                 _this.geometry = new flagwind.MinemapPoint(options.point.x, options.point.y, options.point.spatial);
@@ -7289,9 +7365,9 @@ var flagwind;
                 }
                 this.addClass(symbol.className);
             }
-            if (symbol.icon) {
-                this.marker.setIcon(symbol.icon);
-            }
+            // if (symbol.icon) {
+            //     this.marker.setIcon(symbol.icon);
+            // }
             if (symbol.imageUrl) {
                 this.icon.setImageUrl(symbol.imageUrl);
             }
@@ -7407,12 +7483,12 @@ var flagwind;
                     }
                     else {
                         imageSize[0] = options.symbol.size.width;
-                        imageSize[1] = options.symbol.size.heigth;
+                        imageSize[1] = options.symbol.size.height;
                     }
                 }
-                else if (options.symbol.width !== undefined && options.symbol.heigth !== undefined) {
+                else if (options.symbol.width !== undefined && options.symbol.height !== undefined) {
                     imageSize[0] = options.symbol.width;
-                    imageSize[1] = options.symbol.heigth;
+                    imageSize[1] = options.symbol.height;
                 }
                 if (options.symbol.offset) {
                     if (options.symbol.offset instanceof Array) {
@@ -8171,10 +8247,13 @@ var flagwind;
             mapEle.appendChild(this.element);
             var operateBtns = document.querySelectorAll("#" + this.id + " .fm-btn");
             var me = this;
-            for (var i = 0; i < operateBtns.length; i++) {
+            var _loop_3 = function (i) {
                 operateBtns[i].onclick = function () {
-                    me.active(this.dataset.operate);
+                    me.active(operateBtns[i].dataset.operate);
                 };
+            };
+            for (var i = 0; i < operateBtns.length; i++) {
+                _loop_3(i);
             }
         };
         MinemapSelectBox.prototype.clear = function () {
@@ -8262,6 +8341,49 @@ var flagwind;
         return MinemapVehicleRouteLayer;
     }(flagwind.MinemapRouteLayer));
     flagwind.MinemapVehicleRouteLayer = MinemapVehicleRouteLayer;
+})(flagwind || (flagwind = {}));
+/// <reference path="../base/flagwind.draw.ts" />
+var flagwind;
+(function (flagwind) {
+    /**
+     * 绘制图层
+     */
+    var MinemapDraw = /** @class */ (function () {
+        function MinemapDraw(flagwindMap, options) {
+            var _this = this;
+            this.options = {
+                boxSelect: true,
+                touchEnabled: true,
+                displayControlsDefault: true,
+                showButtons: false,
+                onEvent: function (eventName, evt) {
+                    // console.log(eventName);
+                }
+            };
+            this.flagwindMap = flagwindMap;
+            this.options = __assign({}, flagwind.DRAW_LAYER_OPTIONS, this.options, options);
+            this.draw = new minemap.edit.init(flagwindMap.map, this.options);
+            this.flagwindMap.innerMap.on("edit.record.create", function (evt) { return _this.onDrawComplete(evt.record.features[0]); });
+        }
+        MinemapDraw.prototype.activate = function (mode, options) {
+            if (this.draw && mode) {
+                var tool = mode.replace(/ /g, "_");
+                this.draw.onBtnCtrlActive(tool);
+            }
+        };
+        MinemapDraw.prototype.finish = function () {
+            // if (this.draw) {
+            //     this.draw.deactivate();
+            // }
+        };
+        MinemapDraw.prototype.onDrawComplete = function (evt) {
+            this.finish();
+            this.options.onEvent("draw-complete", evt.geometry);
+            this.options.onDrawCompleteEvent(evt.geometry);
+        };
+        return MinemapDraw;
+    }());
+    flagwind.MinemapDraw = MinemapDraw;
 })(flagwind || (flagwind = {}));
 // declare var turf: any;
 var flagwind;
